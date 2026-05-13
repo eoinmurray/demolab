@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "katex/dist/katex.min.css";
+
+:root {
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  font-family: var(--font-serif);
+  color: #1a1a1a;
+  background: #fdfdfc;
+}
+
+.katex { font-size: 1em; }

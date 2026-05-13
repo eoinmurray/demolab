@@ -1,0 +1,23 @@
+{
+  "lif": {
+    "config": {
+      "command": "lif",
+      "current": 2.5,
+      "duration": 100.0,
+      "dt": 0.1
+    },
+    "firing_rate_hz": 90.0
+  },
+  "net": {
+    "config": {
+      "command": "net",
+      "n": 200,
+      "duration": 500.0,
+      "dt": 0.1,
+      "seed": 0
+    },
+    "mean_firing_rate_hz": 104.2,
+    "min_firing_rate_hz": 56.0,
+    "max_firing_rate_hz": 148.0
+  }
+}
