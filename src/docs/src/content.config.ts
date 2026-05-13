@@ -10,4 +10,13 @@ const notebooks = defineCollection({
   }),
 });
 
-export const collections = { notebooks };
+const articles = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/articles' }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    description: z.string().optional(),
+  }),
+});
+
+export const collections = { notebooks, articles };
