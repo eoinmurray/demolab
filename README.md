@@ -23,7 +23,7 @@ src/artifacts/cli/<cmd>/                    Self-contained run directory
     <cmd>.png, <cmd>.csv, …                   data + figures
 
 src/docs/                                   Astro site
-    src/content/posts/nbNNN.mdx               post (imports numbers.json)
+    src/content/notebooks/nbNNN.mdx           post (imports numbers.json)
     public/notebooks/nbNNN/                   PNGs + numbers.json
     src/components/ParameterTable.astro       reusable table component
 ```
@@ -60,7 +60,7 @@ bun run dev        # http://localhost:4321 (or pass -- --port 3001)
 bun run build      # static output in dist/
 ```
 
-Posts live in `src/docs/src/content/posts/` and are picked up automatically by the `posts` content collection (schema in `src/docs/src/content.config.ts`). MDX is supported (math via remark-math/rehype-katex), so a post can `import` JSON or Astro components.
+Notebook posts live in `src/docs/src/content/notebooks/` and are picked up automatically by the `notebooks` content collection (schema in `src/docs/src/content.config.ts`). MDX is supported (math via remark-math/rehype-katex), so a post can `import` JSON or Astro components.
 
 ## The CLI ↔ notebook contract
 
@@ -104,7 +104,7 @@ The post then imports this file and renders prose + figures + parameter tables.
 
 1. Add a CLI subcommand (or reuse existing ones) in `src/lab/cli.py`. Make sure it writes the canonical set of files into `src/artifacts/cli/<cmd>/`.
 2. Create `src/lab/notebooks/nbNNN.py` modeled on `nb000.py`. Run the CLI commands, declare which PNGs to copy and which metric fields to surface, write `numbers.json`.
-3. Create `src/docs/src/content/posts/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Import `numbers.json` from `../../../public/notebooks/nbNNN/numbers.json` and use the `ParameterTable` component to render values.
+3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Import `numbers.json` from `../../../public/notebooks/nbNNN/numbers.json` and use the `ParameterTable` component to render values.
 4. Run `uv run --with sh python src/lab/notebooks/nbNNN.py`.
 
 ## Existing notebooks
