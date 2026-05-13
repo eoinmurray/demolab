@@ -7,9 +7,9 @@ import sh
 ROOT = Path(__file__).resolve().parents[2]
 CLI = ROOT / "lab" / "cli.py"
 ARTIFACTS = ROOT / "artifacts" / "cli"
-PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb000"
+PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb001"
 
-COMMANDS = ("lif", "net")
+COMMANDS = ("eif", "enet")
 
 
 def run_cli(*args: str) -> None:

@@ -49,8 +49,20 @@ def setup_run_dir(command: str, args: argparse.Namespace) -> tuple[Path, logging
     return run_dir, logger
 
 
-def write_output(run_dir: Path, metrics: dict) -> None:
+def write_output(run_dir: Path, metrics: dict, manifest: dict) -> None:
+    missing = [k for k in manifest["headline_metrics"] if k not in metrics]
+    if missing:
+        raise ValueError(
+            f"manifest declares headline_metrics {missing!r} not present in output.json"
+        )
+    figure_path = run_dir / manifest["headline_figure"]
+    if not figure_path.exists():
+        raise FileNotFoundError(
+            f"manifest declares headline_figure {manifest['headline_figure']!r} "
+            f"but {figure_path} does not exist"
+        )
     (run_dir / "output.json").write_text(json.dumps(metrics, indent=2) + "\n")
+    (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
 def simulate_lif(
@@ -119,7 +131,10 @@ def cmd_lif(args: argparse.Namespace) -> None:
         "n_spikes": len(spikes),
         "duration_ms": args.duration,
     }
-    write_output(run_dir, metrics)
+    write_output(run_dir, metrics, {
+        "headline_figure": "lif.png",
+        "headline_metrics": ["firing_rate_hz"],
+    })
     log.info("firing rate: %.2f Hz", firing_rate_hz)
 
 
@@ -268,7 +283,233 @@ def cmd_net(args: argparse.Namespace) -> None:
         "duration_ms": args.duration,
         "per_neuron_rate_hz": per_neuron_rate_hz,
     }
-    write_output(run_dir, metrics)
+    write_output(run_dir, metrics, {
+        "headline_figure": "net.png",
+        "headline_metrics": ["mean_firing_rate_hz", "min_firing_rate_hz", "max_firing_rate_hz"],
+    })
+    log.info("mean firing rate: %.2f Hz (min %.2f, max %.2f)",
+             mean_rate, metrics["min_firing_rate_hz"], metrics["max_firing_rate_hz"])
+
+
+def simulate_eif(
+    i_tonic: float = 2.5,
+    duration: float = 100.0,
+    dt: float = 0.1,
+    tau_m: float = 10.0,
+    v_rest: float = -65.0,
+    v_reset: float = -70.0,
+    v_t: float = -50.0,
+    delta_t: float = 2.0,
+    v_peak: float = 0.0,
+    r_m: float = 10.0,
+):
+    n_steps = int(duration / dt)
+    t = np.arange(n_steps) * dt
+    v = np.empty(n_steps)
+    spikes = []
+
+    v_curr = v_rest
+    for i in range(n_steps):
+        exp_term = delta_t * np.exp(min((v_curr - v_t) / delta_t, 50.0))
+        dv = (-(v_curr - v_rest) + exp_term + r_m * i_tonic) / tau_m
+        v_curr = v_curr + dv * dt
+        if v_curr >= v_peak:
+            spikes.append(t[i])
+            v[i] = v_peak
+            v_curr = v_reset
+        else:
+            v[i] = v_curr
+
+    return t, v, spikes
+
+
+def cmd_eif(args: argparse.Namespace) -> None:
+    run_dir, log = setup_run_dir("eif", args)
+    log.info("starting EIF simulation: current=%.3f nA, duration=%.1f ms, dt=%.3f ms",
+             args.current, args.duration, args.dt)
+
+    t, v, spikes = simulate_eif(
+        i_tonic=args.current,
+        duration=args.duration,
+        dt=args.dt,
+    )
+    log.info("simulation complete: %d spikes over %.1f ms", len(spikes), args.duration)
+
+    csv_path = run_dir / "eif.csv"
+    with csv_path.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time_ms", "voltage_mV"])
+        writer.writerows(zip(t, v))
+    log.info("wrote %s", csv_path)
+
+    plot_path = run_dir / "eif.png"
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(t, v, color="#9467bd", linewidth=1.0)
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Membrane potential (mV)")
+    ax.set_title(f"EIF neuron, tonic input I = {args.current} nA ({len(spikes)} spikes)")
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=120)
+    plt.close(fig)
+    log.info("wrote %s", plot_path)
+
+    firing_rate_hz = len(spikes) / args.duration * 1000.0
+    metrics = {
+        "firing_rate_hz": firing_rate_hz,
+        "n_spikes": len(spikes),
+        "duration_ms": args.duration,
+    }
+    write_output(run_dir, metrics, {
+        "headline_figure": "eif.png",
+        "headline_metrics": ["firing_rate_hz"],
+    })
+    log.info("firing rate: %.2f Hz", firing_rate_hz)
+
+
+def simulate_eif_network(
+    n_neurons: int = 200,
+    duration: float = 500.0,
+    dt: float = 0.1,
+    p_connect: float = 0.1,
+    w_exc: float = 0.1,
+    i_ext_mean: float = 2.2,
+    i_ext_sigma: float = 0.4,
+    tau_m: float = 10.0,
+    v_rest: float = -65.0,
+    v_reset: float = -70.0,
+    v_t: float = -50.0,
+    delta_t: float = 2.0,
+    v_peak: float = 0.0,
+    r_m: float = 10.0,
+    refractory: float = 2.0,
+    seed: int = 0,
+):
+    rng = np.random.default_rng(seed)
+    n_steps = int(duration / dt)
+
+    mask = rng.random((n_neurons, n_neurons)) < p_connect
+    np.fill_diagonal(mask, False)
+    W = mask.astype(np.float64) * w_exc
+
+    i_bias = rng.normal(i_ext_mean, i_ext_sigma, size=n_neurons)
+
+    v = np.full(n_neurons, v_rest) + rng.uniform(0, v_t - v_rest, size=n_neurons)
+    refrac_steps = int(refractory / dt)
+    refrac_left = np.zeros(n_neurons, dtype=int)
+    syn_input = np.zeros(n_neurons)
+    tau_syn = 5.0
+    decay = np.exp(-dt / tau_syn)
+
+    spike_times = []
+    spike_ids = []
+    t_trace = np.arange(n_steps) * dt
+    i_total_mean = np.empty(n_steps)
+    i_total_std = np.empty(n_steps)
+
+    for step in range(n_steps):
+        t = step * dt
+        i_total = i_bias + syn_input
+        i_total_mean[step] = i_total.mean()
+        i_total_std[step] = i_total.std()
+        exp_term = delta_t * np.exp(np.minimum((v - v_t) / delta_t, 50.0))
+        dv = (-(v - v_rest) + exp_term + r_m * i_total) / tau_m
+        active = refrac_left == 0
+        v[active] = v[active] + dv[active] * dt
+
+        spiked = active & (v >= v_peak)
+        if spiked.any():
+            idx = np.where(spiked)[0]
+            spike_times.extend([t] * idx.size)
+            spike_ids.extend(idx.tolist())
+            v[spiked] = v_reset
+            refrac_left[spiked] = refrac_steps
+            syn_input = syn_input + W[:, spiked].sum(axis=1)
+
+        syn_input = syn_input * decay
+        refrac_left = np.maximum(refrac_left - 1, 0)
+
+    return (
+        np.array(spike_times),
+        np.array(spike_ids, dtype=int),
+        t_trace,
+        i_total_mean,
+        i_total_std,
+    )
+
+
+def cmd_enet(args: argparse.Namespace) -> None:
+    run_dir, log = setup_run_dir("enet", args)
+    log.info("starting EIF network simulation: n=%d, duration=%.1f ms, dt=%.3f ms, seed=%d",
+             args.n, args.duration, args.dt, args.seed)
+
+    spike_times, spike_ids, t_trace, i_mean, i_std = simulate_eif_network(
+        n_neurons=args.n,
+        duration=args.duration,
+        dt=args.dt,
+        seed=args.seed,
+    )
+    log.info("simulation complete: %d total spikes from %d neurons", len(spike_times), args.n)
+
+    csv_path = run_dir / "enet.csv"
+    with csv_path.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time_ms", "neuron_id"])
+        writer.writerows(zip(spike_times, spike_ids))
+    log.info("wrote %s", csv_path)
+
+    current_csv = run_dir / "enet_current.csv"
+    with current_csv.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time_ms", "i_total_mean_nA", "i_total_std_nA"])
+        writer.writerows(zip(t_trace, i_mean, i_std))
+    log.info("wrote %s", current_csv)
+
+    plot_path = run_dir / "enet.png"
+    fig, (ax_raster, ax_current) = plt.subplots(
+        2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [3, 1]}
+    )
+    ax_raster.scatter(spike_times, spike_ids, s=2, color="#9467bd")
+    ax_raster.set_ylabel("Neuron index")
+    ax_raster.set_title(
+        f"EIF network raster ({args.n} excitatory neurons, {len(spike_times)} spikes, "
+        f"rate ≈ {len(spike_times) / args.n / args.duration * 1000:.1f} Hz)"
+    )
+    ax_raster.set_ylim(-1, args.n)
+    ax_raster.grid(True, alpha=0.3)
+
+    ax_current.plot(t_trace, i_mean, color="#2ca02c", linewidth=1.0, label="mean")
+    ax_current.fill_between(
+        t_trace, i_mean - i_std, i_mean + i_std,
+        color="#2ca02c", alpha=0.2, label="±1 std",
+    )
+    ax_current.set_xlabel("Time (ms)")
+    ax_current.set_ylabel("Input current (nA)")
+    ax_current.set_xlim(0, args.duration)
+    ax_current.legend(loc="upper right")
+    ax_current.grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=120)
+    plt.close(fig)
+    log.info("wrote %s", plot_path)
+
+    counts = Counter(spike_ids.tolist())
+    per_neuron_rate_hz = [counts.get(i, 0) / args.duration * 1000.0 for i in range(args.n)]
+    mean_rate = float(np.mean(per_neuron_rate_hz))
+    metrics = {
+        "mean_firing_rate_hz": mean_rate,
+        "min_firing_rate_hz": float(np.min(per_neuron_rate_hz)),
+        "max_firing_rate_hz": float(np.max(per_neuron_rate_hz)),
+        "n_spikes_total": int(len(spike_times)),
+        "n_neurons": args.n,
+        "duration_ms": args.duration,
+        "per_neuron_rate_hz": per_neuron_rate_hz,
+    }
+    write_output(run_dir, metrics, {
+        "headline_figure": "enet.png",
+        "headline_metrics": ["mean_firing_rate_hz", "min_firing_rate_hz", "max_firing_rate_hz"],
+    })
     log.info("mean firing rate: %.2f Hz (min %.2f, max %.2f)",
              mean_rate, metrics["min_firing_rate_hz"], metrics["max_firing_rate_hz"])
 
@@ -289,6 +530,19 @@ def build_parser() -> argparse.ArgumentParser:
     net.add_argument("--dt", type=float, default=0.1, help="Integration timestep (ms)")
     net.add_argument("--seed", type=int, default=0, help="Random seed")
     net.set_defaults(func=cmd_net)
+
+    eif = sub.add_parser("eif", help="Simulate an EIF neuron driven by tonic current")
+    eif.add_argument("--current", type=float, default=2.5, help="Tonic input current (nA)")
+    eif.add_argument("--duration", type=float, default=100.0, help="Simulation duration (ms)")
+    eif.add_argument("--dt", type=float, default=0.1, help="Integration timestep (ms)")
+    eif.set_defaults(func=cmd_eif)
+
+    enet = sub.add_parser("enet", help="Simulate a network of EIF neurons and plot a raster")
+    enet.add_argument("--n", type=int, default=200, help="Number of neurons")
+    enet.add_argument("--duration", type=float, default=500.0, help="Simulation duration (ms)")
+    enet.add_argument("--dt", type=float, default=0.1, help="Integration timestep (ms)")
+    enet.add_argument("--seed", type=int, default=0, help="Random seed")
+    enet.set_defaults(func=cmd_enet)
 
     return parser
 

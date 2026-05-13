@@ -70,16 +70,19 @@ Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/cli/
 |------|--------|
 | `config.json` | flat object of argparse args |
 | `output.json` | flat object of metrics, command-specific field names |
+| `manifest.json` | `{ headline_figure: str, headline_metrics: [str, …] }` — declares what the docs site should surface |
 | `output.log` | timestamped log lines |
 | `run.sh` | executable shell script that re-invokes the CLI with the same args |
-| `<cmd>.png` | the canonical figure for the command |
+| `<cmd>.png` | the canonical figure for the command (by convention; the authoritative pointer is `manifest.headline_figure`) |
 | `<cmd>.csv`, … | any additional data |
+
+`write_output` in `cli.py` validates the manifest against the run: every key in `headline_metrics` must exist in `output.json`, and `headline_figure` must exist on disk, or the run fails before `manifest.json` is written.
 
 The notebook runner relies on this contract:
 
 - Subcommand name maps 1:1 to the directory name under `src/artifacts/cli/`.
-- The headline figure is at `<cmd>.png`.
-- Per-command metric field names are hard-coded in the runner (`RATE_FIELDS` in `nb000.py`) — adding a new metric means touching both the CLI and the runner.
+- The runner reads `manifest.json` to discover the headline figure and metrics — it does **not** hardcode metric field names. Adding a new surfaced metric is a one-file change in `cli.py` (extend the command's `headline_metrics` list).
+- The runner only chooses *which commands* a notebook bundles (`COMMANDS` in `nb000.py`).
 
 The runner aggregates each command's `config.json` + the metric fields into a single `numbers.json` in `src/docs/public/notebooks/nbNNN/`:
 
@@ -102,8 +105,8 @@ The post then imports this file and renders prose + figures + parameter tables.
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in `src/lab/cli.py`. Make sure it writes the canonical set of files into `src/artifacts/cli/<cmd>/`.
-2. Create `src/lab/notebooks/nbNNN.py` modeled on `nb000.py`. Run the CLI commands, declare which PNGs to copy and which metric fields to surface, write `numbers.json`.
+1. Add a CLI subcommand (or reuse existing ones) in `src/lab/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
+2. Create `src/lab/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
 3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Import `numbers.json` from `../../../public/notebooks/nbNNN/numbers.json` and use the `ParameterTable` component to render values.
 4. Run `uv run --with sh python src/lab/notebooks/nbNNN.py`.
 

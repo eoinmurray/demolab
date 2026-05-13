@@ -1,0 +1,23 @@
+{
+  "eif": {
+    "config": {
+      "command": "eif",
+      "current": 2.5,
+      "duration": 100.0,
+      "dt": 0.1
+    },
+    "firing_rate_hz": 60.0
+  },
+  "enet": {
+    "config": {
+      "command": "enet",
+      "n": 200,
+      "duration": 500.0,
+      "dt": 0.1,
+      "seed": 0
+    },
+    "mean_firing_rate_hz": 69.11,
+    "min_firing_rate_hz": 32.0,
+    "max_firing_rate_hz": 98.0
+  }
+}

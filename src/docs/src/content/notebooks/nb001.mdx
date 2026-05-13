@@ -1,0 +1,60 @@
+---
+title: EIF voltage traces and a recurrent network raster
+date: 2026-05-13
+description: The same setup as nb000, but using exponential integrate-and-fire neurons in place of LIF.
+---
+
+import ParameterTable from '../../components/ParameterTable.astro';
+import numbers from '../../../public/notebooks/nb001/numbers.json';
+
+The exponential integrate-and-fire (EIF) neuron is the natural next step up from LIF: same one-variable spirit, but with an explicit exponential term that models the upswing of a spike rather than a hard threshold-crossing rule.
+
+The subthreshold dynamics are
+
+$$
+\tau_m \frac{dV}{dt} = -(V - V_\text{rest}) + \Delta_T\, \exp\!\left(\frac{V - V_T}{\Delta_T}\right) + R_m\, I,
+$$
+
+with a peak-and-reset rule
+
+$$
+V(t) \geq V_\text{peak} \;\Longrightarrow\; \text{spike at } t,\quad V \leftarrow V_\text{reset}.
+$$
+
+Compared to LIF, the threshold $V_T$ is no longer a discontinuity: it is the soft inflection point at which the exponential term takes over and the membrane potential blows up on its own. The slope factor $\Delta_T$ controls how sharply this transition happens — small $\Delta_T$ approximates LIF, larger $\Delta_T$ smooths the spike initiation.
+
+The code integrates with forward Euler at $\Delta t = 0.1\,\text{ms}$,
+
+$$
+V \leftarrow V + \frac{\Delta t}{\tau_m}\!\left[-(V - V_\text{rest}) + \Delta_T\, \exp\!\left(\tfrac{V - V_T}{\Delta_T}\right) + R_m\, I\right],
+$$
+
+using $\tau_m = 10\,\text{ms}$, $V_\text{rest} = -65\,\text{mV}$, $V_\text{reset} = -70\,\text{mV}$, $V_T = -50\,\text{mV}$, $\Delta_T = 2\,\text{mV}$, $V_\text{peak} = 0\,\text{mV}$, $R_m = 10\,\text{M}\Omega$, and tonic input $I = 2.5\,\text{nA}$.
+
+With the same tonic input as nb000, the EIF neuron fires at a different rate than the LIF neuron — the exponential term accelerates spike initiation, but the upswing itself takes time, so the period between spikes shifts.
+
+<img src={`${import.meta.env.BASE_URL}/notebooks/nb001/eif.png`.replace(/\/+/g, '/')} alt="EIF voltage trace" />
+
+The network is structurally identical to nb000: 200 all-excitatory neurons, sparse $p_\text{conn} = 0.1$ random connectivity, weights $w = 0.1$, exponentially-decaying synaptic input with $\tau_\text{syn} = 5\,\text{ms}$, noisy per-neuron bias $I_i^\text{bias} \sim \mathcal{N}(2.2, 0.4^2)\,\text{nA}$, and a $2\,\text{ms}$ refractory period after each spike. The only difference is that every neuron now obeys the EIF dynamics above.
+
+<img src={`${import.meta.env.BASE_URL}/notebooks/nb001/enet.png`.replace(/\/+/g, '/')} alt="EIF network raster and input current" />
+
+Same plumbing as nb000 — `lab eif` and `lab enet` produce the figures, the runner copies them and writes `numbers.json`.
+
+<ParameterTable
+  title="EIF run parameters"
+  params={{
+    ...numbers.eif.config,
+    firing_rate_hz: numbers.eif.firing_rate_hz,
+  }}
+/>
+
+<ParameterTable
+  title="EIF network run parameters"
+  params={{
+    ...numbers.enet.config,
+    mean_firing_rate_hz: numbers.enet.mean_firing_rate_hz,
+    min_firing_rate_hz: numbers.enet.min_firing_rate_hz,
+    max_firing_rate_hz: numbers.enet.max_firing_rate_hz,
+  }}
+/>
