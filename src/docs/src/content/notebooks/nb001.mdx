@@ -2,10 +2,8 @@
 title: EIF voltage traces and a recurrent network raster
 date: 2026-05-13
 description: The same setup as nb000, but using exponential integrate-and-fire neurons in place of LIF.
+collection: neuron-models
 ---
-
-import ParameterTable from '../../components/ParameterTable.astro';
-import numbers from '../../../public/notebooks/nb001/numbers.json';
 
 The exponential integrate-and-fire (EIF) neuron is the natural next step up from LIF: same one-variable spirit, but with an explicit exponential term that models the upswing of a spike rather than a hard threshold-crossing rule.
 
@@ -39,22 +37,27 @@ The network is structurally identical to nb000: 200 all-excitatory neurons, spar
 
 <img src={`${import.meta.env.BASE_URL}/notebooks/nb001/enet.png`.replace(/\/+/g, '/')} alt="EIF network raster and input current" />
 
-Same plumbing as nb000 — `lab eif` and `lab enet` produce the figures, the runner copies them and writes `numbers.json`.
+Same plumbing as nb000 — `simulator eif` and `simulator enet` produce the figures, the runner copies them and writes `numbers.json`.
 
-<ParameterTable
-  title="EIF run parameters"
-  params={{
-    ...numbers.eif.config,
-    firing_rate_hz: numbers.eif.firing_rate_hz,
-  }}
-/>
+**EIF run parameters**
 
-<ParameterTable
-  title="EIF network run parameters"
-  params={{
-    ...numbers.enet.config,
-    mean_firing_rate_hz: numbers.enet.mean_firing_rate_hz,
-    min_firing_rate_hz: numbers.enet.min_firing_rate_hz,
-    max_firing_rate_hz: numbers.enet.max_firing_rate_hz,
-  }}
-/>
+| Parameter | Value |
+| --- | --- |
+| command | eif |
+| current | 2.5 |
+| duration | 100.0 |
+| dt | 0.1 |
+| firing_rate_hz | 60.0 |
+
+**EIF network run parameters**
+
+| Parameter | Value |
+| --- | --- |
+| command | enet |
+| n | 200 |
+| duration | 500.0 |
+| dt | 0.1 |
+| seed | 0 |
+| mean_firing_rate_hz | 69.11 |
+| min_firing_rate_hz | 32.0 |
+| max_firing_rate_hz | 98.0 |

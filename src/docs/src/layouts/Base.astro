@@ -1,7 +1,10 @@
 ---
 import '../styles/global.css';
-interface Props { title: string; }
-const { title } = Astro.props;
+interface Props { title: string; isHome?: boolean }
+const { title, isHome = false } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const brandClass = "text-2xl font-bold";
+const brandStyle = "font-family: var(--font-mono);";
 ---
 <!doctype html>
 <html lang="en">
@@ -10,14 +13,25 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
   </head>
-  <body class="mx-auto max-w-2xl px-6 py-16">
-    <header class="mb-16">
-      <a href={import.meta.env.BASE_URL} class="text-sm tracking-wide uppercase text-neutral-500 hover:text-neutral-900">
-        ← Index
-      </a>
+  <body>
+    <header class="px-6 pt-16 lg:pl-[25%] lg:pr-16 [&_a]:no-underline! [&_a:hover]:underline!">
+      <div class="max-w-[46rem]">
+        <div class="flex items-baseline gap-4 flex-wrap">
+          {isHome ? (
+            <h1 class={brandClass} style={brandStyle}>DEMOLAB</h1>
+          ) : (
+            <a href={`${base}/`} class={brandClass} style={brandStyle}>DEMOLAB</a>
+          )}
+          <a href={`${base}/articles/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">articles</a>
+          <a href={`${base}/notebooks/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">notebooks</a>
+          <a href={`${base}/collections/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">collections</a>
+        </div>
+      </div>
     </header>
-    <main>
-      <slot />
+    <main class="px-6 pt-10 pb-48 lg:pl-[25%] lg:pr-16">
+      <div class="max-w-[46rem]">
+        <slot />
+      </div>
     </main>
   </body>
 </html>

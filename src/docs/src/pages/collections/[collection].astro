@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { loadAllEntries } from '../../lib/entries';
+
+export async function getStaticPaths() {
+  const { articles, notebooks } = await loadAllEntries();
+  const cs = new Set<string>();
+  for (const e of [...articles, ...notebooks]) if (e.collection) cs.add(e.collection);
+  return [...cs].map((c) => ({ params: { collection: c } }));
+}
+
+const { collection } = Astro.params;
+const { articles, notebooks } = await loadAllEntries();
+const inCollection = (c: string | null) => c === collection;
+const matchedArticles = articles.filter((a) => inCollection(a.collection));
+const matchedNotebooks = notebooks.filter((n) => inCollection(n.collection));
+const label = collection!.charAt(0).toUpperCase() + collection!.slice(1).replace(/-/g, ' ');
+---
+<Base title={`${label} · Collections · demolab`}>
+  <div class="[&_a]:no-underline! [&_a:hover]:underline!">
+    <div class="flex flex-col gap-12">
+      <p class="text-xs uppercase tracking-wider text-[color:var(--color-muted)]">
+        Collection / <span class="font-mono text-[color:var(--ink)]">{collection}</span>
+      </p>
+      {matchedArticles.length > 0 && (
+        <section>
+          <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">Articles</p>
+          <EntryList entries={matchedArticles} />
+        </section>
+      )}
+      {matchedNotebooks.length > 0 && (
+        <section>
+          <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">Notebooks</p>
+          <EntryList entries={matchedNotebooks} />
+        </section>
+      )}
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,82 @@
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export const UNCOLLECTED = '__uncollected';
+
+export type Entry = {
+  id: string;
+  title: string;
+  date: Date;
+  collection: string | null;
+  kind: 'articles' | 'notebooks';
+};
+
+function toEntry(e: CollectionEntry<'articles' | 'notebooks'>, kind: 'articles' | 'notebooks'): Entry {
+  const c = e.data.collection;
+  return {
+    id: e.id,
+    title: e.data.title,
+    date: e.data.date,
+    collection: typeof c === 'string' && c.length > 0 ? c : null,
+    kind,
+  };
+}
+
+export async function loadAllEntries(): Promise<{ articles: Entry[]; notebooks: Entry[] }> {
+  const [articles, notebooks] = await Promise.all([
+    getCollection('articles'),
+    getCollection('notebooks'),
+  ]);
+  return {
+    articles: articles.map((e) => toEntry(e, 'articles')).sort((a, b) => b.date.valueOf() - a.date.valueOf()),
+    notebooks: notebooks.map((e) => toEntry(e, 'notebooks')).sort((a, b) => b.date.valueOf() - a.date.valueOf()),
+  };
+}
+
+export type Bucket = {
+  collection: string;
+  label: string;
+  articles: Entry[];
+  notebooks: Entry[];
+};
+
+export function bucketize(articles: Entry[], notebooks: Entry[]): Bucket[] {
+  const map = new Map<string, Bucket>();
+  const get = (name: string): Bucket => {
+    if (!map.has(name)) {
+      map.set(name, {
+        collection: name,
+        label:
+          name === UNCOLLECTED
+            ? 'Misc'
+            : name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
+        articles: [],
+        notebooks: [],
+      });
+    }
+    return map.get(name)!;
+  };
+  for (const a of articles) get(a.collection ?? UNCOLLECTED).articles.push(a);
+  for (const n of notebooks) get(n.collection ?? UNCOLLECTED).notebooks.push(n);
+  return [...map.values()].sort((a, b) => {
+    if (a.collection === 'in-progress') return -1;
+    if (b.collection === 'in-progress') return 1;
+    if (a.collection === UNCOLLECTED) return 1;
+    if (b.collection === UNCOLLECTED) return -1;
+    const totA = a.articles.length + a.notebooks.length;
+    const totB = b.articles.length + b.notebooks.length;
+    return totB - totA || a.collection.localeCompare(b.collection);
+  });
+}
+
+export function formatDate(d: Date): string {
+  const day = d.getUTCDate();
+  const suffix =
+    day % 100 >= 11 && day % 100 <= 13
+      ? 'th'
+      : day % 10 === 1 ? 'st'
+      : day % 10 === 2 ? 'nd'
+      : day % 10 === 3 ? 'rd'
+      : 'th';
+  const month = d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
+  return `${day}${suffix} ${month} ${d.getUTCFullYear()}`;
+}

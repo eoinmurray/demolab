@@ -4,7 +4,8 @@ A small lab notebook system: a Python CLI runs numerical experiments, each run d
 
 ```
 src/
-├── lab/          ← Python: CLI + notebook runners
+├── simulator/    ← Python: CLI
+├── notebooks/    ← Per-notebook runners (shell out to the CLI)
 ├── artifacts/    ← Per-run CLI outputs
 └── docs/         ← Astro site (posts + assets)
 ```
@@ -12,8 +13,8 @@ src/
 ## Layout
 
 ```
-src/lab/cli.py                              CLI entry point (subcommands: lif, net)
-src/lab/notebooks/nbNNN.py                  Notebook runner (shells out to the CLI)
+src/simulator/cli.py                              CLI entry point (subcommands: lif, net)
+src/notebooks/nbNNN.py                  Notebook runner (shells out to the CLI)
 
 src/artifacts/cli/<cmd>/                    Self-contained run directory
     config.json                               argparse args
@@ -25,7 +26,6 @@ src/artifacts/cli/<cmd>/                    Self-contained run directory
 src/docs/                                   Astro site
     src/content/notebooks/nbNNN.mdx           post (imports numbers.json)
     public/notebooks/nbNNN/                   PNGs + numbers.json
-    src/components/ParameterTable.astro       reusable table component
 ```
 
 ## Running
@@ -35,14 +35,14 @@ The CLI needs `numpy` and `matplotlib`; the notebook runner additionally needs `
 Run a single CLI command:
 
 ```sh
-uv run --with numpy --with matplotlib python src/lab/cli.py lif
-uv run --with numpy --with matplotlib python src/lab/cli.py net --n 200 --duration 500
+uv run --with numpy --with matplotlib python src/simulator/cli.py lif
+uv run --with numpy --with matplotlib python src/simulator/cli.py net --n 200 --duration 500
 ```
 
 Run a whole notebook (CLI commands + asset copy + `numbers.json`):
 
 ```sh
-uv run --with sh python src/lab/notebooks/nb000.py
+uv run --with sh python src/notebooks/nb000.py
 ```
 
 Reproduce a specific past run:
@@ -105,10 +105,10 @@ The post then imports this file and renders prose + figures + parameter tables.
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in `src/lab/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
-2. Create `src/lab/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
-3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Import `numbers.json` from `../../../public/notebooks/nbNNN/numbers.json` and use the `ParameterTable` component to render values.
-4. Run `uv run --with sh python src/lab/notebooks/nbNNN.py`.
+1. Add a CLI subcommand (or reuse existing ones) in `src/simulator/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
+2. Create `src/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
+3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Inline parameter values from `numbers.json` into plain markdown tables.
+4. Run `uv run --with sh python src/notebooks/nbNNN.py`.
 
 ## Existing notebooks
 

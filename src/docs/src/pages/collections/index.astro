@@ -1,0 +1,61 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loadAllEntries } from '../../lib/entries';
+
+const { articles, notebooks } = await loadAllEntries();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+type Tally = { articles: number; notebooks: number };
+const tally = new Map<string, Tally>();
+const bump = (kind: 'articles' | 'notebooks', c: string | null) => {
+  if (!c) return;
+  if (!tally.has(c)) tally.set(c, { articles: 0, notebooks: 0 });
+  tally.get(c)![kind]++;
+};
+for (const a of articles) bump('articles', a.collection);
+for (const n of notebooks) bump('notebooks', n.collection);
+
+const entries = [...tally.entries()].sort((a, b) => {
+  if (a[0] === 'in-progress') return -1;
+  if (b[0] === 'in-progress') return 1;
+  const totA = a[1].articles + a[1].notebooks;
+  const totB = b[1].articles + b[1].notebooks;
+  return totB - totA || a[0].localeCompare(b[0]);
+});
+
+const countLabel = (a: number, n: number) => {
+  const parts: string[] = [];
+  if (a > 0) parts.push(`${a} article${a === 1 ? '' : 's'}`);
+  if (n > 0) parts.push(`${n} notebook${n === 1 ? '' : 's'}`);
+  return parts.join(', ');
+};
+---
+<Base title="Collections · demolab">
+  <div class="[&_a]:no-underline! [&_a:hover]:underline!">
+    <section>
+      <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">Collections</p>
+      {entries.length > 0 ? (
+        <ol class="pl-0 list-none m-0 text-[0.95rem]">
+          {entries.map(([name, { articles: a, notebooks: n }], i) => (
+            <li class="flex items-baseline gap-3 py-[0.3rem]">
+              <a
+                href={`${base}/collections/${name}/`}
+                class="w-4 shrink-0 tabular-nums text-[color:var(--color-muted-soft)]"
+              >
+                {i}.
+              </a>
+              <a href={`${base}/collections/${name}/`} class="flex-1 min-w-0">
+                {name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ')}
+              </a>
+              <span class="shrink-0 whitespace-nowrap tabular-nums text-[0.85rem] text-[color:var(--color-muted-soft)]">
+                {countLabel(a, n)}
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="text-sm text-[color:var(--color-muted)]">None yet.</p>
+      )}
+    </section>
+  </div>
+</Base>

@@ -2,15 +2,102 @@
 @plugin "@tailwindcss/typography";
 @import "katex/dist/katex.min.css";
 
+@font-face {
+  font-family: 'Computer Modern Serif';
+  src: url('https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunrm.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Computer Modern Serif';
+  src: url('https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunbx.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Computer Modern Serif';
+  src: url('https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunti.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Computer Modern Serif';
+  src: url('https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunbi.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Computer Modern Typewriter';
+  src: url('https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Typewriter/cmuntt.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-serif: 'Computer Modern Serif', 'New Computer Modern', 'Latin Modern Roman', Georgia, serif;
+  --font-mono: 'Computer Modern Typewriter', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink-strong: #1a1a1a;
+  --color-ink: #222;
+  --color-ink-soft: #333;
+  --color-dim: #555;
+  --color-muted: #666;
+  --color-muted-soft: #777;
+  --color-faint: #bbb;
+  --color-rule: #e7e5df;
+  --color-paper: #fff;
+  --color-paper-tint: #fafaf7;
+}
+
 :root {
-  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --ink: var(--color-ink);
+  --paper: var(--color-paper);
+  --muted: var(--color-muted);
 }
 
-html {
-  font-family: var(--font-serif);
-  color: #1a1a1a;
-  background: #fdfdfc;
+@layer base {
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  body {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 1.65;
+  }
+  a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    font-weight: normal;
+  }
 }
 
-.katex { font-size: 1em; }
+@layer base {
+  pre.astro-code {
+    background: var(--color-paper-tint) !important;
+    border: 1px solid var(--color-rule);
+    border-radius: 2px;
+    padding: 0.9rem 1.1rem;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+  pre.astro-code code {
+    background: transparent;
+    font-size: 0.88em;
+  }
+}
+
+.katex { font-size: 1em; font-weight: normal; }
+.katex-display { text-align: center; font-weight: normal; }
+.katex-display > .katex { font-size: 1em; }

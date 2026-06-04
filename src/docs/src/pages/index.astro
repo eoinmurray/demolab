@@ -1,56 +1,28 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import EntryList from '../components/EntryList.astro';
+import { loadAllEntries, bucketize, UNCOLLECTED } from '../lib/entries';
 
-const notebooks = (await getCollection('notebooks')).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
-const articles = (await getCollection('articles')).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
+const { articles, notebooks } = await loadAllEntries();
+const buckets = bucketize(articles, notebooks);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-
-const formatDate = (d: Date) =>
-  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
-<Base title="Notes">
-  <h1 class="text-2xl font-normal mb-12">Notes</h1>
-
-  <section class="mb-12">
-    <h2 class="text-sm tracking-wide uppercase text-neutral-500 mb-4">Articles</h2>
-    <ul class="space-y-3">
-      {articles.map((article) => (
-        <li class="flex gap-6 items-baseline">
-          <time class="text-sm text-neutral-500 tabular-nums shrink-0 w-28">
-            {formatDate(article.data.date)}
-          </time>
-          <a
-            href={`${base}/articles/${article.id}/`}
-            class="underline decoration-neutral-300 hover:decoration-neutral-900"
-          >
-            {article.data.title}
-          </a>
-        </li>
+<Base title="demolab" isHome={true}>
+  <div class="[&_a]:no-underline! [&_a:hover]:underline!">
+    <div class="flex flex-col gap-12">
+      {buckets.map((bucket) => (
+        <section>
+          <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">
+            {bucket.collection === UNCOLLECTED ? (
+              bucket.label
+            ) : (
+              <a href={`${base}/collections/${bucket.collection}/`}>{bucket.label}</a>
+            )}
+          </p>
+          <EntryList entries={bucket.articles} />
+          <EntryList entries={bucket.notebooks} />
+        </section>
       ))}
-    </ul>
-  </section>
-
-  <section>
-    <h2 class="text-sm tracking-wide uppercase text-neutral-500 mb-4">Notebooks</h2>
-    <ul class="space-y-3">
-      {notebooks.map((notebook) => (
-        <li class="flex gap-6 items-baseline">
-          <time class="text-sm text-neutral-500 tabular-nums shrink-0 w-28">
-            {formatDate(notebook.data.date)}
-          </time>
-          <a
-            href={`${base}/notebooks/${notebook.id}/`}
-            class="underline decoration-neutral-300 hover:decoration-neutral-900"
-          >
-            {notebook.data.title}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
+    </div>
+  </div>
 </Base>

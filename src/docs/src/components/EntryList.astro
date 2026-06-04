@@ -1,0 +1,30 @@
+---
+import type { Entry } from '../lib/entries';
+import { formatDate } from '../lib/entries';
+
+interface Props {
+  entries: Entry[];
+}
+const { entries } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+{entries.length > 0 && (
+  <ol class="pl-0 list-none m-0 text-[0.95rem]">
+    {entries.map((e) => (
+      <li class="flex items-baseline gap-3 py-[0.3rem]">
+        <a
+          href={`${base}/${e.kind}/${e.id}/`}
+          class="shrink-0 font-mono tabular-nums text-[0.85rem] text-[color:var(--color-muted-soft)]"
+        >
+          {e.id}
+        </a>
+        <a href={`${base}/${e.kind}/${e.id}/`} class="flex-1 min-w-0">
+          {e.title}
+        </a>
+        <span class="shrink-0 whitespace-nowrap tabular-nums text-[0.85rem] text-[color:var(--color-muted-soft)]">
+          {formatDate(e.date)}
+        </span>
+      </li>
+    ))}
+  </ol>
+)}

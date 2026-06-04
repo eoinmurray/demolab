@@ -4,8 +4,8 @@ from pathlib import Path
 
 import sh
 
-ROOT = Path(__file__).resolve().parents[2]
-CLI = ROOT / "lab" / "cli.py"
+ROOT = Path(__file__).resolve().parents[1]
+CLI = ROOT / "simulator" / "cli.py"
 ARTIFACTS = ROOT / "artifacts" / "cli"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb001"
 

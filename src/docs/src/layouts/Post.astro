@@ -6,17 +6,209 @@ interface Props {
   description?: string;
 }
 const { title, date, description } = Astro.props;
-const formatted = date.toLocaleDateString('en-US', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
+const day = date.getUTCDate();
+const suffix =
+  day % 100 >= 11 && day % 100 <= 13
+    ? "th"
+    : day % 10 === 1 ? "st"
+    : day % 10 === 2 ? "nd"
+    : day % 10 === 3 ? "rd"
+    : "th";
+const month = date.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+const year = date.getUTCFullYear();
+const formatted = `${day}${suffix} ${month} ${year}`;
 ---
 <Base title={title}>
-  <article class="prose prose-neutral max-w-none prose-headings:font-serif prose-headings:font-normal">
+  <article class="prose max-w-none" data-entry-article style="font-family: var(--font-serif);">
     <header class="mb-10 not-prose">
-      <h1 class="text-3xl font-normal mb-2">{title}</h1>
-      <p class="text-sm text-neutral-500">{formatted}</p>
-      {description && <p class="mt-4 text-neutral-700 italic">{description}</p>}
+      <h1 class="entry-title">{title}</h1>
+      <p class="text-sm" style="color: var(--color-muted-soft);">{formatted}</p>
+      {description && <p class="mt-4 italic" style="color: var(--color-ink-soft);">{description}</p>}
     </header>
     <slot />
   </article>
 </Base>
+
+<style is:global>
+  article[data-entry-article] img {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  // Lightbox for entry images. Click any <img> inside the article body to
+  // open it full-screen with prev/next nav across all images on the page.
+  // Esc closes; ← / → / space navigate. Idempotent — safe across HMR.
+  (() => {
+    if ((window as any).__entryLightboxBound) return;
+    (window as any).__entryLightboxBound = true;
+
+    const overlay = document.createElement("div");
+    overlay.style.cssText = [
+      "position:fixed",
+      "inset:0",
+      "background:rgba(0,0,0,0.85)",
+      "display:none",
+      "align-items:center",
+      "justify-content:center",
+      "z-index:9999",
+      "cursor:zoom-out",
+      "padding:2vmin",
+    ].join(";");
+    const big = document.createElement("img");
+    big.style.cssText = [
+      "max-width:100%",
+      "max-height:100%",
+      "object-fit:contain",
+      "box-shadow:0 4px 24px rgba(0,0,0,0.4)",
+    ].join(";");
+    overlay.appendChild(big);
+
+    const makeNavButton = (label: string, side: "left" | "right") => {
+      const btn = document.createElement("button");
+      btn.setAttribute("aria-label", label);
+      btn.textContent = side === "left" ? "‹" : "›";
+      btn.style.cssText = [
+        "position:absolute",
+        "top:50%",
+        side === "left" ? "left:1.5vmin" : "right:1.5vmin",
+        "transform:translateY(-50%)",
+        "width:3.2rem",
+        "height:3.2rem",
+        "border-radius:9999px",
+        "border:0",
+        "background:rgba(255,255,255,0.12)",
+        "color:white",
+        "font-size:2rem",
+        "line-height:1",
+        "cursor:pointer",
+        "display:flex",
+        "align-items:center",
+        "justify-content:center",
+        "user-select:none",
+      ].join(";");
+      btn.addEventListener("mouseenter", () => {
+        btn.style.background = "rgba(255,255,255,0.22)";
+      });
+      btn.addEventListener("mouseleave", () => {
+        btn.style.background = "rgba(255,255,255,0.12)";
+      });
+      return btn;
+    };
+    const prevBtn = makeNavButton("Previous figure", "left");
+    const nextBtn = makeNavButton("Next figure", "right");
+    overlay.appendChild(prevBtn);
+    overlay.appendChild(nextBtn);
+
+    const counter = document.createElement("div");
+    counter.style.cssText = [
+      "position:absolute",
+      "bottom:1.5vmin",
+      "left:50%",
+      "transform:translateX(-50%)",
+      "color:rgba(255,255,255,0.7)",
+      "font:0.8rem/1 ui-monospace,monospace",
+      "user-select:none",
+      "pointer-events:none",
+    ].join(";");
+    overlay.appendChild(counter);
+
+    document.body.appendChild(overlay);
+
+    let figures: HTMLImageElement[] = [];
+    let idx = -1;
+
+    const refreshFigures = () => {
+      figures = Array.from(
+        document.querySelectorAll<HTMLImageElement>("article[data-entry-article] img"),
+      );
+    };
+
+    const setDisabled = (btn: HTMLButtonElement, disabled: boolean) => {
+      btn.disabled = disabled;
+      btn.style.opacity = disabled ? "0.25" : "1";
+      btn.style.cursor = disabled ? "default" : "pointer";
+      btn.style.pointerEvents = disabled ? "none" : "auto";
+    };
+
+    const show = (i: number) => {
+      if (!figures.length) return;
+      if (i < 0 || i >= figures.length) return;
+      idx = i;
+      const img = figures[idx];
+      big.src = img.src;
+      big.alt = img.alt;
+      counter.textContent = `${idx + 1} / ${figures.length}`;
+      const onlyOne = figures.length <= 1;
+      prevBtn.style.display = onlyOne ? "none" : "flex";
+      nextBtn.style.display = onlyOne ? "none" : "flex";
+      setDisabled(prevBtn, idx === 0);
+      setDisabled(nextBtn, idx === figures.length - 1);
+    };
+
+    const open = (img: HTMLImageElement) => {
+      refreshFigures();
+      const i = figures.indexOf(img);
+      if (i < 0) return;
+      show(i);
+      overlay.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    };
+
+    const close = () => {
+      overlay.style.display = "none";
+      big.src = "";
+      idx = -1;
+      document.body.style.overflow = "";
+    };
+
+    const isOpen = () => overlay.style.display === "flex";
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === prevBtn || e.target === nextBtn) return;
+      close();
+    });
+    prevBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      show(idx - 1);
+    });
+    nextBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      show(idx + 1);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!isOpen()) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        show(idx + 1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        show(idx - 1);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const t = e.target as HTMLElement;
+      if (
+        t &&
+        t.tagName === "IMG" &&
+        t.closest("article[data-entry-article]")
+      ) {
+        open(t as HTMLImageElement);
+      }
+    });
+  })();
+</script>
+
+<style>
+  .entry-title {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 1.6rem;
+    line-height: 1.25;
+    margin: 0 0 0.4rem 0;
+    color: var(--ink);
+  }
+</style>

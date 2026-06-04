@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { loadAllEntries } from '../../lib/entries';
+
+const { articles } = await loadAllEntries();
+---
+<Base title="Articles · demolab">
+  <div class="[&_a]:no-underline! [&_a:hover]:underline!">
+    <section>
+      <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">Articles</p>
+      <EntryList entries={articles} />
+    </section>
+  </div>
+</Base>
