@@ -4,8 +4,8 @@ A small lab notebook system: a Python CLI runs numerical experiments, each run d
 
 ```
 src/
-├── simulator/    ← Python: CLI
-├── notebooks/    ← Per-notebook runners (shell out to the CLI)
+├── simulators/   ← Python CLIs (one tool per subdirectory)
+├── notebooks/    ← Per-notebook runners (shell out to the CLIs)
 ├── artifacts/    ← Per-run CLI outputs
 └── docs/         ← Astro site (posts + assets)
 ```
@@ -13,10 +13,10 @@ src/
 ## Layout
 
 ```
-src/simulator/cli.py                              CLI entry point (subcommands: lif, net)
+src/simulators/simulator/cli.py                              CLI entry point (subcommands: lif, net)
 src/notebooks/nbNNN.py                  Notebook runner (shells out to the CLI)
 
-src/artifacts/cli/<cmd>/                    Self-contained run directory
+src/artifacts/<tool>/<cmd>/                    Self-contained run directory
     config.json                               argparse args
     output.json                               metrics
     output.log                                timestamped log
@@ -35,8 +35,8 @@ The CLI needs `numpy` and `matplotlib`; the notebook runner additionally needs `
 Run a single CLI command:
 
 ```sh
-uv run --with numpy --with matplotlib python src/simulator/cli.py lif
-uv run --with numpy --with matplotlib python src/simulator/cli.py net --n 200 --duration 500
+uv run --with numpy --with matplotlib python src/simulators/simulator/cli.py lif
+uv run --with numpy --with matplotlib python src/simulators/simulator/cli.py net --n 200 --duration 500
 ```
 
 Run a whole notebook (CLI commands + asset copy + `numbers.json`):
@@ -48,7 +48,7 @@ uv run --with sh python src/notebooks/nb000.py
 Reproduce a specific past run:
 
 ```sh
-src/artifacts/cli/lif/run.sh
+src/artifacts/<tool>/lif/run.sh
 ```
 
 ## The docs site
@@ -64,7 +64,7 @@ Notebook posts live in `src/docs/src/content/notebooks/` and are picked up autom
 
 ## The CLI ↔ notebook contract
 
-Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/cli/<cmd>/`, overwriting the previous run:
+Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
 
 | File | Schema |
 |------|--------|
@@ -80,7 +80,7 @@ Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/cli/
 
 The notebook runner relies on this contract:
 
-- Subcommand name maps 1:1 to the directory name under `src/artifacts/cli/`.
+- Subcommand name maps 1:1 to the directory name under `src/artifacts/<tool>/`.
 - The runner reads `manifest.json` to discover the headline figure and metrics — it does **not** hardcode metric field names. Adding a new surfaced metric is a one-file change in `cli.py` (extend the command's `headline_metrics` list).
 - The runner only chooses *which commands* a notebook bundles (`COMMANDS` in `nb000.py`).
 
@@ -105,11 +105,29 @@ The post then imports this file and renders prose + figures + parameter tables.
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in `src/simulator/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
+1. Add a CLI subcommand (or reuse existing ones) in `src/simulators/simulator/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
 2. Create `src/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
 3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Inline parameter values from `numbers.json` into plain markdown tables.
 4. Run `uv run --with sh python src/notebooks/nbNNN.py`.
 
+## CLI tools
+
+Each CLI tool lives in its own directory under `src/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; they just need to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the artifacts the manifest declares (`headline_figure` and/or `headline_video`).
+
+- **`simulator`** — numpy/matplotlib integrate-and-fire neuron and network simulations (`lif`, `net`, `eif`, `enet`).
+- **`mujoco_lab`** — MuJoCo physics demos rendered to mp4 (`cartpole`, `double_pendulum`).
+
+A notebook runner declares its commands as `(tool, command, deps)` triples, so a single notebook can shell out to any mix of tools:
+
+```python
+COMMANDS = (
+    ("mujoco_lab", "cartpole", ("mujoco", "imageio[ffmpeg]", "numpy")),
+)
+```
+
 ## Existing notebooks
 
 - **nb000** — A single LIF neuron's voltage trace under tonic input, then a recurrent network of 200 LIF neurons (raster + population input current). Drives the `lif` and `net` CLI commands.
+- **nb001** — Same setup as nb000 but with EIF neurons (`eif`, `enet`).
+- **nb002** — A passive MuJoCo cartpole released from a small offset, rendered to mp4 via `mujoco_lab cartpole`.
+- **nb003** — Two double pendulums released side-by-side with $10^{-3}$-rad initial perturbation; tip separation crosses 0.1 m around $t \approx 3\,\text{s}$. Drives `mujoco_lab double_pendulum`.

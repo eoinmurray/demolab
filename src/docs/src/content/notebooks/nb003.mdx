@@ -1,0 +1,49 @@
+---
+title: A chaotic double pendulum in MuJoCo
+date: 2026-06-05
+description: "Two identical double pendulums released side-by-side with their initial angles differing by 10⁻³ rad. They look the same for a second or two, then diverge."
+collection: mujoco
+---
+
+The double pendulum is the textbook example of a deterministic system that is, in practice, unpredictable. Two arms hinged in series have four state variables ($\theta_1, \theta_2, \dot\theta_1, \dot\theta_2$) and a Lagrangian with one nonlinear coupling term, and that is enough: trajectories that start arbitrarily close together separate exponentially in time.
+
+The demo runs two of them at once, side by side in the same MuJoCo scene. Both pendulums have identical mass, length, and damping ($0$ — no losses). The only thing that differs is the initial angle of the upper arm:
+
+$$
+\theta_1^A(0) = 2.0,\quad \theta_1^B(0) = 2.0 + 10^{-3}.
+$$
+
+For the first ~2 seconds the two pendulums trace what looks like the same motion. Around $t \approx 3\,\text{s}$ the tip-to-tip distance crosses 0.1 m, and from then on they are visibly doing completely different things. The Lyapunov-like blow-up is the whole story.
+
+<video
+  src={`${import.meta.env.BASE_URL}/notebooks/nb003/double_pendulum.mp4`.replace(/\/+/g, '/')}
+  controls
+  loop
+  muted
+  playsinline
+/>
+
+The MJCF model lives inline in `src/simulators/mujoco_lab/cli.py`:
+
+- two `<body>` chains of two `<joint type="hinge">` arms, anchored at $x = \pm 0.6\,\text{m}$
+- arms are $0.4\,\text{m}$ capsules; a small `<site>` marks each tip so we can read its world position
+- timestep $0.002\,\text{s}$ with the RK4 integrator — important for the chaotic regime, where forward Euler would let small numerical errors swamp the actual divergence
+- damping $0$, so total energy is conserved (give or take RK4's $O(\Delta t^4)$ drift)
+
+The tip separation reported below is measured in each pendulum's *anchor-local* frame — i.e. each tip position minus its own anchor — so the constant $1.2\,\text{m}$ horizontal offset between the two scenes doesn't contaminate the metric.
+
+**Run parameters**
+
+| Parameter | Value |
+| --- | --- |
+| theta1 (rad) | 2.0 |
+| theta2 (rad) | 0.0 |
+| epsilon (rad) | 1.0e-3 |
+| duration (s) | 8.0 |
+| fps | 60 |
+| separation_threshold (m) | 0.1 |
+| separation_time_s | 2.968 |
+| max_separation_m | 1.21 |
+| final_separation_m | 0.565 |
+
+The maximum separation hits $1.21\,\text{m}$ — basically the full extent of a single pendulum, $0.8\,\text{m}$ — meaning that at some point one pendulum's tip is at the top of its swing while the other's is at the bottom. The final separation of $0.56\,\text{m}$ is just where they happen to be at $t = 8\,\text{s}$; with a chaotic system, "where they end up" is meaningless past the divergence time.

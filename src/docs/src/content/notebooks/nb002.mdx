@@ -1,0 +1,51 @@
+---
+title: A passive cartpole in MuJoCo
+date: 2026-06-05
+description: "A first MuJoCo demo — releasing a cartpole from a small offset and recording the fall as an mp4. Also: the notebook runner now drives more than one CLI tool."
+collection: mujoco
+---
+
+The cartpole is the simplest physics-engine model that still looks like something. A cart slides on a frictionless rail; a thin pole is hinged on top. With no controller, the pole tips over under gravity, and the cart drifts only by the tiny horizontal reaction force the hinge transmits.
+
+The model is defined inline as MJCF in `src/simulators/mujoco_lab/cli.py`:
+
+- one slide joint (`slider`) for the cart along the x-axis
+- one hinge joint (`hinge`) for the pole about the y-axis
+- damping coefficients $0.05$ and $0.005$ for the cart and pole
+- timestep $0.005\,\text{s}$, simulation length $4\,\text{s}$
+- initial pole offset $\theta_0 = 0.15\,\text{rad}$ ($\approx 8.6°$); everything else starts at rest
+
+The CLI runs `mj_step` in a loop, samples a frame every $1/60\,\text{s}$ with `mujoco.Renderer`, and pipes the stack of RGB arrays through `imageio` + `libx264` into `cartpole.mp4`.
+
+<video
+  src={`${import.meta.env.BASE_URL}/notebooks/nb002/cartpole.mp4`.replace(/\/+/g, '/')}
+  controls
+  loop
+  muted
+  playsinline
+/>
+
+The pole crosses $60°$ from vertical at $t \approx 0.6\,\text{s}$, ends the run essentially horizontal, and the cart barely moves — only $3 \times 10^{-5}\,\text{m}$ of recoil over the full four seconds, because almost all the angular momentum of the falling pole is absorbed by the rail's reaction force rather than by translating the cart.
+
+**Run parameters**
+
+| Parameter | Value |
+| --- | --- |
+| theta0 (rad) | 0.15 |
+| duration (s) | 4.0 |
+| fps | 60 |
+| fall_time_s | 0.595 |
+| final_angle_deg | 89.5 |
+| max_cart_displacement_m | 3.05e-05 |
+
+## A second CLI tool
+
+This is also the first notebook that shells out to a CLI other than `simulator`. `src/notebooks/nb002.py` declares its commands as `(tool, command, deps)` triples:
+
+```python
+COMMANDS = (
+    ("mujoco_lab", "cartpole", ("mujoco", "imageio[ffmpeg]", "numpy")),
+)
+```
+
+so the same runner can drive an arbitrary mix of tools — `simulator` for the integrate-and-fire work, `mujoco_lab` for physics, and any future tool that satisfies the same manifest contract. The contract gained one optional field, `headline_video`, alongside `headline_figure`; the runner copies whichever is set into the post's `public/` directory.

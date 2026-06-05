@@ -1,0 +1,13 @@
+{
+  "cartpole": {
+    "config": {
+      "command": "cartpole",
+      "theta0": 0.15,
+      "duration": 4.0,
+      "fps": 60
+    },
+    "fall_time_s": 0.595,
+    "final_angle_deg": 89.52964154260019,
+    "max_cart_displacement_m": 3.0510211680757322e-05
+  }
+}

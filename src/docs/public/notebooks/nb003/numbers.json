@@ -1,0 +1,16 @@
+{
+  "double_pendulum": {
+    "config": {
+      "command": "double_pendulum",
+      "theta1": 2.0,
+      "theta2": 0.0,
+      "epsilon": 0.001,
+      "duration": 8.0,
+      "fps": 60,
+      "separation_threshold": 0.1
+    },
+    "separation_time_s": 2.968,
+    "max_separation_m": 1.2096309484781214,
+    "final_separation_m": 0.5648867078342311
+  }
+}

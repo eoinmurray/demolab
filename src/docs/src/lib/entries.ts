@@ -27,8 +27,8 @@ export async function loadAllEntries(): Promise<{ articles: Entry[]; notebooks: 
     getCollection('notebooks'),
   ]);
   return {
-    articles: articles.map((e) => toEntry(e, 'articles')).sort((a, b) => b.date.valueOf() - a.date.valueOf()),
-    notebooks: notebooks.map((e) => toEntry(e, 'notebooks')).sort((a, b) => b.date.valueOf() - a.date.valueOf()),
+    articles: articles.map((e) => toEntry(e, 'articles')).sort((a, b) => b.id.localeCompare(a.id)),
+    notebooks: notebooks.map((e) => toEntry(e, 'notebooks')).sort((a, b) => b.id.localeCompare(a.id)),
   };
 }
 
@@ -57,9 +57,15 @@ export function bucketize(articles: Entry[], notebooks: Entry[]): Bucket[] {
   };
   for (const a of articles) get(a.collection ?? UNCOLLECTED).articles.push(a);
   for (const n of notebooks) get(n.collection ?? UNCOLLECTED).notebooks.push(n);
+  const PINNED = ['in-progress', 'mujoco'];
+  const rank = (c: string) => {
+    const i = PINNED.indexOf(c);
+    return i === -1 ? Infinity : i;
+  };
   return [...map.values()].sort((a, b) => {
-    if (a.collection === 'in-progress') return -1;
-    if (b.collection === 'in-progress') return 1;
+    const ra = rank(a.collection);
+    const rb = rank(b.collection);
+    if (ra !== rb) return ra - rb;
     if (a.collection === UNCOLLECTED) return 1;
     if (b.collection === UNCOLLECTED) return -1;
     const totA = a.articles.length + a.notebooks.length;
