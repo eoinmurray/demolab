@@ -40,7 +40,7 @@ The pole crosses $60°$ from vertical at $t \approx 0.6\,\text{s}$, ends the run
 
 ## A second CLI tool
 
-This is also the first notebook that shells out to a CLI other than `simulator`. `src/notebooks/nb002.py` declares its commands as `(tool, command, deps)` triples:
+This is also the first notebook that shells out to a CLI other than `neuron`. `src/notebooks/nb002.py` declares its commands as `(tool, command, deps)` triples:
 
 ```python
 COMMANDS = (
@@ -48,4 +48,4 @@ COMMANDS = (
 )
 ```
 
-so the same runner can drive an arbitrary mix of tools — `simulator` for the integrate-and-fire work, `mujoco_lab` for physics, and any future tool that satisfies the same manifest contract. The contract gained one optional field, `headline_video`, alongside `headline_figure`; the runner copies whichever is set into the post's `public/` directory.
+so the same runner can drive an arbitrary mix of tools — `neuron` for the integrate-and-fire work, `mujoco_lab` for physics, and any future tool that satisfies the same manifest contract. The contract gained one optional field, `headline_video`, alongside `headline_figure`; the runner copies whichever is set into the post's `public/` directory.

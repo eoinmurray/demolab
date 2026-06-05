@@ -1,0 +1,61 @@
+---
+title: A visual proof of Pythagoras
+date: 2026-06-05
+description: Two identical squares, two ways of filling them. The leftover area is c² on one side and a² + b² on the other, so they must be equal.
+---
+
+Draw a square of side $a + b$. Inside it, mark a point on each edge that divides the edge into a segment of length $a$ and a segment of length $b$, going around in the same rotational sense. Connect those four points. You get a tilted square whose side is the hypotenuse $c$ of a right triangle with legs $a$ and $b$, and four congruent copies of that triangle filling the corners.
+
+export const a = 120;
+export const b = 160;
+export const s = a + b;
+export const stroke = "#444";
+export const triFill = "#cfdcef";
+export const cFill = "#c4dcb6";
+export const aFill = "#e8b4b4";
+export const bFill = "#e6cf99";
+export const label = { fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 18, fill: "#222" };
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin: 1.5rem 0;">
+  <figure style="margin: 0; max-width: 320px;">
+    <svg viewBox={`0 0 ${s} ${s}`} width="280" height="280" xmlns="http://www.w3.org/2000/svg">
+      <polygon points={`0,0 ${a},0 0,${b}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${a},0 ${s},0 ${s},${a}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${s},${a} ${s},${s} ${b},${s}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${b},${s} 0,${s} 0,${b}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${a},0 ${s},${a} ${b},${s} 0,${b}`} fill={cFill} stroke={stroke}/>
+      <text x={a/2} y={-6} textAnchor="middle" {...label}>a</text>
+      <text x={a + b/2} y={-6} textAnchor="middle" {...label}>b</text>
+      <text x={(a + s)/2 + 6} y={(0 + a)/2 - 4} {...label}>c</text>
+    </svg>
+    <figcaption style="text-align: center; font-size: 0.85rem; color: var(--color-muted); margin-top: 0.4rem;">
+      Four triangles plus a square of area c².
+    </figcaption>
+  </figure>
+
+  <figure style="margin: 0; max-width: 320px;">
+    <svg viewBox={`0 0 ${s} ${s}`} width="280" height="280" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y={a} width={b} height={b} fill={bFill} stroke={stroke}/>
+      <rect x={b} y="0" width={a} height={a} fill={aFill} stroke={stroke}/>
+      <polygon points={`0,0 ${b},0 0,${a}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${b},0 ${b},${a} 0,${a}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${b},${a} ${s},${a} ${b},${s}`} fill={triFill} stroke={stroke}/>
+      <polygon points={`${s},${a} ${s},${s} ${b},${s}`} fill={triFill} stroke={stroke}/>
+      <text x={b/2} y={a + b/2 + 6} textAnchor="middle" {...label}>b²</text>
+      <text x={b + a/2} y={a/2 + 6} textAnchor="middle" {...label}>a²</text>
+    </svg>
+    <figcaption style="text-align: center; font-size: 0.85rem; color: var(--color-muted); margin-top: 0.4rem;">
+      The same four triangles plus a square of area a² and a square of area b².
+    </figcaption>
+  </figure>
+</div>
+
+Both squares have side $a + b$, so they have the same total area. Both contain the same four right triangles. Therefore the parts that are *not* triangles must also have the same area:
+
+$$
+c^2 \;=\; a^2 + b^2.
+$$
+
+That is the entire proof. No coordinates, no algebraic identities, no trigonometry — just the fact that area is conserved when you rearrange congruent pieces inside a fixed container.
+
+The diagrams above use $a = 3$, $b = 4$ for concreteness (so the inner tilted square has side $5$), but nothing in the argument depends on the specific values. Pick any positive $a$ and $b$ and the same picture works.

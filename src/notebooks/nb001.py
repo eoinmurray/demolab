@@ -5,20 +5,15 @@ from pathlib import Path
 import sh
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / "simulators" / "simulator" / "cli.py"
-ARTIFACTS = ROOT / "artifacts" / "simulator"
+CLI = ROOT / "simulators" / "neuron" / "cli.py"
+ARTIFACTS = ROOT / "artifacts" / "neuron"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb001"
 
 COMMANDS = ("eif", "enet")
 
 
 def run_cli(*args: str) -> None:
-    sh.uv.run(
-        "--with", "numpy",
-        "--with", "matplotlib",
-        "python", str(CLI), *args,
-        _fg=True,
-    )
+    sh.uv.run("python", str(CLI), *args, _fg=True)
 
 
 def load_manifest(command: str) -> dict:

@@ -13,7 +13,7 @@ src/
 ## Layout
 
 ```
-src/simulators/simulator/cli.py                              CLI entry point (subcommands: lif, net)
+src/simulators/neuron/cli.py                              CLI entry point (subcommands: lif, net)
 src/notebooks/nbNNN.py                  Notebook runner (shells out to the CLI)
 
 src/artifacts/<tool>/<cmd>/                    Self-contained run directory
@@ -30,19 +30,25 @@ src/docs/                                   Astro site
 
 ## Running
 
-The CLI needs `numpy` and `matplotlib`; the notebook runner additionally needs `sh`. Everything is invoked through `uv run` so no global env is required.
+All Python dependencies (`numpy`, `matplotlib`, `mujoco`, `imageio[ffmpeg]`, `sh`) are pinned in the root `pyproject.toml` / `uv.lock`. First time on a clone:
+
+```sh
+uv sync
+```
+
+Then every CLI and notebook runner is invoked with `uv run python …` (the project's `.venv`, locked versions).
 
 Run a single CLI command:
 
 ```sh
-uv run --with numpy --with matplotlib python src/simulators/simulator/cli.py lif
-uv run --with numpy --with matplotlib python src/simulators/simulator/cli.py net --n 200 --duration 500
+uv run python src/simulators/neuron/cli.py lif
+uv run python src/simulators/neuron/cli.py net --n 200 --duration 500
 ```
 
 Run a whole notebook (CLI commands + asset copy + `numbers.json`):
 
 ```sh
-uv run --with sh python src/notebooks/nb000.py
+uv run python src/notebooks/nb000.py
 ```
 
 Reproduce a specific past run:
@@ -105,16 +111,16 @@ The post then imports this file and renders prose + figures + parameter tables.
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in `src/simulators/simulator/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
+1. Add a CLI subcommand (or reuse existing ones) in `src/simulators/neuron/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
 2. Create `src/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
 3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Inline parameter values from `numbers.json` into plain markdown tables.
-4. Run `uv run --with sh python src/notebooks/nbNNN.py`.
+4. Run `uv run python src/notebooks/nbNNN.py`.
 
 ## CLI tools
 
 Each CLI tool lives in its own directory under `src/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; they just need to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the artifacts the manifest declares (`headline_figure` and/or `headline_video`).
 
-- **`simulator`** — numpy/matplotlib integrate-and-fire neuron and network simulations (`lif`, `net`, `eif`, `enet`).
+- **`neuron`** — numpy/matplotlib integrate-and-fire neuron and network simulations (`lif`, `net`, `eif`, `enet`).
 - **`mujoco_lab`** — MuJoCo physics demos rendered to mp4 (`cartpole`, `double_pendulum`).
 
 A notebook runner declares its commands as `(tool, command, deps)` triples, so a single notebook can shell out to any mix of tools:

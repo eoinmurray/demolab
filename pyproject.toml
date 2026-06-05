@@ -1,0 +1,15 @@
+[project]
+name = "demolab"
+version = "0.1.0"
+description = "Lab notebook system: Python CLIs produce per-run artifacts; an Astro site publishes a post per notebook."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "mujoco>=3.2",
+    "imageio[ffmpeg]>=2.34",
+    "sh>=2.0",
+]
+
+[tool.uv]
+package = false
