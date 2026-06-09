@@ -9,6 +9,7 @@ dependencies = [
     "mujoco>=3.2",
     "imageio[ffmpeg]>=2.34",
     "sh>=2.0",
+    "streamlit>=1.36",
 ]
 
 [tool.uv]
