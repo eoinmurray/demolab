@@ -1,0 +1,98 @@
+# Contributing
+
+How the pieces fit together and the conventions to follow when adding a CLI command, a notebook, or a new tool. For a user-facing overview and run instructions, see [`README.md`](README.md).
+
+## Toolchain
+
+- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/simulators/neuron/cli.py lif`). Run `uv sync` after pulling.
+- **TypeScript / Node**: use `bun`. Never call `npm`, `pnpm`, `yarn`, or `node` directly. Install with `bun install`, run scripts with `bun run <script>`.
+
+## The CLI ↔ notebook contract
+
+Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
+
+| File | Schema |
+|------|--------|
+| `config.json` | flat object of argparse args |
+| `output.json` | flat object of metrics, command-specific field names |
+| `manifest.json` | `{ headline_figure?: str, headline_video?: str, headline_metrics: [str, …] }` — declares what the docs site should surface |
+| `output.log` | timestamped log lines |
+| `run.sh` | executable shell script that re-invokes the CLI with the same args |
+| `<cmd>.png` / `<cmd>.mp4` | the canonical figure or video for the command (the authoritative pointer is `manifest.headline_figure` / `headline_video`) |
+| `<cmd>.csv`, … | any additional data |
+
+`write_output` in each tool's `cli.py` validates the manifest against the run before `manifest.json` is written: every key in `headline_metrics` must exist in `output.json`, and any declared `headline_figure` / `headline_video` must exist on disk, or the run fails. A manifest can therefore never lie about a run.
+
+The notebook runner relies on this contract:
+
+- Subcommand name maps 1:1 to the directory name under `src/artifacts/<tool>/`.
+- The runner reads `manifest.json` to discover the headline asset and metrics — it does **not** hardcode metric field names or asset filenames. Adding a new surfaced metric is a one-file change in `cli.py` (extend the command's `headline_metrics` list).
+- The runner only chooses *which commands* a notebook bundles (`COMMANDS` in the `nbNNN.py` runner).
+
+### `numbers.json` aggregation
+
+The runner aggregates each command's `config.json` + its headline metric fields into a single `numbers.json` in `src/docs/public/notebooks/nbNNN/`:
+
+```json
+{
+  "lif": {
+    "config": { "current": 2.5, "duration": 100.0, "dt": 0.1, ... },
+    "firing_rate_hz": 90.0
+  },
+  "net": {
+    "config": { "n": 200, "duration": 500.0, ... },
+    "mean_firing_rate_hz": 104.2,
+    "min_firing_rate_hz": 56.0,
+    "max_firing_rate_hz": 148.0
+  }
+}
+```
+
+The MDX post then imports this file and renders prose + figures + parameter tables.
+
+## Adding a new notebook
+
+1. Add a CLI subcommand (or reuse existing ones) in the relevant `src/simulators/<tool>/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
+2. Create `src/notebooks/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
+   - A single-tool runner (e.g. `nb000.py`) uses bare command strings: `COMMANDS = ("lif", "net")`.
+   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco_lab", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
+3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`src/docs/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Inline parameter values from `numbers.json` into plain markdown tables.
+4. Run `uv run python src/notebooks/nbNNN.py`.
+
+### The `status` field
+
+`status` tracks where a notebook sits in its lifecycle and renders as a badge on the listing pages and the post header. The values are the single source of truth in `src/docs/src/config/status.ts`:
+
+| Status | Meaning |
+|--------|---------|
+| `draft` | Ideas and context — prose-heavy, no trusted results yet; expect churn. |
+| `building` | Distilled to the core claim; code and plots landing. |
+| `revising` | Results exist; under review with changes in flight. |
+| `final` | Reviewed and approved — ready to send. |
+
+A notebook moves `draft → building → revising → final` and may move backward freely (a `final` entry can be reopened). The field is optional: an omitted `status` renders no badge, and an unknown value is a build-time error (validated against the enum in both `content.config.ts` and `normalizeStatus`). To add or change a status value, edit `config/status.ts` — the schema, badge, and listings all read from it.
+
+## Adding a new CLI tool
+
+Each CLI tool lives in its own directory under `src/simulators/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
+
+Reuse the established pattern in an existing `cli.py`:
+
+- `setup_run_dir(command, args)` creates the run directory, configures a per-command logger that writes both to `output.log` and stdout, dumps `config.json` (all argparse args except `func`), and writes an executable `run.sh` reproducer.
+- `write_output(run_dir, metrics, manifest)` performs the manifest validation and writes `output.json` + `manifest.json` last.
+- Subcommands are wired through `argparse` with `set_defaults(func=...)`; `main()` calls `args.func(args)`.
+
+Note the two `write_output` variants differ by design: `neuron/cli.py` requires a `headline_figure`, while `mujoco_lab/cli.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
+
+> The Streamlit playground (`src/simulators/streamlit_cli/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
+
+## Framework versioning (upstream maintainers)
+
+This repo is a template. Downstream repos created from it pull framework updates by following [`UPDATE.md`](UPDATE.md), which is **version-driven**: the top `## [x.y.z]` heading in [`CHANGELOG.md`](CHANGELOG.md) is the framework version, and the runbook diffs a downstream repo's version against upstream to decide what to apply.
+
+So whenever you change a **framework** file (anything in the `UPDATE.md` allowlist — the Astro engine under `src/docs/src/`, the contracts, CI), record it:
+
+1. **Bump the version** by adding a new top entry to `CHANGELOG.md`. Use **major** for a breaking contract change that needs migration, **minor** for an additive feature, **patch** for fixes.
+2. **Describe the change** under the entry, and add a **Manual step** note for anything the file sync can't do on its own — a new dependency to install, or a contract helper (`setup_run_dir` / `write_output`) a downstream repo must hand-port into its own `cli.py` files.
+
+Changes to **content** (notebooks, posts, simulators, artifacts) are not framework and don't get a changelog entry — they never sync downstream. If a change spans both, version only the framework part.

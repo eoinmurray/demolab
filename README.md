@@ -24,6 +24,7 @@ src/artifacts/<tool>/<cmd>/                    Self-contained run directory
     <cmd>.png, <cmd>.csv, …                   data + figures
 
 src/docs/                                   Astro site
+    src/content/articles/arNNN.mdx            article (aggregates knowledge from notebooks)
     src/content/notebooks/nbNNN.mdx           post (imports numbers.json)
     public/notebooks/nbNNN/                   PNGs + numbers.json
 ```
@@ -68,68 +69,22 @@ bun run build      # static output in dist/
 
 Notebook posts live in `src/docs/src/content/notebooks/` and are picked up automatically by the `notebooks` content collection (schema in `src/docs/src/content.config.ts`). MDX is supported (math via remark-math/rehype-katex), so a post can `import` JSON or Astro components.
 
-## The CLI ↔ notebook contract
-
-Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
-
-| File | Schema |
-|------|--------|
-| `config.json` | flat object of argparse args |
-| `output.json` | flat object of metrics, command-specific field names |
-| `manifest.json` | `{ headline_figure: str, headline_metrics: [str, …] }` — declares what the docs site should surface |
-| `output.log` | timestamped log lines |
-| `run.sh` | executable shell script that re-invokes the CLI with the same args |
-| `<cmd>.png` | the canonical figure for the command (by convention; the authoritative pointer is `manifest.headline_figure`) |
-| `<cmd>.csv`, … | any additional data |
-
-`write_output` in `cli.py` validates the manifest against the run: every key in `headline_metrics` must exist in `output.json`, and `headline_figure` must exist on disk, or the run fails before `manifest.json` is written.
-
-The notebook runner relies on this contract:
-
-- Subcommand name maps 1:1 to the directory name under `src/artifacts/<tool>/`.
-- The runner reads `manifest.json` to discover the headline figure and metrics — it does **not** hardcode metric field names. Adding a new surfaced metric is a one-file change in `cli.py` (extend the command's `headline_metrics` list).
-- The runner only chooses *which commands* a notebook bundles (`COMMANDS` in `nb000.py`).
-
-The runner aggregates each command's `config.json` + the metric fields into a single `numbers.json` in `src/docs/public/notebooks/nbNNN/`:
-
-```json
-{
-  "lif": {
-    "config": { "current": 2.5, "duration": 100.0, "dt": 0.1, ... },
-    "firing_rate_hz": 90.0
-  },
-  "net": {
-    "config": { "n": 200, "duration": 500.0, ... },
-    "mean_firing_rate_hz": 104.2,
-    "min_firing_rate_hz": 56.0,
-    "max_firing_rate_hz": 148.0
-  }
-}
-```
-
-The post then imports this file and renders prose + figures + parameter tables.
-
-## Adding a new notebook
-
-1. Add a CLI subcommand (or reuse existing ones) in `src/simulators/neuron/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure and metrics.
-2. Create `src/notebooks/nbNNN.py` modeled on `nb000.py`. Declare `COMMANDS = (...)` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
-3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter: `title`, `date`, optional `description`. Inline parameter values from `numbers.json` into plain markdown tables.
-4. Run `uv run python src/notebooks/nbNNN.py`.
-
 ## CLI tools
 
-Each CLI tool lives in its own directory under `src/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; they just need to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the artifacts the manifest declares (`headline_figure` and/or `headline_video`).
+Each CLI tool lives in its own directory under `src/simulators/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`.
 
 - **`neuron`** — numpy/matplotlib integrate-and-fire neuron and network simulations (`lif`, `net`, `eif`, `enet`).
 - **`mujoco_lab`** — MuJoCo physics demos rendered to mp4 (`cartpole`, `double_pendulum`).
 
-A notebook runner declares its commands as `(tool, command, deps)` triples, so a single notebook can shell out to any mix of tools:
+## Staying up to date
 
-```python
-COMMANDS = (
-    ("mujoco_lab", "cartpole", ("mujoco", "imageio[ffmpeg]", "numpy")),
-)
-```
+This repo is a **template** — start your own from it with GitHub's *“Use this template”* button (or `gh repo create --template eoinmurray/demolab`), then make it yours: add notebooks, posts, and simulators.
+
+The shared *framework* (the Astro publishing engine under `src/docs/src/`, the contracts in `CONTRIBUTORS.md`, and CI) keeps improving upstream. To pull the latest framework without disturbing your own content, follow [`UPDATE.md`](UPDATE.md) — a tool-agnostic runbook any coding agent or a human can run (point your agent at it, or run the `git` commands by hand). It overwrites only framework files and leaves your notebooks, posts, and artifacts untouched.
+
+## Contributing
+
+The CLI ↔ notebook manifest contract, the `numbers.json` schema, and the procedures for adding a notebook or a new CLI tool live in [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
 
 ## Existing notebooks
 

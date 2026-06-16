@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import type { NotebookStatus } from '../config/status';
 
 export const UNCOLLECTED = '__uncollected';
 
@@ -7,6 +8,7 @@ export type Entry = {
   title: string;
   date: Date;
   collection: string | null;
+  status: NotebookStatus | null;
   kind: 'articles' | 'notebooks';
 };
 
@@ -17,6 +19,7 @@ function toEntry(e: CollectionEntry<'articles' | 'notebooks'>, kind: 'articles' 
     title: e.data.title,
     date: e.data.date,
     collection: typeof c === 'string' && c.length > 0 ? c : null,
+    status: e.data.status ?? null,
     kind,
   };
 }

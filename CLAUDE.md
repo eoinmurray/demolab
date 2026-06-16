@@ -6,3 +6,7 @@
 # Project layout
 
 See `README.md` for the CLI ↔ notebook contract, the artifacts directory layout, and the procedure for adding a new notebook.
+
+# Updating the framework
+
+When the user asks to **"update demolab"** (or "update the framework", "sync from upstream", "pull the latest demolab"), follow the runbook in `UPDATE.md` to the letter. It is the source of truth: it pulls the latest framework files from upstream, leaves the user's content untouched, and is version-driven via `CHANGELOG.md`. Don't improvise the sync — read `UPDATE.md` and execute its steps.
