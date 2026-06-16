@@ -36,14 +36,8 @@ const countLabel = (a: number, n: number) => {
       <p class="mb-2 text-xs uppercase tracking-wider text-[color:var(--color-muted)]">Collections</p>
       {entries.length > 0 ? (
         <ol class="pl-0 list-none m-0 text-[0.95rem]">
-          {entries.map(([name, { articles: a, notebooks: n }], i) => (
+          {entries.map(([name, { articles: a, notebooks: n }]) => (
             <li class="flex items-baseline gap-3 py-[0.3rem]">
-              <a
-                href={`${base}/collections/${name}/`}
-                class="w-4 shrink-0 tabular-nums text-[color:var(--color-muted-soft)]"
-              >
-                {i}.
-              </a>
               <a href={`${base}/collections/${name}/`} class="flex-1 min-w-0">
                 {name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ')}
               </a>
