@@ -9,4 +9,4 @@ See `README.md` for the CLI ↔ notebook contract, the artifacts directory layou
 
 # Updating the framework
 
-When the user asks to **"update demolab"** (or "update the framework", "sync from upstream", "pull the latest demolab"), follow the runbook in `UPDATE.md` to the letter. It is the source of truth: it pulls the latest framework files from upstream, leaves the user's content untouched, and is version-driven via `CHANGELOG.md`. Don't improvise the sync — read `UPDATE.md` and execute its steps.
+When the user asks to **"update demolab"** (or "update from upstream", "pull the latest demolab features"), follow the runbook in `UPDATE.md`. Updating is **not** a file copy: upstream demolab is a reference/menu of features (its `CHANGELOG.md`), and the job is to review what's new, let the user pick features, and reimplement the chosen ones *in this repo's own conventions* using upstream only as reference — never overwriting the user's work. Read `UPDATE.md` and follow its steps.

@@ -86,13 +86,13 @@ Note the two `write_output` variants differ by design: `neuron/cli.py` requires 
 
 > The Streamlit playground (`src/simulators/streamlit_cli/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
 
-## Framework versioning (upstream maintainers)
+## The feature catalog (upstream maintainers)
 
-This repo is a template. Downstream repos created from it pull framework updates by following [`UPDATE.md`](UPDATE.md), which is **version-driven**: the top `## [x.y.z]` heading in [`CHANGELOG.md`](CHANGELOG.md) is the framework version, and the runbook diffs a downstream repo's version against upstream to decide what to apply.
+This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see [`UPDATE.md`](UPDATE.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
 
-So whenever you change a **framework** file (anything in the `UPDATE.md` allowlist — the Astro engine under `src/docs/src/`, the contracts, CI), record it:
+Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the CLI plumbing, CI), catalog it:
 
-1. **Bump the version** by adding a new top entry to `CHANGELOG.md`. Use **major** for a breaking contract change that needs migration, **minor** for an additive feature, **patch** for fixes.
-2. **Describe the change** under the entry, and add a **Manual step** note for anything the file sync can't do on its own — a new dependency to install, or a contract helper (`setup_run_dir` / `write_output`) a downstream repo must hand-port into its own `cli.py` files.
+1. **Bump the version** with a new top entry in `CHANGELOG.md`. Use **major** for a feature that changes a contract others may have built on, **minor** for a new additive feature, **patch** for a small fix.
+2. **Describe the feature by intent and behavior** — what it does, why, and where the reference implementation lives — not just which files moved. That's what a downstream agent reads to rebuild it natively.
 
-Changes to **content** (notebooks, posts, simulators, artifacts) are not framework and don't get a changelog entry — they never sync downstream. If a change spans both, version only the framework part.
+Changes to **content** (notebooks, posts, simulators, artifacts) aren't reusable features and don't belong in the catalog. If a change spans both, catalog only the reusable part.

@@ -1,87 +1,50 @@
-# Updating the lab framework from upstream
+# Adopting features from upstream
 
-A runbook for pulling the latest framework into a repo created from the **demolab** template. Any coding agent can follow it; a human can run the same commands by hand. It's deliberately tool-agnostic — there's nothing Claude- or editor-specific here.
+This repo started from the **demolab** template, but it's *yours*. Upstream demolab is a **source of ideas and a reference implementation** — not a canonical framework you have to mirror. You've made your own choices about styling, structure, and which features matter; here, those choices win.
 
-This repo mixes two kinds of files:
+So "updating" is **not** a file copy. It's: see what's new upstream, pick the ideas you want, and have your coding agent implement them *your way*, using the upstream code as reference. Adopt a feature wholesale, adapt it, or skip it — your call, one feature at a time.
 
-- **Framework** — the shared machinery maintained upstream (the Astro publishing engine, the contracts, CI, this runbook). You don't edit these; upstream pushes improvements to them.
-- **Content** — everything you create (your notebooks, posts, simulators, artifacts).
+This runbook is tool-agnostic: any coding agent can follow it, or a human can do it by hand. Upstream: `https://github.com/eoinmurray/demolab.git` (override with the `DEMOLAB_UPSTREAM` env var).
 
-Updating = overwriting **only the framework files** from upstream, leaving every content file untouched. It's one-way (upstream → here); your content is never pushed back upstream.
+## The model
 
-Upstream: `https://github.com/eoinmurray/demolab.git` (override with the `DEMOLAB_UPSTREAM` env var if set).
+- **Upstream is inspiration, not law.** Its `CHANGELOG.md` is a catalog of features, each with a version — read it as a menu.
+- **Your repo decides how things are done here.** When you adopt a feature it should read like *your* code — your conventions, your file layout, your components — not a transplant.
+- **Nothing is forced or overwritten.** Your agent reads upstream files as reference and writes fresh code into your repo. It never blindly clobbers your work.
 
-## The framework / content boundary
+## Where upstream features tend to live
 
-Overwrite from upstream (**framework** — this allowlist is the contract):
+Handy when reading the reference — these are *where to look*, not files to copy:
 
-```
-CHANGELOG.md
-UPDATE.md
-CLAUDE.md
-CONTRIBUTORS.md
-src/docs/astro.config.mjs
-src/docs/tsconfig.json
-src/docs/src/content.config.ts
-src/docs/src/layouts/
-src/docs/src/components/
-src/docs/src/lib/
-src/docs/src/config/
-src/docs/src/pages/
-src/docs/src/styles/
-.github/workflows/
-```
+- `src/docs/src/` — the Astro publishing engine (layouts, components, pages, styles, config, content schema)
+- `CONTRIBUTORS.md` — the CLI ↔ notebook contracts
+- `src/simulators/*/cli.py` — the shared run/manifest plumbing (`setup_run_dir`, `write_output`)
+- `.github/workflows/` — CI
 
-Never touch (**content** — you own these):
+Purely yours, never sourced from upstream: your notebooks (`src/notebooks/`, `src/docs/src/content/`), your artifacts (`src/artifacts/`, `src/docs/public/`), and your own simulators.
 
-```
-src/docs/src/content/      # your posts (notebooks + articles .mdx)
-src/docs/public/           # your copied figures/videos + numbers.json
-src/notebooks/             # your notebook runners
-src/artifacts/             # your run outputs
-src/simulators/            # your simulation code (see caveat below)
-README.md                  # has your per-repo notebook list
-```
+## Procedure (your agent runs this)
 
-## Procedure
+1. **Find where you last looked.** If your repo records a last-reviewed upstream version (e.g. a `.demolab-upstream` file), read it. Otherwise treat the whole catalog as new.
 
-1. **Confirm a clean tree.** Run `git status`. If there are uncommitted changes, commit or stash them first — the sync stages files and you don't want it tangled with work in progress.
-
-2. **Fetch upstream** (default ref `main`, or a tag/branch you name):
+2. **Fetch upstream as read-only reference** — this never touches your working tree:
    ```sh
    git fetch "${DEMOLAB_UPSTREAM:-https://github.com/eoinmurray/demolab.git}" main
    ```
+   Read its catalog with `git show FETCH_HEAD:CHANGELOG.md`, and any reference file the same way, e.g. `git show FETCH_HEAD:src/docs/src/components/EntryList.astro`.
 
-3. **Compare versions.** The framework version is the top `## [x.y.z]` heading in `CHANGELOG.md`.
-   - Local: read the top version from `CHANGELOG.md`.
-   - Upstream: `git show FETCH_HEAD:CHANGELOG.md` and read its top version.
-   - If they're **equal**, the framework is already current — stop; don't run the checkout.
-   - If local is **behind**, read the changelog entries strictly between the two versions to see what the update brings. Note every **Manual step** and breaking (major-version) entry — those are the parts the file sync can't do for you. Decide whether to proceed before touching files.
+3. **Present the menu.** List the changelog entries newer than your last-reviewed version. Summarize each feature in plain terms — what it does and why — so the user can choose. Ask which they want.
 
-4. **Overwrite only the framework allowlist** from the fetched commit (this includes `CHANGELOG.md`, so the local version advances to match upstream):
-   ```sh
-   git checkout FETCH_HEAD -- \
-     CHANGELOG.md UPDATE.md CLAUDE.md CONTRIBUTORS.md \
-     src/docs/astro.config.mjs src/docs/tsconfig.json src/docs/src/content.config.ts \
-     src/docs/src/layouts src/docs/src/components src/docs/src/lib \
-     src/docs/src/config src/docs/src/pages src/docs/src/styles \
-     .github/workflows
-   ```
-   (Skip any path that doesn't exist upstream rather than failing the whole command.)
+4. **Adopt each chosen feature, your way:**
+   - Study the upstream implementation as *reference* — understand the intent, not just the diff.
+   - Implement the equivalent in this repo, adapted to its conventions, naming, structure, and styling. Reuse what's already here.
+   - If this repo already has its own take on the feature (maybe different, maybe better), reconcile or skip — never overwrite the user's version without asking.
+   - Verify it works here (run the dev server / the relevant CLI).
 
-5. **Review what changed.** Run `git status` and `git --no-pager diff --staged --stat`, and tie the moved files back to the changelog entries from step 3.
-
-6. **Reconcile dependencies if they changed:**
-   - If `src/docs/package.json` differs upstream, `package.json`/`bun.lock` are deliberately *not* auto-overwritten (you may have added deps). Merge the new entries by hand, then `cd src/docs && bun install`.
-   - If `pyproject.toml` changed upstream, same: merge new deps by hand, then `uv sync`.
-
-7. **Commit.** Use a message that records the version jump, e.g. `git commit -m "Update lab framework to v0.3.0"`.
-
-## Simulator plumbing caveat
-
-`src/simulators/` is content (your own sims), but each `cli.py` carries a copy of the shared contract helpers `setup_run_dir` and `write_output`. If upstream changed those helpers, port the change into your `cli.py` files by hand — update *only* those two functions, preserving all of your simulation code. Diff the upstream `src/simulators/neuron/cli.py` against yours to see the canonical version. If nothing upstream touched those helpers, leave `src/simulators/` alone.
+5. **Record what you did.** Update the last-reviewed marker to the upstream version you reviewed, so next time only newer features show. Commit with a message describing which features you adopted and how they differ from upstream. Skipped features stay on the menu.
 
 ## Notes
 
-- `git checkout FETCH_HEAD -- <paths>` adds and updates files but does **not** delete files that were removed upstream. If a framework file was deleted upstream, remove it locally by hand.
-- `UPDATE.md` is itself framework, so an update can change this procedure. Re-read it after a sync before running another update.
+- Adoption can be partial. "I like the idea but not the implementation" is a valid outcome — take the idea.
+- Some upstream features won't fit your repo at all. Declining is normal; it's a menu, not a checklist.
+- Because nothing is copied wholesale, your repo can diverge from upstream as much as you like and still cherry-pick future ideas.

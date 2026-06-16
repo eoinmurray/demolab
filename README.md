@@ -6,24 +6,24 @@ A small lab notebook system: a Python CLI runs numerical experiments, each run d
 src/
 ├── simulators/   ← Python CLIs (one tool per subdirectory)
 ├── notebooks/    ← Per-notebook runners (shell out to the CLIs)
-├── artifacts/    ← Per-run CLI outputs
+├── artifacts/    ← Per-run CLI outputs (.gitignored)
 └── docs/         ← Astro site (posts + assets)
 ```
 
 ## Layout
 
 ```
-src/simulators/neuron/cli.py                              CLI entry point (subcommands: lif, net)
-src/notebooks/nbNNN.py                  Notebook runner (shells out to the CLI)
+src/simulators/neuron/cli.py                  CLI entry point (subcommands: lif, net)
+src/notebooks/nbNNN.py                        Notebook runner (shells out to the CLI)
 
-src/artifacts/<tool>/<cmd>/                    Self-contained run directory
+src/artifacts/<tool>/<cmd>/                   Self-contained run directory
     config.json                               argparse args
     output.json                               metrics
     output.log                                timestamped log
     run.sh                                    reproduce: rerun the CLI with same args
     <cmd>.png, <cmd>.csv, …                   data + figures
 
-src/docs/                                   Astro site
+src/docs/                                     Astro site
     src/content/articles/arNNN.mdx            article (aggregates knowledge from notebooks)
     src/content/notebooks/nbNNN.mdx           post (imports numbers.json)
     public/notebooks/nbNNN/                   PNGs + numbers.json
@@ -78,17 +78,10 @@ Each CLI tool lives in its own directory under `src/simulators/` and writes its 
 
 ## Staying up to date
 
-This repo is a **template** — start your own from it with GitHub's *“Use this template”* button (or `gh repo create --template eoinmurray/demolab`), then make it yours: add notebooks, posts, and simulators.
+This repo is a **template** — start your own by forking this repo on GitHub (or `gh repo create --template eoinmurray/demolab`), then make it yours: add notebooks, posts, and simulators.
 
-The shared *framework* (the Astro publishing engine under `src/docs/src/`, the contracts in `CONTRIBUTORS.md`, and CI) keeps improving upstream. To pull the latest framework without disturbing your own content, follow [`UPDATE.md`](UPDATE.md) — a tool-agnostic runbook any coding agent or a human can run (point your agent at it, or run the `git` commands by hand). It overwrites only framework files and leaves your notebooks, posts, and artifacts untouched.
+Upstream demolab keeps gaining features, but it's a **source of ideas**, not a framework you mirror. To bring one into your repo, follow [`UPDATE.md`](UPDATE.md): your coding agent reviews what's new upstream (its `CHANGELOG.md` is the menu) and implements the features you pick *your way* — adapted to your own conventions, using the upstream code only as reference. Nothing is overwritten; you adopt, adapt, or skip per feature, so your repo can diverge freely and still cherry-pick later ideas.
 
 ## Contributing
 
 The CLI ↔ notebook manifest contract, the `numbers.json` schema, and the procedures for adding a notebook or a new CLI tool live in [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
-
-## Existing notebooks
-
-- **nb000** — A single LIF neuron's voltage trace under tonic input, then a recurrent network of 200 LIF neurons (raster + population input current). Drives the `lif` and `net` CLI commands.
-- **nb001** — Same setup as nb000 but with EIF neurons (`eif`, `enet`).
-- **nb002** — A passive MuJoCo cartpole released from a small offset, rendered to mp4 via `mujoco_lab cartpole`.
-- **nb003** — Two double pendulums released side-by-side with $10^{-3}$-rad initial perturbation; tip separation crosses 0.1 m around $t \approx 3\,\text{s}$. Drives `mujoco_lab double_pendulum`.

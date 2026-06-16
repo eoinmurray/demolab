@@ -1,17 +1,27 @@
-# Framework changelog
+# Framework feature catalog
 
-Versioned history of the **demolab framework** — the shared machinery that
-`UPDATE.md` syncs from upstream (the Astro publishing engine, contracts, CI). It
-does *not* track your own content (notebooks, posts, simulators); that's yours.
+A catalog of **framework features** in the demolab template. Downstream repos
+don't copy these files — their coding agents reimplement the features they want,
+their own way, using this repo as reference (see `UPDATE.md`). This catalog is
+the menu. It does *not* track content (notebooks, posts, simulators) — that's
+each repo's own.
 
-The top `## [x.y.z]` entry is the current framework version. The update runbook
-(`UPDATE.md`) reads it to tell how far behind a repo is, and shows the entries
-in between on update.
-Each entry flags any **manual step** (a dependency to install, a contract change
-to hand-port) that the file sync can't do for you.
+Each `## [x.y.z]` entry is one batch of features, newest first. A downstream
+agent reads the entries newer than the version it last reviewed, and the user
+picks which to adopt. Describe features by intent and behavior so they can be
+rebuilt from the description plus the code.
 
-Versioning: **major** = breaking contract change needing migration · **minor** =
-additive framework feature · **patch** = fixes, no action needed.
+Versioning: **major** = a feature that changes a contract others may have built
+on · **minor** = a new additive feature · **patch** = a small fix.
+
+## [0.4.0] - 2026-06-16
+
+### Changed
+- Reframed updates as **feature adoption** rather than a file sync. `UPDATE.md`
+  is now a runbook for an agent to review this catalog and reimplement the
+  features the user picks — adapted to the repo's own conventions, using upstream
+  only as reference. Nothing is copied or overwritten, so a repo can diverge
+  freely and still cherry-pick later ideas.
 
 ## [0.3.0] - 2026-06-16
 
