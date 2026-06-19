@@ -8,14 +8,14 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb002"
 
-# Each entry: (tool dir under src/simulators/, subcommand).
+# Each entry: (tool dir under src/clis/, subcommand).
 COMMANDS = (
-    ("mujoco_lab", "cartpole"),
+    ("mujoco_cli", "cartpole"),
 )
 
 
 def run_cli(tool: str, command: str) -> None:
-    cli = ROOT / "simulators" / tool / "cli.py"
+    cli = ROOT / "clis" / tool / "cli.py"
     sh.uv.run("python", str(cli), command, _fg=True)
 
 

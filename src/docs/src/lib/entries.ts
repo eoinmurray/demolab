@@ -60,7 +60,7 @@ export function bucketize(articles: Entry[], notebooks: Entry[]): Bucket[] {
   };
   for (const a of articles) get(a.collection ?? UNCOLLECTED).articles.push(a);
   for (const n of notebooks) get(n.collection ?? UNCOLLECTED).notebooks.push(n);
-  const PINNED = ['in-progress', 'mujoco', 'neuron-models', 'streamlit'];
+  const PINNED = ['documentation', 'in-progress', 'mujoco', 'neuron-models', 'streamlit'];
   const rank = (c: string) => {
     const i = PINNED.indexOf(c);
     return i === -1 ? Infinity : i;

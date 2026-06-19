@@ -4,7 +4,7 @@ A small lab notebook system: a Python CLI runs numerical experiments, each run d
 
 ```
 src/
-├── simulators/   ← Python CLIs (one tool per subdirectory)
+├── clis/         ← Python CLIs (one tool per subdirectory)
 ├── notebooks/    ← Per-notebook runners (shell out to the CLIs)
 ├── artifacts/    ← Per-run CLI outputs (.gitignored)
 └── docs/         ← Astro site (posts + assets)
@@ -13,7 +13,7 @@ src/
 ## Layout
 
 ```
-src/simulators/neuron/cli.py                  CLI entry point (subcommands: lif, net)
+src/clis/neuron_cli/cli.py                  CLI entry point (subcommands: lif, net)
 src/notebooks/nbNNN.py                        Notebook runner (shells out to the CLI)
 
 src/artifacts/<tool>/<cmd>/                   Self-contained run directory
@@ -24,8 +24,8 @@ src/artifacts/<tool>/<cmd>/                   Self-contained run directory
     <cmd>.png, <cmd>.csv, …                   data + figures
 
 src/docs/                                     Astro site
-    src/content/articles/arNNN.mdx            article (aggregates knowledge from notebooks)
-    src/content/notebooks/nbNNN.mdx           post (imports numbers.json)
+    src/docs/content/articles/arNNN.mdx            article (aggregates knowledge from notebooks)
+    src/docs/content/notebooks/nbNNN.mdx           post (imports numbers.json)
     public/notebooks/nbNNN/                   PNGs + numbers.json
 ```
 
@@ -42,8 +42,8 @@ Then every CLI and notebook runner is invoked with `uv run python …` (the proj
 Run a single CLI command:
 
 ```sh
-uv run python src/simulators/neuron/cli.py lif
-uv run python src/simulators/neuron/cli.py net --n 200 --duration 500
+uv run python src/clis/neuron_cli/cli.py lif
+uv run python src/clis/neuron_cli/cli.py net --n 200 --duration 500
 ```
 
 Run a whole notebook (CLI commands + asset copy + `numbers.json`):
@@ -67,18 +67,18 @@ bun run dev        # http://localhost:4321 (or pass -- --port 3001)
 bun run build      # static output in dist/
 ```
 
-Notebook posts live in `src/docs/src/content/notebooks/` and are picked up automatically by the `notebooks` content collection (schema in `src/docs/src/content.config.ts`). MDX is supported (math via remark-math/rehype-katex), so a post can `import` JSON or Astro components.
+Notebook posts live in `src/docs/content/notebooks/` and are picked up automatically by the `notebooks` content collection (schema in `src/docs/src/content.config.ts`). MDX is supported (math via remark-math/rehype-katex), so a post can `import` JSON or Astro components.
 
 ## CLI tools
 
-Each CLI tool lives in its own directory under `src/simulators/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`.
+Each CLI tool lives in its own directory under `src/clis/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`.
 
 - **`neuron`** — numpy/matplotlib integrate-and-fire neuron and network simulations (`lif`, `net`, `eif`, `enet`).
-- **`mujoco_lab`** — MuJoCo physics demos rendered to mp4 (`cartpole`, `double_pendulum`).
+- **`mujoco_cli`** — MuJoCo physics demos rendered to mp4 (`cartpole`, `double_pendulum`).
 
 ## Staying up to date
 
-This repo is a **template** — start your own by forking this repo on GitHub (or `gh repo create --template eoinmurray/demolab`), then make it yours: add notebooks, posts, and simulators.
+This repo is a **template** — start your own by forking this repo on GitHub (or `gh repo create --template eoinmurray/demolab`), then make it yours: add notebooks, posts, and CLIs.
 
 Upstream demolab keeps gaining features, but it's a **source of ideas**, not a framework you mirror. To bring one into your repo, follow [`UPDATE.md`](UPDATE.md): your coding agent reviews what's new upstream (its `CHANGELOG.md` is the menu) and implements the features you pick *your way* — adapted to your own conventions, using the upstream code only as reference. Nothing is overwritten; you adopt, adapt, or skip per feature, so your repo can diverge freely and still cherry-pick later ideas.
 

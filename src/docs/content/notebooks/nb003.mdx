@@ -3,7 +3,7 @@ title: A chaotic double pendulum in MuJoCo
 date: 2026-06-05
 description: "Two identical double pendulums released side-by-side with their initial angles differing by 10⁻³ rad. They look the same for a second or two, then diverge."
 collection: mujoco
-status: final
+status: draft
 ---
 
 The double pendulum is the textbook example of a deterministic system that is, in practice, unpredictable. Two arms hinged in series have four state variables ($\theta_1, \theta_2, \dot\theta_1, \dot\theta_2$) and a Lagrangian with one nonlinear coupling term, and that is enough: trajectories that start arbitrarily close together separate exponentially in time.
@@ -24,7 +24,7 @@ For the first ~2 seconds the two pendulums trace what looks like the same motion
   playsinline
 />
 
-The MJCF model lives inline in `src/simulators/mujoco_lab/cli.py`:
+The MJCF model lives inline in `src/clis/mujoco_cli/cli.py`:
 
 - two `<body>` chains of two `<joint type="hinge">` arms, anchored at $x = \pm 0.6\,\text{m}$
 - arms are $0.4\,\text{m}$ capsules; a small `<site>` marks each tip so we can read its world position

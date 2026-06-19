@@ -18,10 +18,10 @@ Handy when reading the reference — these are *where to look*, not files to cop
 
 - `src/docs/src/` — the Astro publishing engine (layouts, components, pages, styles, config, content schema)
 - `CONTRIBUTORS.md` — the CLI ↔ notebook contracts
-- `src/simulators/*/cli.py` — the shared run/manifest plumbing (`setup_run_dir`, `write_output`)
+- `src/clis/*/cli.py` — the shared run/manifest plumbing (`setup_run_dir`, `write_output`)
 - `.github/workflows/` — CI
 
-Purely yours, never sourced from upstream: your notebooks (`src/notebooks/`, `src/docs/src/content/`), your artifacts (`src/artifacts/`, `src/docs/public/`), and your own simulators.
+Purely yours, never sourced from upstream: your notebooks (`src/notebooks/`, `src/docs/content/`), your artifacts (`src/artifacts/`, `src/docs/public/`), and your own CLIs.
 
 ## Procedure (your agent runs this)
 

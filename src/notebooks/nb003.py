@@ -9,12 +9,12 @@ ARTIFACTS = ROOT / "artifacts"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb003"
 
 COMMANDS = (
-    ("mujoco_lab", "double_pendulum"),
+    ("mujoco_cli", "double_pendulum"),
 )
 
 
 def run_cli(tool: str, command: str) -> None:
-    cli = ROOT / "simulators" / tool / "cli.py"
+    cli = ROOT / "clis" / tool / "cli.py"
     sh.uv.run("python", str(cli), command, _fg=True)
 
 

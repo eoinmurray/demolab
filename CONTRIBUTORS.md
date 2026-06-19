@@ -4,7 +4,7 @@ How the pieces fit together and the conventions to follow when adding a CLI comm
 
 ## Toolchain
 
-- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/simulators/neuron/cli.py lif`). Run `uv sync` after pulling.
+- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/clis/neuron_cli/cli.py lif`). Run `uv sync` after pulling.
 - **TypeScript / Node**: use `bun`. Never call `npm`, `pnpm`, `yarn`, or `node` directly. Install with `bun install`, run scripts with `bun run <script>`.
 
 ## The CLI ↔ notebook contract
@@ -52,11 +52,11 @@ The MDX post then imports this file and renders prose + figures + parameter tabl
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in the relevant `src/simulators/<tool>/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
+1. Add a CLI subcommand (or reuse existing ones) in the relevant `src/clis/<tool>/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
 2. Create `src/notebooks/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
    - A single-tool runner (e.g. `nb000.py`) uses bare command strings: `COMMANDS = ("lif", "net")`.
-   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco_lab", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
-3. Create `src/docs/src/content/notebooks/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`src/docs/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Inline parameter values from `numbers.json` into plain markdown tables.
+   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco_cli", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
+3. Create `src/docs/content/notebooks/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`src/docs/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Inline parameter values from `numbers.json` into plain markdown tables.
 4. Run `uv run python src/notebooks/nbNNN.py`.
 
 ### The `status` field
@@ -74,7 +74,7 @@ A notebook moves `draft → building → revising → final` and may move backwa
 
 ## Adding a new CLI tool
 
-Each CLI tool lives in its own directory under `src/simulators/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
+Each CLI tool lives in its own directory under `src/clis/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
 
 Reuse the established pattern in an existing `cli.py`:
 
@@ -82,9 +82,9 @@ Reuse the established pattern in an existing `cli.py`:
 - `write_output(run_dir, metrics, manifest)` performs the manifest validation and writes `output.json` + `manifest.json` last.
 - Subcommands are wired through `argparse` with `set_defaults(func=...)`; `main()` calls `args.func(args)`.
 
-Note the two `write_output` variants differ by design: `neuron/cli.py` requires a `headline_figure`, while `mujoco_lab/cli.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
+Note the two `write_output` variants differ by design: `neuron_cli/cli.py` requires a `headline_figure`, while `mujoco_cli/cli.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
 
-> The Streamlit playground (`src/simulators/streamlit_cli/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
+> The Streamlit playground (`src/clis/streamlit_cli/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
 
 ## The feature catalog (upstream maintainers)
 
@@ -95,4 +95,4 @@ Whenever you add or change a reusable **framework capability** (the Astro engine
 1. **Bump the version** with a new top entry in `CHANGELOG.md`. Use **major** for a feature that changes a contract others may have built on, **minor** for a new additive feature, **patch** for a small fix.
 2. **Describe the feature by intent and behavior** — what it does, why, and where the reference implementation lives — not just which files moved. That's what a downstream agent reads to rebuild it natively.
 
-Changes to **content** (notebooks, posts, simulators, artifacts) aren't reusable features and don't belong in the catalog. If a change spans both, catalog only the reusable part.
+Changes to **content** (notebooks, posts, CLIs, artifacts) aren't reusable features and don't belong in the catalog. If a change spans both, catalog only the reusable part.

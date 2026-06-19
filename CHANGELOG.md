@@ -3,7 +3,7 @@
 A catalog of **framework features** in the demolab template. Downstream repos
 don't copy these files — their coding agents reimplement the features they want,
 their own way, using this repo as reference (see `UPDATE.md`). This catalog is
-the menu. It does *not* track content (notebooks, posts, simulators) — that's
+the menu. It does *not* track content (notebooks, posts, CLIs) — that's
 each repo's own.
 
 Each `## [x.y.z]` entry is one batch of features, newest first. A downstream

@@ -5,8 +5,8 @@ from pathlib import Path
 import sh
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / "simulators" / "neuron" / "cli.py"
-ARTIFACTS = ROOT / "artifacts" / "neuron"
+CLI = ROOT / "clis" / "neuron_cli" / "cli.py"
+ARTIFACTS = ROOT / "artifacts" / "neuron_cli"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb001"
 
 COMMANDS = ("eif", "enet")
