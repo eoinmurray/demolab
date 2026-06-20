@@ -36,12 +36,12 @@ Fork it, open it in your coding agent, and just say:
 
 | Say… | …and your agent will | Guide |
 |------|----------------------|-------|
-| **“how do I get started”** | set you up, run the demo, and help you publish your first notebook | [`guides/GETTING_STARTED.md`](guides/GETTING_STARTED.md) |
-| **“migrate my code”** | import an existing repo, one experiment at a time — wrapping, not rewriting | [`guides/MIGRATING.md`](guides/MIGRATING.md) |
-| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [`guides/EMBEDDING.md`](guides/EMBEDDING.md) |
-| **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [`guides/UPDATING.md`](guides/UPDATING.md) |
+| **“how do I get started”** | set you up, run the demo, and help you publish your first notebook | [Getting started](src/docs/content/articles/ar004.md) |
+| **“migrate my code”** | import an existing repo, one experiment at a time — wrapping, not rewriting | [Migrating an existing repo](src/docs/content/articles/ar005.md) |
+| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [Embedding as a docs subfolder](src/docs/content/articles/ar006.md) |
+| **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [Adopting features from upstream](src/docs/content/articles/ar007.md) |
 
-Every guide is a plain runbook — you can follow it by hand too.
+Every guide is a plain runbook — you can follow it by hand too. They're also published on the site itself, under **[Documentation](https://eoinmurray.github.io/demolab/collections/documentation/)**.
 
 ## Reference
 
