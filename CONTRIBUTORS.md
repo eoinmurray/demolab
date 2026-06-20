@@ -88,7 +88,7 @@ Note the two `write_output` variants differ by design: `neuron_cli/cli.py` requi
 
 ## The feature catalog (upstream maintainers)
 
-This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see [`UPDATE.md`](UPDATE.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
+This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see [`UPDATING.md`](UPDATING.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
 
 Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the CLI plumbing, CI), catalog it:
 

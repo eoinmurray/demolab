@@ -71,4 +71,4 @@ Then commit and push to `main`. Your notebook goes live at `https://<your-userna
 
 - `CONTRIBUTORS.md` — the CLI ↔ notebook contract and the procedures for adding notebooks and tools.
 - `MIGRATING.md` — bring an existing script or simulation into this structure.
-- `UPDATE.md` — pull new feature *ideas* from upstream demolab and have your agent reimplement the ones you want, your way.
+- `UPDATING.md` — pull new feature *ideas* from upstream demolab and have your agent reimplement the ones you want, your way.

@@ -3,6 +3,9 @@ import '../styles/global.css';
 interface Props { title: string; isHome?: boolean }
 const { title, isHome = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Brand is env-driven so an embedded copy can carry the host project's name.
+const siteName = import.meta.env.PUBLIC_SITE_NAME ?? 'DEMOLAB';
+const repoUrl = import.meta.env.PUBLIC_SITE_REPO_URL ?? 'https://github.com/eoinmurray/demolab';
 const brandClass = "text-2xl font-bold";
 const brandStyle = "font-family: var(--font-mono);";
 ---
@@ -19,14 +22,14 @@ const brandStyle = "font-family: var(--font-mono);";
       <div class="max-w-[46rem]">
         <div class="flex items-baseline gap-4 flex-wrap">
           {isHome ? (
-            <h1 class={brandClass} style={brandStyle}>DEMOLAB</h1>
+            <h1 class={brandClass} style={brandStyle}>{siteName}</h1>
           ) : (
-            <a href={`${base}/`} class={brandClass} style={brandStyle}>DEMOLAB</a>
+            <a href={`${base}/`} class={brandClass} style={brandStyle}>{siteName}</a>
           )}
           <a href={`${base}/articles/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">articles</a>
           <a href={`${base}/notebooks/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">notebooks</a>
           <a href={`${base}/collections/`} class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">collections</a>
-          <a href="https://github.com/eoinmurray/demolab" target="_blank" rel="noopener" class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">github</a>
+          <a href={repoUrl} target="_blank" rel="noopener" class="text-sm text-[color:var(--color-muted)] hover:text-[color:var(--ink)]">github</a>
         </div>
       </div>
     </header>
