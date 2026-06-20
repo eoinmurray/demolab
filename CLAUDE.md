@@ -9,16 +9,16 @@ See `README.md` for the CLI ↔ notebook contract, the artifacts directory layou
 
 # Getting started
 
-When the user asks **"how do I get started"** (or "help me set up", "onboard me", "walk me through this repo"), follow `GETTING_STARTED.md` as an **interactive** runbook: set up the toolchain, run the demo notebook so they see the loop work, then guide them through scaffolding their own first notebook, and help them publish. Drive it one step at a time — run the commands, verify each works, and confirm before moving on; don't dump the whole guide at once.
+When the user asks **"how do I get started"** (or "help me set up", "onboard me", "walk me through this repo"), follow `guides/GETTING_STARTED.md` as an **interactive** runbook: set up the toolchain, run the demo notebook so they see the loop work, then guide them through scaffolding their own first notebook, and help them publish. Drive it one step at a time — run the commands, verify each works, and confirm before moving on; don't dump the whole guide at once.
 
 # Migrating existing code
 
-When the user asks to **"migrate my code"** (or "import my repo", "bring my existing code in"), follow `MIGRATING.md`: inventory their existing repo, bring experiments across **one at a time**, and **wrap rather than rewrite** — the new CLI command imports and calls their existing functions, then publishes via a notebook runner + post per the contract in `CONTRIBUTORS.md`. Merge their dependencies into the root `pyproject.toml`. Verify each run end to end.
+When the user asks to **"migrate my code"** (or "import my repo", "bring my existing code in"), follow `guides/MIGRATING.md`: inventory their existing repo, bring experiments across **one at a time**, and **wrap rather than rewrite** — the new CLI command imports and calls their existing functions, then publishes via a notebook runner + post per the contract in `CONTRIBUTORS.md`. Merge their dependencies into the root `pyproject.toml`. Verify each run end to end.
 
 # Embedding as a docs subfolder
 
-When the user asks to **"embed demolab as a docs site"** (or "use this as a wiki subfolder", "drop this into my project as docs"), follow `EMBEDDING.md`: the tree is path-portable, so the work is configuring the env-driven serve/brand vars (`PUBLIC_SITE_URL`, `PUBLIC_BASE_PATH`, `PUBLIC_SITE_NAME`, `PUBLIC_SITE_REPO_URL`), running the toolchain from inside the subfolder, and adding the Pages workflow to the *host* repo. Never edit source for serve config — use the env vars.
+When the user asks to **"embed demolab as a docs site"** (or "use this as a wiki subfolder", "drop this into my project as docs"), follow `guides/EMBEDDING.md`: the tree is path-portable, so the work is configuring the env-driven serve/brand vars (`PUBLIC_SITE_URL`, `PUBLIC_BASE_PATH`, `PUBLIC_SITE_NAME`, `PUBLIC_SITE_REPO_URL`), running the toolchain from inside the subfolder, and adding the Pages workflow to the *host* repo. Never edit source for serve config — use the env vars.
 
 # Updating the framework
 
-When the user asks to **"update demolab"** (or "update from upstream", "pull the latest demolab features"), follow the runbook in `UPDATING.md`. Updating is **not** a file copy: upstream demolab is a reference/menu of features (its `CHANGELOG.md`), and the job is to review what's new, let the user pick features, and reimplement the chosen ones *in this repo's own conventions* using upstream only as reference — never overwriting the user's work. Read `UPDATING.md` and follow its steps.
+When the user asks to **"update demolab"** (or "update from upstream", "pull the latest demolab features"), follow the runbook in `guides/UPDATING.md`. Updating is **not** a file copy: upstream demolab is a reference/menu of features (its `CHANGELOG.md`), and the job is to review what's new, let the user pick features, and reimplement the chosen ones *in this repo's own conventions* using upstream only as reference — never overwriting the user's work. Read `guides/UPDATING.md` and follow its steps.

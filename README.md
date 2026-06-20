@@ -36,10 +36,10 @@ Fork it, open it in your coding agent, and just say:
 
 | Say… | …and your agent will | Guide |
 |------|----------------------|-------|
-| **“how do I get started”** | set you up, run the demo, and help you publish your first notebook | [`GETTING_STARTED.md`](GETTING_STARTED.md) |
-| **“migrate my code”** | import an existing repo, one experiment at a time — wrapping, not rewriting | [`MIGRATING.md`](MIGRATING.md) |
-| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [`EMBEDDING.md`](EMBEDDING.md) |
-| **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [`UPDATING.md`](UPDATING.md) |
+| **“how do I get started”** | set you up, run the demo, and help you publish your first notebook | [`guides/GETTING_STARTED.md`](guides/GETTING_STARTED.md) |
+| **“migrate my code”** | import an existing repo, one experiment at a time — wrapping, not rewriting | [`guides/MIGRATING.md`](guides/MIGRATING.md) |
+| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [`guides/EMBEDDING.md`](guides/EMBEDDING.md) |
+| **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [`guides/UPDATING.md`](guides/UPDATING.md) |
 
 Every guide is a plain runbook — you can follow it by hand too.
 
