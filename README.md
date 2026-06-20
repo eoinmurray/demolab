@@ -4,6 +4,8 @@
 
 A Python CLI runs an experiment and drops a self-contained folder of artifacts; a notebook runner bundles them; an Astro site publishes a clean post for each one — figures, parameters, and the headline numbers included. It's built to be operated by a human *and* an agent (Claude Code, Cursor, aider, …), and it's designed to fork.
 
+**▶ See it live: [eoinmurray.github.io/demolab](https://eoinmurray.github.io/demolab/)**
+
 ```
 src/
 ├── clis/        Python CLIs — one experiment tool per folder
