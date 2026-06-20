@@ -1,0 +1,54 @@
+# Migrating an existing repo
+
+A runbook for bringing an existing research repo or codebase into this structure — so your real experiments produce artifacts and publish posts like everything else. Run it **with a coding agent**: say *"migrate my code"* and point it at the repo (a local path or a clone). It can also be followed by hand.
+
+Do `GETTING_STARTED.md` first so the loop is familiar. The contract you're migrating *into* is in `CONTRIBUTORS.md` — keep it open.
+
+**Three principles, and the whole guide follows from them:**
+
+- **Incremental, not lift-and-shift.** Bring experiments across **one at a time**. A research repo doesn't map onto this structure wholesale; each experiment becomes its own CLI command + notebook + post.
+- **Wrap, don't rewrite.** Keep the user's code where it is. The new `cli.py` is a *thin adapter* that imports and calls their existing functions — you're not reimplementing their science.
+- **One environment.** Their dependencies fold into this repo's root `pyproject.toml`, not a parallel env.
+
+> **Agent:** work in small, verified steps. The failure mode here is trying to move everything at once or rewriting the user's computation — don't. Get one experiment publishing end to end before touching the next.
+
+## 1. Inventory the existing repo
+
+> **Agent:** get the path (or URL) to the user's repo and read its structure. Produce a short list of candidate **experiments** — each script or function that computes a result, ideally one that ends in a figure or a few numbers. Then, *with the user*, pick the single simplest one to migrate first. Don't try to catalogue or move everything; just find the easiest end-to-end win.
+
+## 2. Bring their code in — wrap, don't rewrite
+
+The aim is for their computation to stay in their modules; the CLI just calls it. Two cases:
+
+- **It's an installable package** (has a `pyproject.toml` / `setup.py`): add it as a dependency so you can import it without copying — `uv add <name>` for a PyPI package, or a git/local-path dependency for an unpublished repo — then `uv sync`. Now `import their_package` works from the CLI.
+- **It's loose scripts/modules:** copy only the modules the chosen experiment needs into the new tool directory (next to `cli.py`), or a shared `src/<their_pkg>/`. When a CLI runs via `uv run python src/clis/<tool>_cli/cli.py`, that directory is on the import path, so `from their_module import run_experiment` resolves.
+
+> **Agent:** prefer the dependency route when the repo is installable — zero copying, easiest to keep in sync. Only copy modules when there's no package to depend on.
+
+## 3. Merge dependencies
+
+> **Agent:** read the existing repo's `requirements.txt` / `pyproject.toml`. Add the dependencies the migrated experiment actually needs to *this* repo's root `pyproject.toml` with `uv add …` (never `pip install`), then `uv sync`. Surface any version conflicts to the user and resolve them together. Add only what the chosen experiment uses — not the whole list.
+
+## 4. Wrap the first experiment as a CLI command
+
+> **Agent:** create `src/clis/<tool>_cli/cli.py` (or add a subcommand to an existing tool), modeled on `src/clis/neuron_cli/cli.py`:
+>
+> 1. Copy the `setup_run_dir` and `write_output` helpers from `neuron_cli/cli.py` verbatim, adjusting the tool name in `ARTIFACTS_DIR` and the logger.
+> 2. Add an `argparse` subcommand whose arguments are the experiment's parameters (with the defaults from their code).
+> 3. In the handler: call `setup_run_dir`, **call the user's existing function** to do the computation, save the figure to the run dir, build a flat `metrics` dict, and `write_output(run_dir, metrics, manifest)` with a `manifest` declaring `headline_figure` and `headline_metrics`.
+>
+> The handler should be thin — parse args, call their code, write the contract files. If you find yourself porting their math, stop and import it instead. Run `uv run python src/clis/<tool>_cli/cli.py <command>` and confirm `src/artifacts/<tool>_cli/<command>/` has the full set (`config.json`, `output.json`, `manifest.json`, the figure, `run.sh`).
+
+## 5. Runner and post
+
+> **Agent:** create the runner `src/notebooks/nbNNN.py` (modeled on `nb000.py`, or `nb002.py` for a tool mix) with its `COMMANDS`, and run it. Then create the post `src/docs/content/notebooks/nbNNN.mdx` — `title` + `date` frontmatter (optional `description`/`collection`/`status`), with values inlined from the generated `numbers.json`, the figure, and a parameter table. Start the site (`cd src/docs && bun run dev`) and open the new post with the user at `http://localhost:4321/demolab`. Confirm the figure and numbers match their original code's output.
+
+## 6. Repeat for the next experiment
+
+> **Agent:** once one experiment publishes end to end, bring the next across the same way — each becomes its own command (and usually its own notebook). Stop when the experiments that matter are migrated; there's no need to move everything.
+
+## Notes
+
+- **Don't fork their science into the contract — wrap it.** The CLI is glue; their code is the source of truth.
+- **Determinism:** if an experiment uses randomness, thread a `--seed` argument through (see `neuron_cli`'s `net` command) so runs reproduce.
+- **Keep their tests.** If the repo has tests, bring the relevant ones and run them with `uv run`.

@@ -10,6 +10,15 @@ src/
 └── docs/         ← Astro site (posts + assets)
 ```
 
+## New here? Start with your agent
+
+This repo is built to be operated by a human **and** a coding agent (Claude Code, Cursor, aider, …). The fastest way in is to fork it, open it in your agent, and say:
+
+- **"how do I get started"** → it runs the interactive [`GETTING_STARTED.md`](GETTING_STARTED.md) flow: sets up the toolchain, runs the demo, and helps you publish your own first notebook.
+- **"migrate my code"** → it follows [`MIGRATING.md`](MIGRATING.md) to import an existing repo — bringing your experiments across one at a time, wrapping your code rather than rewriting it.
+
+Both guides are plain runbooks — you can also follow them by hand.
+
 ## Layout
 
 ```
