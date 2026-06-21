@@ -3,6 +3,19 @@ import type { NotebookStatus } from '../config/status';
 
 export const UNCOLLECTED = '__uncollected';
 
+// Display-name overrides for collections whose slug doesn't capitalize cleanly.
+// The slug (used in URLs) stays as-is; only the shown label changes.
+const COLLECTION_LABELS: Record<string, string> = {
+  mujoco: 'Example: Mujoco',
+  'neuron-models': 'Example: Neuron models',
+  streamlit: 'Example: Streamlit',
+};
+
+export function collectionLabel(name: string): string {
+  if (name === UNCOLLECTED) return 'Misc';
+  return COLLECTION_LABELS[name] ?? name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ');
+}
+
 export type Entry = {
   id: string;
   title: string;
@@ -48,10 +61,7 @@ export function bucketize(articles: Entry[], notebooks: Entry[]): Bucket[] {
     if (!map.has(name)) {
       map.set(name, {
         collection: name,
-        label:
-          name === UNCOLLECTED
-            ? 'Misc'
-            : name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
+        label: collectionLabel(name),
         articles: [],
         notebooks: [],
       });

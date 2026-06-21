@@ -1,8 +1,17 @@
 ---
-title: A visual proof of Pythagoras
+title: Drawing diagrams with SVG
 date: 2026-06-05
-description: Two identical squares, two ways of filling them. The leftover area is c² on one side and a² + b² on the other, so they must be equal.
+description: Most figures here come from a CLI as PNGs, but an MDX post can also draw diagrams inline as parametric SVG. A visual proof of Pythagoras as the worked example.
+collection: documentation
 ---
+
+Most figures in this lab are *generated* — a CLI runs an experiment, matplotlib renders a `.png`, and the notebook runner copies it into the post. That's the right path for anything that's the output of a computation.
+
+But sometimes you want a **hand-built diagram** — a schematic, a geometric illustration, a figure that isn't the result of a simulation. Because posts are MDX, you can draw these inline as **SVG** and drive them with `export const` values, so the whole figure stays parametric: change one constant and every coordinate follows. No image files, no build step, and it scales crisply.
+
+Here's the technique with a worked example, then a look at how it's wired up.
+
+## A worked example: a visual proof of Pythagoras
 
 Draw a square of side $a + b$. Inside it, mark a point on each edge that divides the edge into a segment of length $a$ and a segment of length $b$, going around in the same rotational sense. Connect those four points. You get a tilted square whose side is the hypotenuse $c$ of a right triangle with legs $a$ and $b$, and four congruent copies of that triangle filling the corners.
 
@@ -58,4 +67,12 @@ $$
 
 That is the entire proof. No coordinates, no algebraic identities, no trigonometry — just the fact that area is conserved when you rearrange congruent pieces inside a fixed container.
 
-The diagrams above use $a = 3$, $b = 4$ for concreteness (so the inner tilted square has side $5$), but nothing in the argument depends on the specific values. Pick any positive $a$ and $b$ and the same picture works.
+## How the diagram is built
+
+The whole thing is plain SVG with a few conveniences MDX gives you for free:
+
+- **Parametric constants.** `export const a`, `b`, … sit at the top of the post and feed every coordinate. `s = a + b` is the square's side; the diagram redraws itself if you change a single number. (Here $a = 120$, $b = 160$ — a $3{:}4$ ratio, so the inner tilted square has side $5$ — but any positive values work.)
+- **Expressions in attributes.** Because this is MDX/JSX, every attribute can take a JavaScript expression: the `viewBox`, each polygon's `points`, and label positions like `x={a/2}` are all computed from the constants rather than hard-coded. The `viewBox` makes the coordinate system resolution-independent — `width` and `height` just scale it.
+- **Shared style via spread.** `export const label = {…}` holds the text styling once, and each `<text {...label}>` spreads it in, so all the labels stay consistent.
+
+The same pattern covers most hand-drawn figures: define your sizes as constants, lay out `<polygon>` / `<rect>` / `<line>` / `<text>` against them, and let the post stay self-contained. Reach for a CLI-generated PNG when the figure is *data*; reach for inline SVG when it's a *drawing*.

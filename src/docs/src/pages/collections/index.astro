@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { loadAllEntries } from '../../lib/entries';
+import { loadAllEntries, collectionLabel } from '../../lib/entries';
 
 const { articles, notebooks } = await loadAllEntries();
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -39,7 +39,7 @@ const countLabel = (a: number, n: number) => {
           {entries.map(([name, { articles: a, notebooks: n }]) => (
             <li class="flex items-baseline gap-3 py-[0.3rem]">
               <a href={`${base}/collections/${name}/`} class="flex-1 min-w-0">
-                {name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ')}
+                {collectionLabel(name)}
               </a>
               <span class="shrink-0 whitespace-nowrap tabular-nums text-[0.85rem] text-[color:var(--color-muted-soft)]">
                 {countLabel(a, n)}

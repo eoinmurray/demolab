@@ -5,6 +5,8 @@ description: An interactive leaky integrate-and-fire neuron with live sliders �
 collection: streamlit
 ---
 
+**▶ Open the live playground:** [localhost:8501](http://localhost:8501) — start it with `uv run streamlit run src/clis/streamlit_cli/app.py` (details [below](#starting-the-server)).
+
 Most of this lab runs *batch-style*: a CLI command takes a fixed set of arguments, runs a simulation, and drops a directory of artifacts (figures, metrics, a `run.sh`) that a notebook post then publishes. That's the right shape for a result you want to pin down and cite.
 
 The Streamlit app is the opposite end of that spectrum — a live, interactive surface for *building intuition* before you commit to a run. It re-simulates a single leaky integrate-and-fire neuron on every slider drag and redraws the voltage trace immediately.
