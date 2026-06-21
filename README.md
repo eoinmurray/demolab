@@ -4,7 +4,7 @@
 
 A Python CLI runs an experiment and drops a self-contained folder of artifacts; a notebook runner bundles them; an Astro site publishes a clean post for each one — figures, parameters, and the headline numbers included. It's built to be operated by a human *and* an agent (Claude Code, Cursor, aider, …), and it's designed to fork.
 
-**▶ See it live: [eoinmurray.github.io/demolab](https://eoinmurray.github.io/demolab/)**
+**▶ See it live: [demolab.eoinmurray.info](https://demolab.eoinmurray.info/)**
 
 ```
 src/
@@ -25,7 +25,7 @@ Those four steps stay decoupled through one small contract (see [`CONTRIBUTORS.m
 ```sh
 uv sync                                       # Python deps
 uv run python src/notebooks/nb000.py          # run a notebook end-to-end
-cd src/docs && bun install && bun run dev      # open http://localhost:4321/demolab
+cd src/docs && bun install && bun run dev      # open http://localhost:4321
 ```
 
 Toolchain: **`uv`** for Python, **`bun`** for the site — never `pip`/`npm` directly.
@@ -41,7 +41,7 @@ Fork it, open it in your coding agent, and just say:
 | **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [Embedding as a docs subfolder](src/docs/content/articles/ar006.md) |
 | **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [Adopting features from upstream](src/docs/content/articles/ar007.md) |
 
-Every guide is a plain runbook — you can follow it by hand too. They're also published on the site itself, under **[Documentation](https://eoinmurray.github.io/demolab/collections/documentation/)**.
+Every guide is a plain runbook — you can follow it by hand too. They're also published on the site itself, under **[Documentation](https://demolab.eoinmurray.info/collections/documentation/)**.
 
 ## Reference
 

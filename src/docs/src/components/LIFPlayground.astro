@@ -1,0 +1,233 @@
+---
+// A fully client-side leaky integrate-and-fire playground. It integrates the
+// same LIF dynamics as `neuron_cli lif` (src/clis/neuron_cli/cli.py), but in
+// the browser — no server, no artifacts. Drag a slider and the voltage trace
+// re-simulates and redraws immediately. Ships with the static build, so it
+// works on GitHub Pages with nothing running.
+//
+// Each control declares its range/default once in CONTROLS; the markup and the
+// simulation both read from that list, so adding a parameter is a one-line edit.
+const CONTROLS = [
+  { id: "current", label: "Input current I", unit: "nA", min: 0, max: 6, step: 0.1, value: 2.5 },
+  { id: "r_m",     label: "Resistance R_m",  unit: "MΩ", min: 1, max: 20, step: 0.5, value: 10 },
+  { id: "tau_m",   label: "Time constant τ_m", unit: "ms", min: 1, max: 40, step: 0.5, value: 10 },
+  { id: "v_rest",  label: "Rest V_rest",     unit: "mV", min: -80, max: -50, step: 1, value: -65 },
+  { id: "v_reset", label: "Reset V_reset",   unit: "mV", min: -80, max: -50, step: 1, value: -70 },
+  { id: "v_thresh",label: "Threshold V_th",  unit: "mV", min: -60, max: -40, step: 1, value: -50 },
+  { id: "duration",label: "Duration",        unit: "ms", min: 50, max: 500, step: 10, value: 100 },
+  { id: "dt",      label: "Timestep Δt",     unit: "ms", min: 0.05, max: 0.5, step: 0.05, value: 0.1 },
+] as const;
+---
+
+<figure class="lif" data-lif-playground>
+  <div class="lif-grid">
+    {CONTROLS.map((c) => (
+      <label class="lif-control">
+        <span class="lif-control-row">
+          <span class="lif-name">{c.label}</span>
+          <output data-out={c.id} class="lif-val">{c.value} {c.unit}</output>
+        </span>
+        <input
+          type="range"
+          data-param={c.id}
+          min={c.min}
+          max={c.max}
+          step={c.step}
+          value={c.value}
+        />
+      </label>
+    ))}
+  </div>
+
+  <div class="lif-plot">
+    <svg data-plot viewBox="0 0 720 300" width="100%" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="Membrane voltage trace over time"></svg>
+    <div class="lif-readout">
+      <span><strong data-stat="spikes">—</strong> spikes</span>
+      <span><strong data-stat="rate">—</strong> Hz</span>
+      <span data-stat="regime" class="lif-regime">—</span>
+    </div>
+  </div>
+</figure>
+
+<style>
+  .lif {
+    margin: 1.75rem 0;
+    border: 1px solid var(--color-rule);
+    border-radius: 8px;
+    background: var(--color-paper-tint);
+    padding: 1.1rem 1.2rem 1.3rem;
+    font-family: var(--font-serif);
+  }
+  .lif-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.65rem 1.4rem;
+    margin-bottom: 1.1rem;
+  }
+  .lif-control { display: flex; flex-direction: column; gap: 0.2rem; }
+  .lif-control-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+  .lif-name { font-size: 0.9rem; color: var(--color-ink-soft); }
+  .lif-val {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--color-ink-strong);
+    white-space: nowrap;
+  }
+  .lif input[type="range"] {
+    width: 100%;
+    accent-color: #1f77b4;
+    cursor: pointer;
+  }
+  .lif-plot { background: var(--color-paper); border: 1px solid var(--color-rule); border-radius: 6px; padding: 0.5rem; }
+  .lif-plot svg { display: block; }
+  .lif-readout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 0.5rem;
+    padding: 0 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--color-dim);
+  }
+  .lif-readout strong { color: var(--color-ink-strong); font-weight: 600; }
+  .lif-regime { margin-left: auto; }
+  .lif-regime[data-regime="spiking"] { color: #1f77b4; }
+  .lif-regime[data-regime="subthreshold"] { color: var(--color-muted); }
+</style>
+
+<script>
+  // LIF integration + SVG rendering, mirroring simulate_lif() in the CLI:
+  //   dv = (-(V - V_rest) + R_m * I) / τ_m ;  V += dv * dt
+  //   on V >= V_th: record spike, plot the step at 0 mV, reset to V_reset.
+  // Self-contained and idempotent so it survives Astro's HMR re-runs.
+  type Params = Record<string, number>;
+
+  const W = 720, H = 300;
+  const PAD = { l: 46, r: 12, t: 14, b: 28 };
+  const SPIKE_MV = 0; // matches the CLI: a spike is drawn as a step to 0 mV
+
+  function simulate(p: Params) {
+    const nSteps = Math.max(1, Math.round(p.duration / p.dt));
+    const xs = new Float64Array(nSteps);
+    const ys = new Float64Array(nSteps);
+    const spikes: number[] = [];
+    let v = p.v_rest;
+    for (let i = 0; i < nSteps; i++) {
+      const t = i * p.dt;
+      const dv = (-(v - p.v_rest) + p.r_m * p.current) / p.tau_m;
+      v += dv * p.dt;
+      xs[i] = t;
+      if (v >= p.v_thresh) {
+        spikes.push(t);
+        ys[i] = SPIKE_MV;
+        v = p.v_reset;
+      } else {
+        ys[i] = v;
+      }
+    }
+    return { xs, ys, spikes, nSteps };
+  }
+
+  function render(root: HTMLElement) {
+    const svg = root.querySelector("[data-plot]") as SVGSVGElement;
+    const inputs = Array.from(
+      root.querySelectorAll<HTMLInputElement>("input[data-param]"),
+    );
+    const p: Params = {};
+    for (const el of inputs) p[el.dataset.param!] = parseFloat(el.value);
+
+    // Live value labels.
+    for (const el of inputs) {
+      const out = root.querySelector(`[data-out="${el.dataset.param}"]`);
+      if (out) {
+        const unit = out.textContent?.trim().split(/\s+/).pop() ?? "";
+        out.textContent = `${el.value} ${unit}`;
+      }
+    }
+
+    const { xs, ys, spikes } = simulate(p);
+
+    // Y range: from just below the lowest reset/rest up to the spike glyph.
+    const yMin = Math.min(p.v_reset, p.v_rest) - 5;
+    const yMax = SPIKE_MV + 3;
+    const sx = (t: number) => PAD.l + (t / p.duration) * (W - PAD.l - PAD.r);
+    const sy = (v: number) =>
+      PAD.t + (1 - (v - yMin) / (yMax - yMin)) * (H - PAD.t - PAD.b);
+
+    // Build the trace path. Decimate to keep the path light when dt is small.
+    const stride = Math.max(1, Math.floor(xs.length / 1400));
+    let d = "";
+    for (let i = 0; i < xs.length; i += stride) {
+      d += (i === 0 ? "M" : "L") + sx(xs[i]).toFixed(1) + " " + sy(ys[i]).toFixed(1);
+    }
+
+    const yThresh = sy(p.v_thresh);
+    const yRest = sy(p.v_rest);
+    const axisColor = "var(--color-faint)";
+    const ns = "http://www.w3.org/2000/svg";
+
+    // Y gridlines + labels at threshold, rest, reset.
+    const guides = [
+      { v: p.v_thresh, label: "V_th", color: "#c44", dash: "4 3" },
+      { v: p.v_rest, label: "V_rest", color: axisColor, dash: "2 3" },
+      { v: p.v_reset, label: "V_reset", color: axisColor, dash: "2 3" },
+    ];
+
+    let inner = "";
+    // Plot frame.
+    inner += `<rect x="${PAD.l}" y="${PAD.t}" width="${W - PAD.l - PAD.r}" height="${H - PAD.t - PAD.b}" fill="none" stroke="${axisColor}"/>`;
+    for (const g of guides) {
+      const y = sy(g.v).toFixed(1);
+      inner += `<line x1="${PAD.l}" y1="${y}" x2="${W - PAD.r}" y2="${y}" stroke="${g.color}" stroke-width="1" stroke-dasharray="${g.dash}"/>`;
+      inner += `<text x="${PAD.l - 5}" y="${(+y + 3).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--color-muted)" font-family="var(--font-mono)">${g.v.toFixed(0)}</text>`;
+    }
+    // Spike ticks along the top.
+    for (const t of spikes) {
+      const x = sx(t).toFixed(1);
+      inner += `<line x1="${x}" y1="${PAD.t}" x2="${x}" y2="${PAD.t + 6}" stroke="#1f77b4" stroke-width="1"/>`;
+    }
+    // The voltage trace.
+    inner += `<path d="${d}" fill="none" stroke="#1f77b4" stroke-width="1.3"/>`;
+    // X axis labels.
+    inner += `<text x="${PAD.l}" y="${H - 8}" font-size="11" fill="var(--color-muted)" font-family="var(--font-mono)">0</text>`;
+    inner += `<text x="${W - PAD.r}" y="${H - 8}" text-anchor="end" font-size="11" fill="var(--color-muted)" font-family="var(--font-mono)">${p.duration.toFixed(0)} ms</text>`;
+
+    svg.innerHTML = inner;
+
+    // Readouts.
+    const rate = (spikes.length / p.duration) * 1000;
+    const vInf = p.v_rest + p.r_m * p.current;
+    const spiking = vInf >= p.v_thresh;
+    const setStat = (k: string, val: string) => {
+      const el = root.querySelector(`[data-stat="${k}"]`);
+      if (el) el.textContent = val;
+    };
+    setStat("spikes", String(spikes.length));
+    setStat("rate", rate.toFixed(1));
+    const regime = root.querySelector("[data-stat='regime']") as HTMLElement;
+    if (regime) {
+      regime.textContent = spiking
+        ? `spiking · V∞ = ${vInf.toFixed(1)} mV`
+        : `subthreshold · V∞ = ${vInf.toFixed(1)} mV`;
+      regime.dataset.regime = spiking ? "spiking" : "subthreshold";
+    }
+  }
+
+  function init() {
+    const roots = document.querySelectorAll<HTMLElement>("[data-lif-playground]");
+    roots.forEach((root) => {
+      if ((root as any).__lifBound) return;
+      (root as any).__lifBound = true;
+      root.addEventListener("input", () => render(root));
+      render(root);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+</script>

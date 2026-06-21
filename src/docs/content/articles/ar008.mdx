@@ -1,0 +1,59 @@
+---
+title: "Example: An in-browser simulator playground"
+date: 2026-06-21
+description: The SVG example draws a static figure; the Streamlit playground needs a server. This one does neither — an interactive LIF neuron that simulates live in the browser, shipped inside the static build.
+collection: documentation
+---
+
+import LIFPlayground from "../../src/components/LIFPlayground.astro";
+
+This lab already has two ways to put a figure in a post. [Drawing diagrams with SVG](../ar002/) builds a *static* parametric figure inline — change a constant, rebuild, and the drawing follows. [The Streamlit playground](../ar003/) goes fully interactive, re-simulating on every slider drag — but it needs a Python server running on `localhost:8501`, so it only works while that process is alive.
+
+This post is the third point on that spectrum: an interactive playground that runs **entirely in the browser**. It ships as part of the static build, so it works on the published GitHub Pages site with nothing running behind it. Drag a slider and the voltage trace re-simulates and redraws immediately.
+
+## The worked example: a leaky integrate-and-fire neuron
+
+It integrates the same dynamics as the `neuron_cli lif` command and the Streamlit app — the subthreshold membrane equation derived in [From a capacitor to the LIF neuron](../ar000/),
+
+$$
+\tau_m \frac{dV}{dt} = -(V - V_\text{rest}) + R_m\, I,
+$$
+
+where
+
+- $V$ — membrane potential (mV),
+- $V_\text{rest}$ — resting potential the membrane relaxes toward (mV),
+- $\tau_m = R_m C_m$ — membrane time constant (ms),
+- $R_m$ — membrane resistance (MΩ),
+- $I$ — injected tonic current (nA),
+
+with the spike-and-reset rule: whenever $V \ge V_\text{th}$, record a spike and set $V \leftarrow V_\text{reset}$.
+
+<LIFPlayground />
+
+The steady state is $V_\infty = V_\text{rest} + R_m I$. If that sits below $V_\text{th}$ the neuron is *subthreshold* — it relaxes to $V_\infty$ and never fires. Push $I$ or $R_m$ up until $V_\infty$ crosses threshold and it spikes periodically; the firing rate climbs with the input. The readout flags which regime you're in.
+
+## How it's wired up
+
+The whole thing is one self-contained Astro component, [`LIFPlayground.astro`](https://github.com/eoinmurray/demolab/blob/main/src/docs/src/components/LIFPlayground.astro), imported at the top of this post and dropped in as `<LIFPlayground />`. Three pieces make it work:
+
+- **A client `<script>`.** Astro bundles and ships `<script>` tags in components to the browser (the same mechanism behind the image lightbox in every post). That script runs the forward-Euler integration — a direct port of `simulate_lif()` from `src/clis/neuron_cli/cli.py` — and redraws on every `input` event. No framework, no React: plain TypeScript and DOM.
+- **An inline SVG canvas.** Rather than an image file, the trace is drawn by generating an SVG `<path>` from the simulated samples, with dashed guides at threshold / rest / reset and ticks marking spike times. Same resolution-independent `viewBox` trick as the [SVG diagram example](../ar002/), but the path is regenerated on the fly instead of being fixed at build time.
+- **Declared parameters.** Each slider's range and default live once in a `CONTROLS` list; the markup and the simulation both read from it, so adding a parameter is a one-line edit.
+
+## When to reach for which
+
+Three tools, three jobs:
+
+- **CLI-generated PNG** — the figure is *data*: the reproducible output of a pinned run, bundled by a notebook post per the CLI ↔ notebook contract.
+- **Inline SVG** ([ar002](../ar002/)) — the figure is a *drawing*: a static schematic that's parametric at build time.
+- **In-browser component** (this post) — the figure is a *toy*: the reader explores the parameter space themselves, and it has to keep working on the static site.
+- **Streamlit** ([ar003](../ar003/)) — you need the *real* compute: a heavy simulation, the project's pinned Python environment, or anything that can't be reimplemented in a few lines of browser JavaScript.
+
+This playground deliberately sits outside the CLI ↔ notebook contract, exactly like the Streamlit app: it writes no `config.json` / `output.json` / `manifest.json` and produces no artifacts. It's a thinking tool. When a slider configuration is worth keeping, reproduce it as a pinned run:
+
+```sh
+uv run python src/clis/neuron_cli/cli.py lif --current 2.5 --duration 100
+```
+
+That writes the artifacts a notebook post can publish.

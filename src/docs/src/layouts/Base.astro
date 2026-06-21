@@ -15,6 +15,15 @@ const brandStyle = "font-family: var(--font-mono);";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    {/* Preconnect + preload the web fonts so they arrive before first paint and
+        font-display:block renders text directly in Computer Modern (no swap). */}
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preload" as="font" type="font/woff" crossorigin
+      href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunrm.woff" />
+    <link rel="preload" as="font" type="font/woff" crossorigin
+      href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunbx.woff" />
+    <link rel="preload" as="font" type="font/woff" crossorigin
+      href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Typewriter/cmuntt.woff" />
     <title>{title}</title>
   </head>
   <body>
