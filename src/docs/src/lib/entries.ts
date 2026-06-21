@@ -22,6 +22,7 @@ export type Entry = {
   date: Date;
   collection: string | null;
   status: NotebookStatus | null;
+  order: number | null;
   kind: 'articles' | 'notebooks';
 };
 
@@ -33,8 +34,19 @@ function toEntry(e: CollectionEntry<'articles' | 'notebooks'>, kind: 'articles' 
     date: e.data.date,
     collection: typeof c === 'string' && c.length > 0 ? c : null,
     status: e.data.status ?? null,
+    order: typeof e.data.order === 'number' ? e.data.order : null,
     kind,
   };
+}
+
+// Reading order within a collection: entries with an explicit `order` come
+// first (ascending), then everything else newest-first (reverse-id). This lets
+// the docs lay out a guided path while undated example lists stay chronological.
+function byReadingOrder(a: Entry, b: Entry): number {
+  if (a.order !== null && b.order !== null) return a.order - b.order;
+  if (a.order !== null) return -1;
+  if (b.order !== null) return 1;
+  return b.id.localeCompare(a.id);
 }
 
 export async function loadAllEntries(): Promise<{ articles: Entry[]; notebooks: Entry[] }> {
@@ -43,8 +55,8 @@ export async function loadAllEntries(): Promise<{ articles: Entry[]; notebooks: 
     getCollection('notebooks'),
   ]);
   return {
-    articles: articles.map((e) => toEntry(e, 'articles')).sort((a, b) => b.id.localeCompare(a.id)),
-    notebooks: notebooks.map((e) => toEntry(e, 'notebooks')).sort((a, b) => b.id.localeCompare(a.id)),
+    articles: articles.map((e) => toEntry(e, 'articles')).sort(byReadingOrder),
+    notebooks: notebooks.map((e) => toEntry(e, 'notebooks')).sort(byReadingOrder),
   };
 }
 

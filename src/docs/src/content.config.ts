@@ -8,6 +8,9 @@ const entrySchema = z.object({
   description: z.string().optional(),
   collection: z.string().optional(),
   status: z.enum(NOTEBOOK_STATUSES).optional(),
+  // Optional reading-order weight within a collection (lower = earlier). Use it
+  // to lay out a guided path; entries without it fall back to reverse-id order.
+  order: z.number().optional(),
 });
 
 const notebooks = defineCollection({
