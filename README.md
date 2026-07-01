@@ -66,9 +66,24 @@ The website isn't load-bearing — **the contract is**: every run leaves a figur
 
 For crisp print output, have the tool save a **vector** figure (`savefig(..., format="pdf")` or SVG) instead of PNG. Either way the two rules still hold — a notebook is a runner plus a document; only the document format and the build command change.
 
+## Get your own copy
+
+demolab is a **template** — start a *fresh* copy, don't `git clone` it (a plain clone drags demolab's history and remote along, and you'd be committing into someone else's repo).
+
+- **On GitHub** *(recommended)* — click **"Use this template" → Create a new repository**. You get a clean, owned repo with its own history.
+- **From the terminal** — `bunx degit eoinmurray/demolab my-lab` grabs the files with **no git history**, ready to make yours:
+
+  ```sh
+  bunx degit eoinmurray/demolab my-lab   # download, no .git
+  cd my-lab
+  git init && git add -A && git commit -m "Start my lab from demolab"
+  ```
+
+  (Prefer plain git? `git clone --depth 1 https://github.com/eoinmurray/demolab my-lab && rm -rf my-lab/.git` does the same by hand.)
+
 ## Quickstart
 
-**Prerequisites** — three command-line tools:
+Once you're in your copy — **prerequisites**, three command-line tools:
 
 - [`uv`](https://docs.astral.sh/uv/) — Python environment + dependencies
 - [`bun`](https://bun.sh) — the website
