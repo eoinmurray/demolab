@@ -4,7 +4,15 @@ __pycache__/
 *.egg-info/
 .venv/
 .uv/
-papers
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Node (demolab-web/.gitignore also covers its own build output)
+node_modules/
+
 # macOS
 .DS_Store
 
