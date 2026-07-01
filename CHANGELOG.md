@@ -14,6 +14,17 @@ rebuilt from the description plus the code.
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
 
+## [0.9.2] - 2026-07-01
+
+### Added
+- **Each tool in `core` ships tests** (`core/<tool>/test_<tool>.py`, run via
+  `task test` / `uv run pytest`). `core` is now an importable package
+  (`__init__.py` added) so tests import the science directly. `neuron` unit-tests
+  its `simulate_*` primitives (shapes, spiking properties, seed determinism) and
+  the `write_output` manifest contract; `mujoco` steps its MJCF models headlessly
+  (no Renderer) to check the physics (pole falls, double pendulum diverges). Adds
+  `pytest` as a dev dependency. The Streamlit playground is exempt.
+
 ## [0.9.1] - 2026-07-01
 
 ### Added

@@ -108,7 +108,9 @@ Reuse the established pattern in an existing `tool.py`:
 
 Note the two `write_output` variants differ by design: `neuron/tool.py` requires a `headline_figure`, while `mujoco/tool.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
 
-> The Streamlit playground (`core/playground/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
+**Every tool ships tests.** Put them in `core/<tool>/test_<tool>.py` (run with `task test` / `uv run pytest`). This is exactly what the "generic data-in/data-out" shape buys you: unit-test the science functions directly — shapes, known properties (e.g. suprathreshold input spikes, subthreshold is silent), and determinism (seeded functions reproduce). Also test the manifest contract (`write_output` rejects a metric absent from `output.json` or a missing figure). Keep tests off the filesystem where possible — call the sim functions, not the CLI. (The Streamlit playground is exempt — see below.)
+
+> The Streamlit playground (`core/playground/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts, is not part of the notebook pipeline, and isn't tested.
 
 ## The feature catalog (upstream maintainers)
 
