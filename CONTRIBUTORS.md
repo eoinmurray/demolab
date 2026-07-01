@@ -75,14 +75,9 @@ Rule of thumb: reach for a tool-generated PNG when the figure is *data*; reach f
 ## Adding a new notebook
 
 1. Add a tool subcommand (or reuse existing ones) in the relevant `core/<tool>/tool.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
-2. Create `scripts/nbNNN.py` — a one-liner that calls `stage()` from `scripts/helpers/`. Pass the notebook id and a list of `(tool, command)` pairs; `stage` runs each command, copies its headline figure/video into `artifacts/<nb_id>/`, and writes the aggregated `numbers.json`. One notebook can drive an arbitrary mix of tools:
-
-   ```python
-   from helpers import stage
-
-   if __name__ == "__main__":
-       stage("nb000", [("neuron", "lif"), ("neuron", "net")])
-   ```
+2. Create `scripts/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
+   - A single-tool runner (e.g. `nb000.py`) uses bare command strings: `COMMANDS = ("lif", "net")`.
+   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
 3. Create `entries/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`demolab-web/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Import each figure from the results layer (`import fig from '../artifacts/nbNNN/fig.png?url'`) and inline parameter values from `numbers.json` into plain markdown tables. (To publish a PDF instead of a web page, skip the `.mdx` and follow the Typst example in [Publishing](#publishing-the-results-layer).)
 4. Run `uv run python scripts/nbNNN.py`.
 

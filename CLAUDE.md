@@ -24,7 +24,7 @@ Triggers: **"how do I get started"**, "help me set up", "onboard me", "walk me t
 3. **Brand it.** Set `PUBLIC_SITE_NAME` (header wordmark) and `PUBLIC_SITE_REPO_URL` (header link) via `demolab-web/.env` or their defaults in `demolab-web/src/layouts/Base.astro`. Per-page `<title>`s live in `demolab-web/src/pages/*.astro` if the browser-tab title matters.
 4. **Scaffold their first notebook** (the point of the whole thing). Ask what they want to compute — keep it small. Then, following `CONTRIBUTORS.md`:
    - Add a tool command in `core/<tool>/tool.py` (new dir or a subcommand on an existing tool), modeled on `core/neuron/tool.py` — copy `setup_run_dir`/`write_output`, write `config.json`/`output.json`/a figure, pass a `manifest` with the headline figure + metrics.
-   - Create the runner `scripts/nbNNN.py` — a one-liner calling `stage(nb_id, [(tool, command), …])` from `scripts/helpers/` (model it on `nb000.py`).
+   - Create the runner `scripts/nbNNN.py` (model `nb000.py` for one tool, `nb002.py` for a mix); declare `COMMANDS`.
    - Create the post `entries/nbNNN.mdx` (frontmatter `title` + `date`; optional `description`/`collection`/`status`), inlining values from the generated `numbers.json`.
    - Run `uv run python scripts/nbNNN.py` and open the new post with the user.
 5. **Clear the shipped demo** — *only after step 4 works*, so a real example existed as a template. Remove the shipped set by id, and nothing else: tools `core/{neuron,mujoco,playground}`; runners `scripts/nb00*.py` plus the Typst example `entries/nb004.typ` and `nb004.pdf`; posts `entries/nb00*.mdx`; articles `entries/{ar000,ar003,ar008}.mdx`; the staged bundles `artifacts/*`; scratch runs `temp/*`. **Never** delete the user's new notebook or anything in the framework zone.

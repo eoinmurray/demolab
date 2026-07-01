@@ -14,17 +14,6 @@ rebuilt from the description plus the code.
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
 
-## [0.9.1] - 2026-07-01
-
-### Added
-- **`scripts/helpers/` — shared runner staging.** The per-run staging that every
-  runner duplicated (run each command, copy its headline asset into
-  `artifacts/<id>/`, aggregate `numbers.json`) is now a single `stage(nb_id,
-  commands)` helper. Runners collapse to a one-liner declaring their
-  `(tool, command)` pairs, unifying the old single-tool / multi-tool split. (The
-  tool-side contract plumbing — `setup_run_dir` / `write_output` — still lives in
-  each `core/<tool>/tool.py`.)
-
 ## [0.9.0] - 2026-07-01
 
 ### Changed
