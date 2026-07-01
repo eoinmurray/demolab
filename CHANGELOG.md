@@ -63,7 +63,7 @@ on · **minor** = a new additive feature · **patch** = a small fix.
   and imports figures from `../artifacts`; `vite.server.fs.allow` permits reading
   the sibling dirs. Deploy workflow, `.gitignore`, and all docs updated to match.
 - **Added `Taskfile.yml`** wrapping the toolchain (`task run -- nb000`, `task dev`,
-  `task build`, `task sync`, …) so common commands don't require remembering the
+  `task build`, `task install`, …) so common commands don't require remembering the
   `uv` / `bun` invocations.
 
 ## [0.8.0] - 2026-07-01

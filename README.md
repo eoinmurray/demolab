@@ -38,7 +38,7 @@ Learn these two things and the rest follows:
 
 **1. Tools do the science, notebooks tell the story.** You write a simulation once. Any number of notebooks can then drive it — sweep a parameter, change an input, compare regimes — each publishing its own result. Your computation never gets copy-pasted or forked; it stays in one place and gets _called_.
 
-**2. Every run is reproducible and self-describing.** When a tool runs, it drops a self-contained folder: the exact parameters used (`config.json`), the results (`output.json`), the figure, a log, and a `run.sh` that re-runs it identically. A small manifest declares which figure and which numbers matter — and it's _validated_, so a run can never misreport what it produced. The numbers in your published page come straight from that folder, so your prose can't drift out of sync with your results.
+**2. Every run is reproducible and self-describing.** When a tool runs, it drops a self-contained folder: the exact parameters used (`config.json`), the results (`output.json`), the figure, a log, and a `run.sh` that re-runs it identically. A small manifest declares which figure and which numbers matter — and it's _validated_, so a run can never misreport what it produced. The numbers in your published page come straight from that folder, so your prose can't drift out of sync with your results. And each tool ships tests (`task test`), so the primitives that produce those numbers are checked, not just trusted.
 
 **3. Results publish themselves as a website.** Each notebook becomes a clean post — figures, a parameter table, the headline numbers, and real typeset mathematics (LaTeX/KaTeX). It's a plain static site, so it hosts free on GitHub Pages and there's nothing to keep running. Share a link; cite a result.
 
@@ -68,15 +68,21 @@ For crisp print output, have the tool save a **vector** figure (`savefig(..., fo
 
 ## Quickstart
 
-If you just want to see the loop work by hand:
+**Prerequisites** — three command-line tools:
+
+- [`uv`](https://docs.astral.sh/uv/) — Python environment + dependencies
+- [`bun`](https://bun.sh) — the website
+- [`go-task`](https://taskfile.dev) — the shortcut commands below (`brew install go-task`)
+
+Then:
 
 ```sh
-uv sync                                       # Python dependencies
-uv run python scripts/nb000.py          # run a notebook end-to-end
-cd demolab-web && bun install && bun run dev      # open http://localhost:3000
+task install          # install Python + website dependencies
+task run -- nb000     # run a notebook end-to-end
+task dev              # open http://localhost:3000
 ```
 
-Toolchain: **`uv`** for Python, **`bun`** for the website — never `pip` / `npm` directly (they'd use the wrong, unpinned versions).
+`task --list` shows the rest (`build`, `test`, …). Under the hood it's **`uv`** for Python and **`bun`** for the website — never `pip` / `npm` directly (they'd use the wrong, unpinned versions). Prefer them raw? `uv sync`, `uv run python scripts/nb000.py`, `cd demolab-web && bun run dev`.
 
 ## Working in this repo — just ask your agent
 
@@ -91,13 +97,17 @@ demolab is meant to be operated by a coding agent. Fork it, open it in your agen
 
 ## What's yours, and what's the framework
 
-Everything under `core/`, `scripts/`, `temp/`, and `entries/` is **example content** — yours to delete and replace with your own science. The **framework** (the operating manual, the contract, the website engine) lives elsewhere and stays put. So when you clear out the demo to make the lab your own, nothing about setup, migrating, or publishing breaks. Start your agent, say _"how do I get started,"_ and it walks you through exactly that.
+Everything under `core/`, `scripts/`, `entries/`, `artifacts/`, and `temp/` is **example content** — yours to delete and replace with your own science. The **framework** (the operating manual, the contract, the website engine) lives elsewhere and stays put. So when you clear out the demo to make the lab your own, nothing about setup, migrating, or publishing breaks. Start your agent, say _"how do I get started,"_ and it walks you through exactly that.
 
 ## Reference
 
 - [`CLAUDE.md`](CLAUDE.md) — the operating manual: toolchain rules and the four runbooks.
 - [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the tool ↔ notebook contract, the `numbers.json` schema, authoring posts, and how to add notebooks and tools.
 - [`CHANGELOG.md`](CHANGELOG.md) — the versioned catalog of framework features.
+
+## License
+
+[MIT](LICENSE) — free to use, fork, and adapt for your own lab.
 
 ---
 

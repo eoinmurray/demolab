@@ -1,10 +1,10 @@
 # Handy commands. Run `task --list` to see them.
 # Wraps the toolchain so you never call uv / bun directly.
 # Needs go-task (https://taskfile.dev): `brew install go-task`.
-version: '3'
+version: "3"
 
 tasks:
-  sync:
+  install:
     desc: Install all dependencies (Python + website)
     cmds:
       - uv sync
@@ -23,7 +23,7 @@ tasks:
       - bun run build
 
   run:
-    desc: 'Run a notebook runner, e.g. `task run -- nb000`'
+    desc: "Run a notebook runner, e.g. `task run -- nb000`"
     cmds:
       - uv run python scripts/{{.CLI_ARGS}}.py
 
