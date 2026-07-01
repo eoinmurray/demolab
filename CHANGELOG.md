@@ -14,6 +14,16 @@ rebuilt from the description plus the code.
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
 
+## [0.9.3] - 2026-07-01
+
+### Changed
+- **mujoco tool: extracted pure physics primitives.** `simulate_cartpole` and
+  `simulate_double_pendulum` are now standalone data-in/data-out functions; the
+  command handlers call them with an `on_frame` hook that renders live. mujoco
+  now follows the same "generic primitive" shape as neuron, and its tests
+  exercise the real functions instead of re-stepping the model. Behavior-
+  preserving: nb002/nb003 metrics and mp4 output are byte-identical.
+
 ## [0.9.2] - 2026-07-01
 
 ### Added

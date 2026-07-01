@@ -4,6 +4,7 @@ import logging
 import shlex
 import sys
 from pathlib import Path
+from typing import Callable, NamedTuple
 
 import imageio.v3 as iio
 import mujoco
@@ -124,26 +125,29 @@ def write_output(run_dir: Path, metrics: dict, manifest: dict) -> None:
     (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
-def cartpole(args: argparse.Namespace) -> None:
-    run_dir, logger = setup_run_dir("cartpole", args)
-    logger.info("cartpole start")
+class CartpoleResult(NamedTuple):
+    angles: np.ndarray       # pole angle per step (rad)
+    cart_x: np.ndarray       # cart position per step (m)
+    fall_step: int | None    # first step past the 60° fall threshold, or None
+    dt: float
+    n_steps: int
 
-    model = mujoco.MjModel.from_xml_string(CARTPOLE_XML)
+
+def simulate_cartpole(
+    model: mujoco.MjModel,
+    theta0: float,
+    duration: float,
+    fps: float = 60.0,
+    on_frame: Callable[[mujoco.MjData], None] | None = None,
+) -> CartpoleResult:
+    """Step the cartpole from a small pole offset; record the pole angle, cart
+    position, and when it falls. Pure physics — pass `on_frame` to observe the
+    live MjData at the frame cadence (the CLI uses it to render); tests omit it."""
     data = mujoco.MjData(model)
-    data.qpos[1] = args.theta0  # initial pole offset, radians
-
+    data.qpos[1] = theta0  # initial pole offset, radians
     dt = model.opt.timestep
-    n_steps = int(round(args.duration / dt))
-    frame_every = max(1, int(round((1.0 / args.fps) / dt)))
-
-    renderer = mujoco.Renderer(model, height=320, width=480)
-    cam = mujoco.MjvCamera()
-    mujoco.mjv_defaultFreeCamera(model, cam)
-    cam.distance = 2.4
-    cam.elevation = -12
-    cam.azimuth = 90
-
-    frames: list[np.ndarray] = []
+    n_steps = int(round(duration / dt))
+    frame_every = max(1, int(round((1.0 / fps) / dt)))
     angles = np.empty(n_steps)
     cart_x = np.empty(n_steps)
     fall_step: int | None = None
@@ -155,21 +159,96 @@ def cartpole(args: argparse.Namespace) -> None:
         cart_x[step] = data.qpos[0]
         if fall_step is None and abs(data.qpos[1]) >= fall_threshold:
             fall_step = step
-        if step % frame_every == 0:
-            renderer.update_scene(data, camera=cam)
-            frames.append(renderer.render())
+        if on_frame is not None and step % frame_every == 0:
+            on_frame(data)
+
+    return CartpoleResult(angles, cart_x, fall_step, dt, n_steps)
+
+
+class DoublePendulumResult(NamedTuple):
+    separations: np.ndarray   # tip-to-tip separation per step (m)
+    sep_step: int | None      # first step past the separation threshold, or None
+    dt: float
+    n_steps: int
+
+
+def simulate_double_pendulum(
+    model: mujoco.MjModel,
+    theta1: float,
+    theta2: float,
+    epsilon: float,
+    duration: float,
+    separation_threshold: float,
+    fps: float = 60.0,
+    on_frame: Callable[[mujoco.MjData], None] | None = None,
+) -> DoublePendulumResult:
+    """Release two near-identical double pendulums (B offset by `epsilon`) and
+    record their tip-to-tip separation over time. Pure physics — `on_frame`
+    observes the live MjData at the frame cadence for rendering."""
+    data = mujoco.MjData(model)
+    data.qpos[0] = theta1
+    data.qpos[1] = theta2
+    data.qpos[2] = theta1 + epsilon
+    data.qpos[3] = theta2
+
+    tipA_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "tipA")
+    tipB_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "tipB")
+    anchorA_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "anchorA")
+    anchorB_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "anchorB")
+    anchorA_xpos = model.body_pos[anchorA_id].copy()
+    anchorB_xpos = model.body_pos[anchorB_id].copy()
+
+    dt = model.opt.timestep
+    n_steps = int(round(duration / dt))
+    frame_every = max(1, int(round((1.0 / fps) / dt)))
+    separations = np.empty(n_steps)
+    sep_step: int | None = None
+
+    for step in range(n_steps):
+        mujoco.mj_step(model, data)
+        tipA_local = data.site_xpos[tipA_id] - anchorA_xpos
+        tipB_local = data.site_xpos[tipB_id] - anchorB_xpos
+        sep = float(np.linalg.norm(tipA_local - tipB_local))
+        separations[step] = sep
+        if sep_step is None and sep >= separation_threshold:
+            sep_step = step
+        if on_frame is not None and step % frame_every == 0:
+            on_frame(data)
+
+    return DoublePendulumResult(separations, sep_step, dt, n_steps)
+
+
+def cartpole(args: argparse.Namespace) -> None:
+    run_dir, logger = setup_run_dir("cartpole", args)
+    logger.info("cartpole start")
+
+    model = mujoco.MjModel.from_xml_string(CARTPOLE_XML)
+    renderer = mujoco.Renderer(model, height=320, width=480)
+    cam = mujoco.MjvCamera()
+    mujoco.mjv_defaultFreeCamera(model, cam)
+    cam.distance = 2.4
+    cam.elevation = -12
+    cam.azimuth = 90
+
+    frames: list[np.ndarray] = []
+
+    def on_frame(data: mujoco.MjData) -> None:
+        renderer.update_scene(data, camera=cam)
+        frames.append(renderer.render())
+
+    result = simulate_cartpole(model, args.theta0, args.duration, args.fps, on_frame)
 
     video_path = run_dir / "cartpole.mp4"
     iio.imwrite(video_path, np.stack(frames), fps=args.fps, codec="libx264")
     logger.info(f"wrote {len(frames)} frames to {video_path.name}")
 
-    fall_time_s = (fall_step * dt) if fall_step is not None else None
+    fall_time_s = (result.fall_step * result.dt) if result.fall_step is not None else None
     metrics = {
-        "n_steps": n_steps,
+        "n_steps": result.n_steps,
         "n_frames": len(frames),
         "fall_time_s": fall_time_s,
-        "final_angle_deg": float(np.degrees(angles[-1])),
-        "max_cart_displacement_m": float(np.max(np.abs(cart_x))),
+        "final_angle_deg": float(np.degrees(result.angles[-1])),
+        "max_cart_displacement_m": float(np.max(np.abs(result.cart_x))),
     }
     manifest = {
         "headline_video": "cartpole.mp4",
@@ -188,23 +267,6 @@ def double_pendulum(args: argparse.Namespace) -> None:
     logger.info("double_pendulum start")
 
     model = mujoco.MjModel.from_xml_string(DOUBLE_PENDULUM_XML)
-    data = mujoco.MjData(model)
-    data.qpos[0] = args.theta1
-    data.qpos[1] = args.theta2
-    data.qpos[2] = args.theta1 + args.epsilon
-    data.qpos[3] = args.theta2
-
-    dt = model.opt.timestep
-    n_steps = int(round(args.duration / dt))
-    frame_every = max(1, int(round((1.0 / args.fps) / dt)))
-
-    tipA_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "tipA")
-    tipB_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "tipB")
-    anchorA_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "anchorA")
-    anchorB_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "anchorB")
-    anchorA_xpos = model.body_pos[anchorA_id].copy()
-    anchorB_xpos = model.body_pos[anchorB_id].copy()
-
     renderer = mujoco.Renderer(model, height=368, width=640)
     cam = mujoco.MjvCamera()
     mujoco.mjv_defaultFreeCamera(model, cam)
@@ -214,32 +276,33 @@ def double_pendulum(args: argparse.Namespace) -> None:
     cam.azimuth = 90
 
     frames: list[np.ndarray] = []
-    separations = np.empty(n_steps)
-    sep_step: int | None = None
 
-    for step in range(n_steps):
-        mujoco.mj_step(model, data)
-        tipA_local = data.site_xpos[tipA_id] - anchorA_xpos
-        tipB_local = data.site_xpos[tipB_id] - anchorB_xpos
-        sep = float(np.linalg.norm(tipA_local - tipB_local))
-        separations[step] = sep
-        if sep_step is None and sep >= args.separation_threshold:
-            sep_step = step
-        if step % frame_every == 0:
-            renderer.update_scene(data, camera=cam)
-            frames.append(renderer.render())
+    def on_frame(data: mujoco.MjData) -> None:
+        renderer.update_scene(data, camera=cam)
+        frames.append(renderer.render())
+
+    result = simulate_double_pendulum(
+        model,
+        args.theta1,
+        args.theta2,
+        args.epsilon,
+        args.duration,
+        args.separation_threshold,
+        args.fps,
+        on_frame,
+    )
 
     video_path = run_dir / "double_pendulum.mp4"
     iio.imwrite(video_path, np.stack(frames), fps=args.fps, codec="libx264")
     logger.info(f"wrote {len(frames)} frames to {video_path.name}")
 
-    sep_time_s = (sep_step * dt) if sep_step is not None else None
+    sep_time_s = (result.sep_step * result.dt) if result.sep_step is not None else None
     metrics = {
-        "n_steps": n_steps,
+        "n_steps": result.n_steps,
         "n_frames": len(frames),
         "separation_time_s": sep_time_s,
-        "max_separation_m": float(np.max(separations)),
-        "final_separation_m": float(separations[-1]),
+        "max_separation_m": float(np.max(result.separations)),
+        "final_separation_m": float(result.separations[-1]),
     }
     manifest = {
         "headline_video": "double_pendulum.mp4",

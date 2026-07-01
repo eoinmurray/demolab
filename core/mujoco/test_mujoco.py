@@ -1,38 +1,42 @@
-"""Tests for the mujoco tool's physics. The sim currently lives inside the
-render-coupled command handlers, so these step the MJCF models directly (no
-Renderer, headless-safe) to check the dynamics the tool relies on."""
+"""Tests for the mujoco tool's physics primitives (data-in/data-out). These call
+`simulate_*` directly — the same functions the CLI handlers use — with no
+Renderer, so they're headless-safe and exercise the real code path."""
 
 import mujoco
 import numpy as np
 
-from core.mujoco.tool import CARTPOLE_XML, DOUBLE_PENDULUM_XML
-
-
-def _step(xml, setup, n):
-    model = mujoco.MjModel.from_xml_string(xml)
-    data = mujoco.MjData(model)
-    setup(data)
-    for _ in range(n):
-        mujoco.mj_step(model, data)
-    return data
+from core.mujoco.tool import (
+    CARTPOLE_XML,
+    DOUBLE_PENDULUM_XML,
+    simulate_cartpole,
+    simulate_double_pendulum,
+)
 
 
 def test_cartpole_pole_falls():
-    data = _step(CARTPOLE_XML, lambda d: d.qpos.__setitem__(1, 0.15), 2000)
-    assert abs(data.qpos[1]) > np.pi / 3  # fallen past the 60° threshold
+    model = mujoco.MjModel.from_xml_string(CARTPOLE_XML)
+    result = simulate_cartpole(model, theta0=0.15, duration=10.0)
+    assert result.fall_step is not None                 # it fell
+    assert abs(result.angles[-1]) > np.pi / 3           # past the 60° threshold
 
 
 def test_cartpole_is_deterministic():
-    a = _step(CARTPOLE_XML, lambda d: d.qpos.__setitem__(1, 0.15), 500).qpos[1]
-    b = _step(CARTPOLE_XML, lambda d: d.qpos.__setitem__(1, 0.15), 500).qpos[1]
-    assert a == b
+    model = mujoco.MjModel.from_xml_string(CARTPOLE_XML)
+    a = simulate_cartpole(model, theta0=0.15, duration=3.0)
+    b = simulate_cartpole(model, theta0=0.15, duration=3.0)
+    assert np.array_equal(a.angles, b.angles)
+    assert np.array_equal(a.cart_x, b.cart_x)
 
 
 def test_double_pendulum_diverges_from_tiny_offset():
-    def setup(d):
-        d.qpos[0], d.qpos[1] = 2.0, 2.0            # pendulum A
-        d.qpos[2], d.qpos[3] = 2.0 + 1e-3, 2.0     # pendulum B, 1e-3 offset
-
-    data = _step(DOUBLE_PENDULUM_XML, setup, 3000)
-    separation = abs(data.qpos[0] - data.qpos[2]) + abs(data.qpos[1] - data.qpos[3])
-    assert separation > 0.1  # chaotic divergence from a near-identical start
+    model = mujoco.MjModel.from_xml_string(DOUBLE_PENDULUM_XML)
+    result = simulate_double_pendulum(
+        model,
+        theta1=2.0,
+        theta2=2.0,
+        epsilon=1e-3,
+        duration=6.0,
+        separation_threshold=0.1,
+    )
+    assert result.sep_step is not None                  # trajectories crossed the threshold
+    assert result.separations[-1] > 0.1                 # and stayed diverged
