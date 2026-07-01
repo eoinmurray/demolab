@@ -30,24 +30,25 @@ cd src/docs && bun install && bun run dev      # open http://localhost:4321
 
 Toolchain: **`uv`** for Python, **`bun`** for the site — never `pip`/`npm` directly.
 
-## Start with your agent
+## Working in this repo — just ask your agent
 
-Fork it, open it in your coding agent, and just say:
+demolab is meant to be operated by a coding agent. Fork it, open it in your agent, and say the word — the agent follows the matching runbook in [`CLAUDE.md`](CLAUDE.md), driving it one step at a time. (Every runbook is plain enough to follow by hand too.)
 
-| Say… | …and your agent will | Guide |
-|------|----------------------|-------|
-| **“how do I get started”** | set you up, run the demo, and help you publish your first notebook | [Getting started](src/docs/content/articles/ar004.md) |
-| **“migrate my code”** | import an existing repo, one experiment at a time — wrapping, not rewriting | [Migrating an existing repo](src/docs/content/articles/ar005.md) |
-| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` and publish to its GitHub Pages | [Embedding as a docs subfolder](src/docs/content/articles/ar006.md) |
-| **“update demolab”** | review new upstream features and reimplement the ones you want, your way | [Adopting features from upstream](src/docs/content/articles/ar007.md) |
+| Say… | …and your agent will |
+|------|----------------------|
+| **“how do I get started”** | set up the toolchain, run the demo so you see the loop, help you publish your **own** first notebook, then clear the shipped demo |
+| **“migrate my code”** | bring an existing repo in one experiment at a time — *wrapping* your functions, not rewriting your science |
+| **“embed demolab as a docs site”** | drop it into another project as a `wiki/` subfolder and publish to that repo's GitHub Pages |
+| **“update demolab”** | review new upstream features and reimplement the ones you want, your way |
 
-Every guide is a plain runbook — you can follow it by hand too. They're also published on the site itself, under **[Documentation](https://demolab.eoinmurray.info/collections/documentation/)**.
+The runbooks live in [`CLAUDE.md`](CLAUDE.md) — that's the operating manual. Everything under `src/docs/content/`, `src/tools/`, `src/notebooks/`, and `src/artifacts/` is example content: yours to delete and replace. The framework (this manual, the contract, the Astro engine) stays put, so clearing the demo never breaks onboarding.
 
 ## Reference
 
-- [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the tool ↔ notebook contract, the `numbers.json` schema, and how to add notebooks and tools.
+- [`CLAUDE.md`](CLAUDE.md) — the operating manual: toolchain rules and the four runbooks.
+- [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the tool ↔ notebook contract, the `numbers.json` schema, authoring posts, and how to add notebooks and tools.
 - [`CHANGELOG.md`](CHANGELOG.md) — the versioned catalog of framework features.
 
 ---
 
-*Forking this for your own lab? Start your agent and say “how do I get started.”*
+*Forking this for your own lab? Open your agent and say “how do I get started.”*

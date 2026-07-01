@@ -2,7 +2,7 @@
 
 A catalog of **framework features** in the demolab template. Downstream repos
 don't copy these files — their coding agents reimplement the features they want,
-their own way, using this repo as reference (see `src/docs/content/articles/ar007.md`). This catalog is
+their own way, using this repo as reference (see the **Updating the framework** runbook in `CLAUDE.md`). This catalog is
 the menu. It does *not* track content (notebooks, posts, tools) — that's
 each repo's own.
 
@@ -13,6 +13,30 @@ rebuilt from the description plus the code.
 
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
+
+## [0.7.0] - 2026-07-01
+
+### Changed
+- **"tool" replaces "CLI" throughout**, for a non-developer (academic) audience.
+  The per-experiment programs are "tools", not "CLIs": `src/clis/` → `src/tools/`,
+  each `cli.py` → `tool.py`, and per-tool dirs dropped the `_cli` suffix
+  (`neuron`, `mujoco`, `playground`). The interactive demo dir is `playground`,
+  **not** `streamlit`, to avoid shadowing `import streamlit` when it lands on
+  `sys.path`. Reference: `src/tools/*/tool.py`, `CONTRIBUTORS.md`.
+- **Framework/content firewall; runbooks live in `CLAUDE.md`.** The
+  getting-started / migrate / embed / update runbooks moved out of the published
+  `documentation` collection and back into `CLAUDE.md` as the single operating
+  manual — so clearing demo content can no longer break onboarding. Nothing the
+  framework needs lives under `src/docs/content/`, `src/tools/`, `src/notebooks/`,
+  or `src/artifacts/` anymore; those are 100% user content. `README.md` carries
+  the human map and points at `CLAUDE.md`. The embed Pages workflow ships as
+  `.github/workflows/deploy-wiki.yml.example`; the SVG authoring technique folded
+  into `CONTRIBUTORS.md`.
+
+### Removed
+- The `documentation` article collection (intro, the SVG how-to, and the four
+  guide articles). Their operational content now lives in `CLAUDE.md`,
+  `README.md`, and `CONTRIBUTORS.md`.
 
 ## [0.6.0] - 2026-06-20
 

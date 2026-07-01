@@ -50,6 +50,18 @@ The runner aggregates each command's `config.json` + its headline metric fields 
 
 The MDX post then imports this file and renders prose + figures + parameter tables.
 
+## Authoring posts
+
+Most figures are *generated* — a tool runs, matplotlib renders a `.png`, the runner copies it into the post. That's the path for anything that's the output of a computation.
+
+For a **hand-built diagram** (a schematic, a geometric illustration — a figure that isn't a simulation result), draw it inline as **SVG** instead of shipping an image. Because posts are MDX/JSX you can make it parametric:
+
+- **Parametric constants.** Put `export const a = 120`, `b = 160`, … at the top of the post and feed every coordinate from them; change one number and the whole figure redraws. No image file, no build step, and it scales crisply.
+- **Expressions in attributes.** Every attribute takes a JS expression — `viewBox={`0 0 ${s} ${s}`}`, `points={`${a},0 ${s},${a} …`}`, `x={a/2}`. A `viewBox` makes the coordinate system resolution-independent; `width`/`height` just scale it.
+- **Shared style via spread.** Hold text styling once in `export const label = {…}` and spread it into each `<text {...label}>`.
+
+Rule of thumb: reach for a tool-generated PNG when the figure is *data*; reach for inline SVG when it's a *drawing*. For a figure the reader should *explore*, ship a client-side Astro component (see the in-browser playground component under `src/docs/src/components/`).
+
 ## Adding a new notebook
 
 1. Add a tool subcommand (or reuse existing ones) in the relevant `src/tools/<tool>/tool.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
@@ -88,7 +100,7 @@ Note the two `write_output` variants differ by design: `neuron/tool.py` requires
 
 ## The feature catalog (upstream maintainers)
 
-This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see [the update guide](src/docs/content/articles/ar007.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
+This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see the **Updating the framework** runbook in [`CLAUDE.md`](CLAUDE.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
 
 Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the tool plumbing, CI), catalog it:
 

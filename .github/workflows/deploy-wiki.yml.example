@@ -1,0 +1,53 @@
+# Embedding template — see the "Embedding as a docs subfolder" runbook in CLAUDE.md.
+# When demolab is nested in a host project (e.g. wiki/), copy this file into the
+# HOST repo's .github/workflows/ as deploy-wiki.yml, adjust the three env values,
+# and enable Pages on the host (Settings -> Pages -> Source: GitHub Actions).
+name: Deploy wiki to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: ['wiki/**']          # only rebuild when the wiki changes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  WIKI_DOCS: wiki/src/docs                          # path to demolab's docs from the repo root
+  PUBLIC_SITE_URL: https://your-username.github.io  # your Pages origin
+  PUBLIC_BASE_PATH: /your-repo-name                 # your project Pages path
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        working-directory: ${{ env.WIKI_DOCS }}
+        run: bun install --frozen-lockfile
+      - uses: actions/configure-pages@v5
+      - name: Build site
+        working-directory: ${{ env.WIKI_DOCS }}
+        run: bun run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.WIKI_DOCS }}/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
