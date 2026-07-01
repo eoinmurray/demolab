@@ -19,6 +19,7 @@ export default defineConfig({
   // project subfolder, or username.github.io/demolab) set PUBLIC_BASE_PATH.
   site: env.PUBLIC_SITE_URL ?? 'https://demolab.eoinmurray.info',
   base: env.PUBLIC_BASE_PATH ?? '/',
+  server: { port: 3000 },
   devToolbar: { enabled: false },
   integrations: [mdx()],
   markdown: {

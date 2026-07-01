@@ -20,7 +20,7 @@ Triggers: **"how do I get started"**, "help me set up", "onboard me", "walk me t
 
 0. **Prereqs.** Check `uv --version` and `bun --version`. If either is missing, give the one-line install for their platform and stop.
 1. **Install.** `uv sync`, then `cd src/docs && bun install`.
-2. **See the loop work.** `uv run python src/notebooks/nb000.py`, then start `bun run dev` in the background. Open the nb000 post at <http://localhost:4321> and explain in a sentence or two how the artifact under `src/artifacts/neuron/` became that page.
+2. **See the loop work.** `uv run python src/notebooks/nb000.py`, then start `bun run dev` in the background. Open the nb000 post at <http://localhost:3000> and explain in a sentence or two how the artifact under `src/artifacts/neuron/` became that page.
 3. **Brand it.** Set `PUBLIC_SITE_NAME` (header wordmark) and `PUBLIC_SITE_REPO_URL` (header link) via `src/docs/.env` or their defaults in `src/docs/src/layouts/Base.astro`. Per-page `<title>`s live in `src/docs/src/pages/*.astro` if the browser-tab title matters.
 4. **Scaffold their first notebook** (the point of the whole thing). Ask what they want to compute — keep it small. Then, following `CONTRIBUTORS.md`:
    - Add a tool command in `src/tools/<tool>/tool.py` (new dir or a subcommand on an existing tool), modeled on `src/tools/neuron/tool.py` — copy `setup_run_dir`/`write_output`, write `config.json`/`output.json`/a figure, pass a `manifest` with the headline figure + metrics.
