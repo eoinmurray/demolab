@@ -1,0 +1,3 @@
+# Project-wide lint baseline. The core <-> scripts import firewall is defined in
+# the scoped configs core/ruff.toml and scripts/ruff.toml.
+line-length = 100

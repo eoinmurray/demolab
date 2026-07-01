@@ -14,6 +14,16 @@ rebuilt from the description plus the code.
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
 
+## [0.9.1] - 2026-07-01
+
+### Added
+- **`core` ↔ `scripts` import firewall (ruff).** Scoped `core/ruff.toml` and
+  `scripts/ruff.toml` ban imports across the boundary in both directions
+  (`TID251`): `scripts` may not import `core`, and `core` may not import
+  `scripts`. Runners reach tools through the file contract (subprocess a tool
+  CLI), keeping tools generic and oblivious to experiment logic. Adds `ruff` as
+  a dev dependency.
+
 ## [0.9.0] - 2026-07-01
 
 ### Changed

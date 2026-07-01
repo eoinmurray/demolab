@@ -29,6 +29,8 @@ The notebook runner relies on this contract:
 - The runner reads `manifest.json` to discover the headline asset and metrics — it does **not** hardcode metric field names or asset filenames. Adding a new surfaced metric is a one-file change in `tool.py` (extend the command's `headline_metrics` list).
 - The runner only chooses *which commands* a notebook bundles (`COMMANDS` in the `nbNNN.py` runner).
 
+`core` and `scripts` are **import-firewalled** (ruff `TID251`, via `core/ruff.toml` + `scripts/ruff.toml`): a runner reaches a tool by *running its CLI* (subprocess), never by `import`ing it, and tools never import runner code. They communicate only through the files above — so tools stay generic and every result carries its `config.json` / `manifest.json` / `run.sh` provenance.
+
 ### `numbers.json` aggregation
 
 The runner aggregates each command's `config.json` + its headline metric fields into a single `numbers.json` in `artifacts/nbNNN/`:

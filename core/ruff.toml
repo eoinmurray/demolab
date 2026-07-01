@@ -1,0 +1,9 @@
+extend = "../ruff.toml"
+
+# Firewall: core holds generic tools and must never import runner/experiment code.
+# Scripts reach tools through the file contract (subprocess a tool CLI), not imports.
+[lint]
+extend-select = ["TID251"]
+
+[lint.flake8-tidy-imports.banned-api]
+"scripts".msg = "core must not import scripts — tools are generic and oblivious to runners; talk through the artifact contract."

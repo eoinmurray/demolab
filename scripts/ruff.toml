@@ -1,0 +1,9 @@
+extend = "../ruff.toml"
+
+# Firewall: scripts must not import core. Run the tool via its CLI (subprocess) so
+# every result carries the config.json / manifest.json / run.sh contract.
+[lint]
+extend-select = ["TID251"]
+
+[lint.flake8-tidy-imports.banned-api]
+"core".msg = "scripts must not import core — run the tool through its CLI (subprocess), not by importing it."
