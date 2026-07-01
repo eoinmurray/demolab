@@ -2,21 +2,21 @@
 
 **A lab notebook system you run with a coding agent.**
 
-A Python CLI runs an experiment and drops a self-contained folder of artifacts; a notebook runner bundles them; an Astro site publishes a clean post for each one — figures, parameters, and the headline numbers included. It's built to be operated by a human *and* an agent (Claude Code, Cursor, aider, …), and it's designed to fork.
+A Python tool runs an experiment and drops a self-contained folder of artifacts; a notebook runner bundles them; an Astro site publishes a clean post for each one — figures, parameters, and the headline numbers included. It's built to be operated by a human *and* an agent (Claude Code, Cursor, aider, …), and it's designed to fork.
 
 **▶ See it live: [demolab.eoinmurray.info](https://demolab.eoinmurray.info/)**
 
 ```
 src/
-├── clis/        Python CLIs — one experiment tool per folder
-├── notebooks/   runners that turn CLI output into a post
+├── tools/       Python tools — one experiment per folder
+├── notebooks/   runners that turn tool output into a post
 ├── artifacts/   per-run outputs (gitignored)
 └── docs/        the Astro site that publishes it all
 ```
 
 ## The loop
 
-> a **CLI** runs an experiment → drops **artifacts** → a **notebook** bundles them → the **site** publishes a post
+> a **tool** runs an experiment → drops **artifacts** → a **notebook** bundles them → the **site** publishes a post
 
 Those four steps stay decoupled through one small contract (see [`CONTRIBUTORS.md`](CONTRIBUTORS.md)). That's the whole idea.
 
@@ -45,7 +45,7 @@ Every guide is a plain runbook — you can follow it by hand too. They're also p
 
 ## Reference
 
-- [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the CLI ↔ notebook contract, the `numbers.json` schema, and how to add notebooks and CLI tools.
+- [`CONTRIBUTORS.md`](CONTRIBUTORS.md) — the tool ↔ notebook contract, the `numbers.json` schema, and how to add notebooks and tools.
 - [`CHANGELOG.md`](CHANGELOG.md) — the versioned catalog of framework features.
 
 ---

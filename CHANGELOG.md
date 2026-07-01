@@ -3,7 +3,7 @@
 A catalog of **framework features** in the demolab template. Downstream repos
 don't copy these files — their coding agents reimplement the features they want,
 their own way, using this repo as reference (see `src/docs/content/articles/ar007.md`). This catalog is
-the menu. It does *not* track content (notebooks, posts, CLIs) — that's
+the menu. It does *not* track content (notebooks, posts, tools) — that's
 each repo's own.
 
 Each `## [x.y.z]` entry is one batch of features, newest first. A downstream
@@ -70,6 +70,6 @@ on · **minor** = a new additive feature · **patch** = a small fix.
 ## [0.1.0] - 2026-06-09
 
 ### Added
-- Initial framework: the CLI ↔ notebook manifest contract (`config.json`,
+- Initial framework: the tool ↔ notebook manifest contract (`config.json`,
   `output.json`, `manifest.json`, `run.sh`), the Astro publishing engine
   (`src/docs/src/`), and the contracts doc `CONTRIBUTORS.md`.

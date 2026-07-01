@@ -1,6 +1,6 @@
 ---
 // A fully client-side leaky integrate-and-fire playground. It integrates the
-// same LIF dynamics as `neuron_cli lif` (src/clis/neuron_cli/cli.py), but in
+// same LIF dynamics as `neuron lif` (src/tools/neuron/tool.py), but in
 // the browser — no server, no artifacts. Drag a slider and the voltage trace
 // re-simulates and redraws immediately. Ships with the static build, so it
 // works on GitHub Pages with nothing running.
@@ -98,7 +98,7 @@ const CONTROLS = [
 </style>
 
 <script>
-  // LIF integration + SVG rendering, mirroring simulate_lif() in the CLI:
+  // LIF integration + SVG rendering, mirroring simulate_lif() in the tool:
   //   dv = (-(V - V_rest) + R_m * I) / τ_m ;  V += dv * dt
   //   on V >= V_th: record spike, plot the step at 0 mV, reset to V_reset.
   // Self-contained and idempotent so it survives Astro's HMR re-runs.
@@ -106,7 +106,7 @@ const CONTROLS = [
 
   const W = 720, H = 300;
   const PAD = { l: 46, r: 12, t: 14, b: 28 };
-  const SPIKE_MV = 0; // matches the CLI: a spike is drawn as a step to 0 mV
+  const SPIKE_MV = 0; // matches the tool: a spike is drawn as a step to 0 mV
 
   function simulate(p: Params) {
     const nSteps = Math.max(1, Math.round(p.duration / p.dt));

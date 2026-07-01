@@ -5,15 +5,15 @@ from pathlib import Path
 import sh
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / "clis" / "neuron_cli" / "cli.py"
-ARTIFACTS = ROOT / "artifacts" / "neuron_cli"
+TOOL = ROOT / "tools" / "neuron" / "tool.py"
+ARTIFACTS = ROOT / "artifacts" / "neuron"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb001"
 
 COMMANDS = ("eif", "enet")
 
 
-def run_cli(*args: str) -> None:
-    sh.uv.run("python", str(CLI), *args, _fg=True)
+def run_tool(*args: str) -> None:
+    sh.uv.run("python", str(TOOL), *args, _fg=True)
 
 
 def load_manifest(command: str) -> dict:
@@ -36,7 +36,7 @@ def collect_numbers() -> dict:
 def main() -> None:
     PUBLIC.mkdir(parents=True, exist_ok=True)
     for command in COMMANDS:
-        run_cli(command)
+        run_tool(command)
     for command in COMMANDS:
         figure = load_manifest(command)["headline_figure"]
         src = ARTIFACTS / command / figure

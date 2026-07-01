@@ -1,15 +1,15 @@
 # Contributing
 
-How the pieces fit together and the conventions to follow when adding a CLI command, a notebook, or a new tool. For a user-facing overview and run instructions, see [`README.md`](README.md).
+How the pieces fit together and the conventions to follow when adding a tool command, a notebook, or a new tool. For a user-facing overview and run instructions, see [`README.md`](README.md).
 
 ## Toolchain
 
-- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/clis/neuron_cli/cli.py lif`). Run `uv sync` after pulling.
+- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/tools/neuron/tool.py lif`). Run `uv sync` after pulling.
 - **TypeScript / Node**: use `bun`. Never call `npm`, `pnpm`, `yarn`, or `node` directly. Install with `bun install`, run scripts with `bun run <script>`.
 
-## The CLI ↔ notebook contract
+## The tool ↔ notebook contract
 
-Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
+Each tool subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
 
 | File | Schema |
 |------|--------|
@@ -17,16 +17,16 @@ Each CLI subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<too
 | `output.json` | flat object of metrics, command-specific field names |
 | `manifest.json` | `{ headline_figure?: str, headline_video?: str, headline_metrics: [str, …] }` — declares what the docs site should surface |
 | `output.log` | timestamped log lines |
-| `run.sh` | executable shell script that re-invokes the CLI with the same args |
+| `run.sh` | executable shell script that re-invokes the tool with the same args |
 | `<cmd>.png` / `<cmd>.mp4` | the canonical figure or video for the command (the authoritative pointer is `manifest.headline_figure` / `headline_video`) |
 | `<cmd>.csv`, … | any additional data |
 
-`write_output` in each tool's `cli.py` validates the manifest against the run before `manifest.json` is written: every key in `headline_metrics` must exist in `output.json`, and any declared `headline_figure` / `headline_video` must exist on disk, or the run fails. A manifest can therefore never lie about a run.
+`write_output` in each tool's `tool.py` validates the manifest against the run before `manifest.json` is written: every key in `headline_metrics` must exist in `output.json`, and any declared `headline_figure` / `headline_video` must exist on disk, or the run fails. A manifest can therefore never lie about a run.
 
 The notebook runner relies on this contract:
 
 - Subcommand name maps 1:1 to the directory name under `src/artifacts/<tool>/`.
-- The runner reads `manifest.json` to discover the headline asset and metrics — it does **not** hardcode metric field names or asset filenames. Adding a new surfaced metric is a one-file change in `cli.py` (extend the command's `headline_metrics` list).
+- The runner reads `manifest.json` to discover the headline asset and metrics — it does **not** hardcode metric field names or asset filenames. Adding a new surfaced metric is a one-file change in `tool.py` (extend the command's `headline_metrics` list).
 - The runner only chooses *which commands* a notebook bundles (`COMMANDS` in the `nbNNN.py` runner).
 
 ### `numbers.json` aggregation
@@ -52,10 +52,10 @@ The MDX post then imports this file and renders prose + figures + parameter tabl
 
 ## Adding a new notebook
 
-1. Add a CLI subcommand (or reuse existing ones) in the relevant `src/clis/<tool>/cli.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
+1. Add a tool subcommand (or reuse existing ones) in the relevant `src/tools/<tool>/tool.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
 2. Create `src/notebooks/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
    - A single-tool runner (e.g. `nb000.py`) uses bare command strings: `COMMANDS = ("lif", "net")`.
-   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco_cli", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
+   - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
 3. Create `src/docs/content/notebooks/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`src/docs/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Inline parameter values from `numbers.json` into plain markdown tables.
 4. Run `uv run python src/notebooks/nbNNN.py`.
 
@@ -72,27 +72,27 @@ The MDX post then imports this file and renders prose + figures + parameter tabl
 
 A notebook moves `draft → building → revising → final` and may move backward freely (a `final` entry can be reopened). The field is optional: an omitted `status` renders no badge, and an unknown value is a build-time error (validated against the enum in both `content.config.ts` and `normalizeStatus`). To add or change a status value, edit `config/status.ts` — the schema, badge, and listings all read from it.
 
-## Adding a new CLI tool
+## Adding a new tool
 
-Each CLI tool lives in its own directory under `src/clis/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
+Each tool lives in its own directory under `src/tools/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
 
-Reuse the established pattern in an existing `cli.py`:
+Reuse the established pattern in an existing `tool.py`:
 
 - `setup_run_dir(command, args)` creates the run directory, configures a per-command logger that writes both to `output.log` and stdout, dumps `config.json` (all argparse args except `func`), and writes an executable `run.sh` reproducer.
 - `write_output(run_dir, metrics, manifest)` performs the manifest validation and writes `output.json` + `manifest.json` last.
 - Subcommands are wired through `argparse` with `set_defaults(func=...)`; `main()` calls `args.func(args)`.
 
-Note the two `write_output` variants differ by design: `neuron_cli/cli.py` requires a `headline_figure`, while `mujoco_cli/cli.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
+Note the two `write_output` variants differ by design: `neuron/tool.py` requires a `headline_figure`, while `mujoco/tool.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
 
-> The Streamlit playground (`src/clis/streamlit_cli/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
+> The Streamlit playground (`src/tools/playground/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
 
 ## The feature catalog (upstream maintainers)
 
 This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see [the update guide](src/docs/content/articles/ar007.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
 
-Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the CLI plumbing, CI), catalog it:
+Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the tool plumbing, CI), catalog it:
 
 1. **Bump the version** with a new top entry in `CHANGELOG.md`. Use **major** for a feature that changes a contract others may have built on, **minor** for a new additive feature, **patch** for a small fix.
 2. **Describe the feature by intent and behavior** — what it does, why, and where the reference implementation lives — not just which files moved. That's what a downstream agent reads to rebuild it natively.
 
-Changes to **content** (notebooks, posts, CLIs, artifacts) aren't reusable features and don't belong in the catalog. If a change spans both, catalog only the reusable part.
+Changes to **content** (notebooks, posts, tools, artifacts) aren't reusable features and don't belong in the catalog. If a change spans both, catalog only the reusable part.

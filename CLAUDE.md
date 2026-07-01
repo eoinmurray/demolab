@@ -1,11 +1,11 @@
 # Toolchain
 
-- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/clis/neuron_cli/cli.py lif`). Use `uv sync` after pulling.
+- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/tools/neuron/tool.py lif`). Use `uv sync` after pulling.
 - **TypeScript / Node**: use `bun`. Never call `npm`, `pnpm`, `yarn`, or `node` directly. Install with `bun install`, run scripts with `bun run <script>`.
 
 # Project layout
 
-See `README.md` for the CLI ↔ notebook contract, the artifacts directory layout, and the procedure for adding a new notebook.
+See `README.md` for the tool ↔ notebook contract, the artifacts directory layout, and the procedure for adding a new notebook.
 
 # Getting started
 
@@ -13,7 +13,7 @@ When the user asks **"how do I get started"** (or "help me set up", "onboard me"
 
 # Migrating existing code
 
-When the user asks to **"migrate my code"** (or "import my repo", "bring my existing code in"), follow `src/docs/content/articles/ar005.md`: inventory their existing repo, bring experiments across **one at a time**, and **wrap rather than rewrite** — the new CLI command imports and calls their existing functions, then publishes via a notebook runner + post per the contract in `CONTRIBUTORS.md`. Merge their dependencies into the root `pyproject.toml`. Verify each run end to end.
+When the user asks to **"migrate my code"** (or "import my repo", "bring my existing code in"), follow `src/docs/content/articles/ar005.md`: inventory their existing repo, bring experiments across **one at a time**, and **wrap rather than rewrite** — the new tool command imports and calls their existing functions, then publishes via a notebook runner + post per the contract in `CONTRIBUTORS.md`. Merge their dependencies into the root `pyproject.toml`. Verify each run end to end.
 
 # Embedding as a docs subfolder
 

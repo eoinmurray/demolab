@@ -5,15 +5,15 @@ description: An interactive leaky integrate-and-fire neuron with live sliders �
 collection: streamlit
 ---
 
-**▶ Open the live playground:** [localhost:8501](http://localhost:8501) — start it with `uv run streamlit run src/clis/streamlit_cli/app.py` (details [below](#starting-the-server)).
+**▶ Open the live playground:** [localhost:8501](http://localhost:8501) — start it with `uv run streamlit run src/tools/playground/app.py` (details [below](#starting-the-server)).
 
-Most of this lab runs *batch-style*: a CLI command takes a fixed set of arguments, runs a simulation, and drops a directory of artifacts (figures, metrics, a `run.sh`) that a notebook post then publishes. That's the right shape for a result you want to pin down and cite.
+Most of this lab runs *batch-style*: a tool command takes a fixed set of arguments, runs a simulation, and drops a directory of artifacts (figures, metrics, a `run.sh`) that a notebook post then publishes. That's the right shape for a result you want to pin down and cite.
 
 The Streamlit app is the opposite end of that spectrum — a live, interactive surface for *building intuition* before you commit to a run. It re-simulates a single leaky integrate-and-fire neuron on every slider drag and redraws the voltage trace immediately.
 
 ## What it does
 
-The app (`src/clis/streamlit_cli/app.py`) exposes the same LIF dynamics as the `neuron_cli lif` CLI command, but every parameter is a slider in the sidebar:
+The app (`src/tools/playground/app.py`) exposes the same LIF dynamics as the `neuron lif` tool command, but every parameter is a slider in the sidebar:
 
 - **Input** — tonic current $I$ and membrane resistance $R_m$.
 - **Membrane** — time constant $\tau_m$, and the resting / reset / threshold potentials.
@@ -30,23 +30,23 @@ with a spike-and-reset rule whenever $V$ crosses $V_\text{thresh}$.
 The app uses the project's pinned environment, so launch it through `uv` (never call `python`/`streamlit` directly):
 
 ```sh
-uv run streamlit run src/clis/streamlit_cli/app.py
+uv run streamlit run src/tools/playground/app.py
 ```
 
 Streamlit serves on `http://localhost:8501` by default and opens a browser tab. To pick another port:
 
 ```sh
-uv run streamlit run src/clis/streamlit_cli/app.py --server.port 3001
+uv run streamlit run src/tools/playground/app.py --server.port 3001
 ```
 
 Stop it with `Ctrl-C` in the terminal.
 
 ## How it fits the rest of the lab
 
-The playground deliberately sits **outside** the CLI ↔ notebook contract: it writes no `config.json` / `output.json` / `manifest.json`, produces no artifacts, and isn't bundled by any notebook runner. It's a thinking tool, not a reproducible run. When a slider configuration produces something worth keeping, reproduce it as a pinned run with the CLI instead:
+The playground deliberately sits **outside** the tool ↔ notebook contract: it writes no `config.json` / `output.json` / `manifest.json`, produces no artifacts, and isn't bundled by any notebook runner. It's a thinking tool, not a reproducible run. When a slider configuration produces something worth keeping, reproduce it as a pinned run with the tool instead:
 
 ```sh
-uv run python src/clis/neuron_cli/cli.py lif --current 2.5 --duration 100
+uv run python src/tools/neuron/tool.py lif --current 2.5 --duration 100
 ```
 
 That writes the artifacts a notebook post can publish.

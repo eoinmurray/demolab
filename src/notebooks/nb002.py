@@ -8,15 +8,15 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb002"
 
-# Each entry: (tool dir under src/clis/, subcommand).
+# Each entry: (tool dir under src/tools/, subcommand).
 COMMANDS = (
-    ("mujoco_cli", "cartpole"),
+    ("mujoco", "cartpole"),
 )
 
 
-def run_cli(tool: str, command: str) -> None:
-    cli = ROOT / "clis" / tool / "cli.py"
-    sh.uv.run("python", str(cli), command, _fg=True)
+def run_tool(tool: str, command: str) -> None:
+    tool_path = ROOT / "tools" / tool / "tool.py"
+    sh.uv.run("python", str(tool_path), command, _fg=True)
 
 
 def artifact_dir(tool: str, command: str) -> Path:
@@ -57,7 +57,7 @@ def copy_headline_assets() -> None:
 def main() -> None:
     PUBLIC.mkdir(parents=True, exist_ok=True)
     for tool, command in COMMANDS:
-        run_cli(tool, command)
+        run_tool(tool, command)
     copy_headline_assets()
     numbers_path = PUBLIC / "numbers.json"
     numbers_path.write_text(json.dumps(collect_numbers(), indent=2) + "\n")

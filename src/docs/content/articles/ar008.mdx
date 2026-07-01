@@ -14,7 +14,7 @@ This post is the third point on that spectrum: an interactive playground that ru
 
 ## The worked example: a leaky integrate-and-fire neuron
 
-It integrates the same dynamics as the `neuron_cli lif` command and the Streamlit app — the subthreshold membrane equation derived in [From a capacitor to the LIF neuron](../ar000/),
+It integrates the same dynamics as the `neuron lif` command and the Streamlit app — the subthreshold membrane equation derived in [From a capacitor to the LIF neuron](../ar000/),
 
 $$
 \tau_m \frac{dV}{dt} = -(V - V_\text{rest}) + R_m\, I,
@@ -38,7 +38,7 @@ The steady state is $V_\infty = V_\text{rest} + R_m I$. If that sits below $V_\t
 
 The whole thing is one self-contained Astro component, [`LIFPlayground.astro`](https://github.com/eoinmurray/demolab/blob/main/src/docs/src/components/LIFPlayground.astro), imported at the top of this post and dropped in as `<LIFPlayground />`. Three pieces make it work:
 
-- **A client `<script>`.** Astro bundles and ships `<script>` tags in components to the browser (the same mechanism behind the image lightbox in every post). That script runs the forward-Euler integration — a direct port of `simulate_lif()` from `src/clis/neuron_cli/cli.py` — and redraws on every `input` event. No framework, no React: plain TypeScript and DOM.
+- **A client `<script>`.** Astro bundles and ships `<script>` tags in components to the browser (the same mechanism behind the image lightbox in every post). That script runs the forward-Euler integration — a direct port of `simulate_lif()` from `src/tools/neuron/tool.py` — and redraws on every `input` event. No framework, no React: plain TypeScript and DOM.
 - **An inline SVG canvas.** Rather than an image file, the trace is drawn by generating an SVG `<path>` from the simulated samples, with dashed guides at threshold / rest / reset and ticks marking spike times. Same resolution-independent `viewBox` trick as the [SVG diagram example](../ar002/), but the path is regenerated on the fly instead of being fixed at build time.
 - **Declared parameters.** Each slider's range and default live once in a `CONTROLS` list; the markup and the simulation both read from it, so adding a parameter is a one-line edit.
 
@@ -46,15 +46,15 @@ The whole thing is one self-contained Astro component, [`LIFPlayground.astro`](h
 
 Three tools, three jobs:
 
-- **CLI-generated PNG** — the figure is *data*: the reproducible output of a pinned run, bundled by a notebook post per the CLI ↔ notebook contract.
+- **tool-generated PNG** — the figure is *data*: the reproducible output of a pinned run, bundled by a notebook post per the tool ↔ notebook contract.
 - **Inline SVG** ([ar002](../ar002/)) — the figure is a *drawing*: a static schematic that's parametric at build time.
 - **In-browser component** (this post) — the figure is a *toy*: the reader explores the parameter space themselves, and it has to keep working on the static site.
 - **Streamlit** ([ar003](../ar003/)) — you need the *real* compute: a heavy simulation, the project's pinned Python environment, or anything that can't be reimplemented in a few lines of browser JavaScript.
 
-This playground deliberately sits outside the CLI ↔ notebook contract, exactly like the Streamlit app: it writes no `config.json` / `output.json` / `manifest.json` and produces no artifacts. It's a thinking tool. When a slider configuration is worth keeping, reproduce it as a pinned run:
+This playground deliberately sits outside the tool ↔ notebook contract, exactly like the Streamlit app: it writes no `config.json` / `output.json` / `manifest.json` and produces no artifacts. It's a thinking tool. When a slider configuration is worth keeping, reproduce it as a pinned run:
 
 ```sh
-uv run python src/clis/neuron_cli/cli.py lif --current 2.5 --duration 100
+uv run python src/tools/neuron/tool.py lif --current 2.5 --duration 100
 ```
 
 That writes the artifacts a notebook post can publish.
