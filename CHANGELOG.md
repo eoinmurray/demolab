@@ -14,6 +14,48 @@ rebuilt from the description plus the code.
 Versioning: **major** = a feature that changes a contract others may have built
 on · **minor** = a new additive feature · **patch** = a small fix.
 
+## [0.9.0] - 2026-07-01
+
+### Changed
+- **Flat, user-facing repo layout — grouped by *kind*, not pipeline stage.**
+  Dropped the `src/` wrapper and reorganized so a scientist opens the repo to
+  their own work:
+  - `core/` — the tools (the science); one scoped folder per tool (was `src/tools/`).
+  - `scripts/` — the runners (was `src/notebooks/`).
+  - `entries/` — the writeups, paired to a runner by id: `.mdx` (web) or `.typ`
+    (PDF). Web posts and articles moved here from the site's content dir.
+  - `artifacts/` — the committed, kept record: each run's figures + `numbers.json`
+    (was `src/results/`).
+  - `temp/` — short-lived, gitignored run scratch (was `src/artifacts/`).
+  - `demolab-web/` — the web publisher engine (was `src/docs/`).
+  The web engine globs entries from `../entries` (split by `nb*`/`ar*` filename)
+  and imports figures from `../artifacts`; `vite.server.fs.allow` permits reading
+  the sibling dirs. Deploy workflow, `.gitignore`, and all docs updated to match.
+- **Added `Taskfile.yml`** wrapping the toolchain (`task run -- nb000`, `task dev`,
+  `task build`, `task sync`, …) so common commands don't require remembering the
+  `uv` / `bun` invocations.
+
+## [0.8.0] - 2026-07-01
+
+### Added
+- **Pluggable publishers, with a Typst example.** Publishing is now a swappable
+  layer on top of the tool → artifacts contract, not baked into Astro. A runner
+  stages its durable outputs (headline figure + `numbers.json`) into a new
+  **publisher-neutral results layer, `src/results/<id>/`** (committed); any
+  publisher reads from there. Ships a Typst PDF example (`src/notebooks/nb004.py`
+  + `nb004.typ`) that reuses the same tool and bundle as the web notebook
+  `nb000` — it reads `numbers.json` natively and compiles a PDF via the `typst`
+  package. LaTeX is documented as a further option. Reference: `README.md`
+  (“How publishing works”), `CONTRIBUTORS.md` (“Publishing”).
+
+### Changed
+- **Result bundles moved out of Astro's `public/` into top-level `src/results/`.**
+  Astro posts now *import* their figures from `src/results/` (fingerprinted,
+  base-path-correct) instead of referencing `public/notebooks/` via hand-built
+  `BASE_URL` strings; `vite.server.fs.allow` is set so the dev server can read
+  the sibling directory. `public/` now holds only framework assets (CNAME,
+  favicon).
+
 ## [0.7.0] - 2026-07-01
 
 ### Changed

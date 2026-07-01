@@ -1,0 +1,11 @@
+{
+  "lif": {
+    "config": {
+      "command": "lif",
+      "current": 2.5,
+      "duration": 100.0,
+      "dt": 0.1
+    },
+    "firing_rate_hz": 90.0
+  }
+}

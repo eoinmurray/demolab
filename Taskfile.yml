@@ -1,0 +1,38 @@
+# Handy commands. Run `task --list` to see them.
+# Wraps the toolchain so you never call uv / bun directly.
+# Needs go-task (https://taskfile.dev): `brew install go-task`.
+version: '3'
+
+tasks:
+  sync:
+    desc: Install all dependencies (Python + website)
+    cmds:
+      - uv sync
+      - cd demolab-web && bun install
+
+  dev:
+    desc: Run the website locally (http://localhost:3000)
+    dir: demolab-web
+    cmds:
+      - bun run dev
+
+  build:
+    desc: Build the static website
+    dir: demolab-web
+    cmds:
+      - bun run build
+
+  run:
+    desc: 'Run a notebook runner, e.g. `task run -- nb000`'
+    cmds:
+      - uv run python scripts/{{.CLI_ARGS}}.py
+
+  test:
+    desc: Run the Python test suite
+    cmds:
+      - uv run pytest
+
+  clean:
+    desc: Delete regenerable scratch (temp/) and the website build
+    cmds:
+      - rm -rf temp demolab-web/dist demolab-web/.astro

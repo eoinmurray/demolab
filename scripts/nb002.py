@@ -5,21 +5,22 @@ from pathlib import Path
 import sh
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACTS = ROOT / "artifacts"
-PUBLIC = ROOT / "docs" / "public" / "notebooks" / "nb003"
+TEMP = ROOT / "temp"
+ARTIFACTS = ROOT / "artifacts" / "nb002"
 
+# Each entry: (tool dir under core/, subcommand).
 COMMANDS = (
-    ("mujoco", "double_pendulum"),
+    ("mujoco", "cartpole"),
 )
 
 
 def run_tool(tool: str, command: str) -> None:
-    tool_path = ROOT / "tools" / tool / "tool.py"
+    tool_path = ROOT / "core" / tool / "tool.py"
     sh.uv.run("python", str(tool_path), command, _fg=True)
 
 
 def artifact_dir(tool: str, command: str) -> Path:
-    return ARTIFACTS / tool / command
+    return TEMP / tool / command
 
 
 def load_manifest(tool: str, command: str) -> dict:
@@ -48,17 +49,17 @@ def copy_headline_assets() -> None:
             if not name:
                 continue
             src = src_dir / name
-            dst = PUBLIC / name
+            dst = ARTIFACTS / name
             shutil.copy(src, dst)
             print(f"copied {name} -> {dst}")
 
 
 def main() -> None:
-    PUBLIC.mkdir(parents=True, exist_ok=True)
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
     for tool, command in COMMANDS:
         run_tool(tool, command)
     copy_headline_assets()
-    numbers_path = PUBLIC / "numbers.json"
+    numbers_path = ARTIFACTS / "numbers.json"
     numbers_path.write_text(json.dumps(collect_numbers(), indent=2) + "\n")
     print(f"wrote {numbers_path}")
 

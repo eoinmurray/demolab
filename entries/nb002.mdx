@@ -6,9 +6,11 @@ collection: mujoco
 status: revising
 ---
 
+import cartpoleVideo from '../artifacts/nb002/cartpole.mp4?url';
+
 The cartpole is the simplest physics-engine model that still looks like something. A cart slides on a frictionless rail; a thin pole is hinged on top. With no controller, the pole tips over under gravity, and the cart drifts only by the tiny horizontal reaction force the hinge transmits.
 
-The model is defined inline as MJCF in `src/tools/mujoco/tool.py`:
+The model is defined inline as MJCF in `core/mujoco/tool.py`:
 
 - one slide joint (`slider`) for the cart along the x-axis
 - one hinge joint (`hinge`) for the pole about the y-axis
@@ -19,7 +21,7 @@ The model is defined inline as MJCF in `src/tools/mujoco/tool.py`:
 The tool runs `mj_step` in a loop, samples a frame every $1/60\,\text{s}$ with `mujoco.Renderer`, and pipes the stack of RGB arrays through `imageio` + `libx264` into `cartpole.mp4`.
 
 <video
-  src={`${import.meta.env.BASE_URL}/notebooks/nb002/cartpole.mp4`.replace(/\/+/g, '/')}
+  src={cartpoleVideo}
   controls
   loop
   muted
@@ -41,7 +43,7 @@ The pole crosses $60°$ from vertical at $t \approx 0.6\,\text{s}$, ends the run
 
 ## A second tool
 
-This is also the first notebook that shells out to a tool other than `neuron`. `src/notebooks/nb002.py` declares its commands as `(tool, command, deps)` triples:
+This is also the first notebook that shells out to a tool other than `neuron`. `scripts/nb002.py` declares its commands as `(tool, command, deps)` triples:
 
 ```python
 COMMANDS = (

@@ -25,18 +25,18 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        working-directory: src/docs
+        working-directory: demolab-web
         run: bun install --frozen-lockfile
 
       - uses: actions/configure-pages@v5
 
       - name: Build site
-        working-directory: src/docs
+        working-directory: demolab-web
         run: bun run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: src/docs/dist
+          path: demolab-web/dist
 
   deploy:
     needs: build

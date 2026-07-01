@@ -4,12 +4,12 @@ How the pieces fit together and the conventions to follow when adding a tool com
 
 ## Toolchain
 
-- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python src/tools/neuron/tool.py lif`). Run `uv sync` after pulling.
+- **Python**: use `uv`. Never call `python` / `python3` directly. Dependencies are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python core/neuron/tool.py lif`). Run `uv sync` after pulling.
 - **TypeScript / Node**: use `bun`. Never call `npm`, `pnpm`, `yarn`, or `node` directly. Install with `bun install`, run scripts with `bun run <script>`.
 
 ## The tool ↔ notebook contract
 
-Each tool subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<tool>/<cmd>/`, overwriting the previous run:
+Each tool subcommand `<cmd>` writes a fixed set of files into `temp/<tool>/<cmd>/`, overwriting the previous run:
 
 | File | Schema |
 |------|--------|
@@ -25,13 +25,13 @@ Each tool subcommand `<cmd>` writes a fixed set of files into `src/artifacts/<to
 
 The notebook runner relies on this contract:
 
-- Subcommand name maps 1:1 to the directory name under `src/artifacts/<tool>/`.
+- Subcommand name maps 1:1 to the directory name under `temp/<tool>/`.
 - The runner reads `manifest.json` to discover the headline asset and metrics — it does **not** hardcode metric field names or asset filenames. Adding a new surfaced metric is a one-file change in `tool.py` (extend the command's `headline_metrics` list).
 - The runner only chooses *which commands* a notebook bundles (`COMMANDS` in the `nbNNN.py` runner).
 
 ### `numbers.json` aggregation
 
-The runner aggregates each command's `config.json` + its headline metric fields into a single `numbers.json` in `src/docs/public/notebooks/nbNNN/`:
+The runner aggregates each command's `config.json` + its headline metric fields into a single `numbers.json` in `artifacts/nbNNN/`:
 
 ```json
 {
@@ -48,7 +48,17 @@ The runner aggregates each command's `config.json` + its headline metric fields 
 }
 ```
 
-The MDX post then imports this file and renders prose + figures + parameter tables.
+A publisher then reads `numbers.json` (and the staged figure) to render prose, figures, and parameter tables.
+
+## Publishing (the results layer)
+
+`temp/<tool>/<cmd>/` is scratch — gitignored, overwritten every run. The runner copies the durable bits (the headline figure(s) and the aggregated `numbers.json`) into **`artifacts/<id>/`**, which *is* committed. That folder is the **publisher-neutral record**: the single place every publisher reads from, independent of Astro.
+
+- **Astro (default).** Posts *import* the figure from the results layer — `import fig from '../artifacts/nbNNN/fig.png?url'`, then `<img src={fig} />`. Vite fingerprints the asset and applies the base path, so there are no hand-built URLs and nothing lives under `public/`. (`vite.server.fs.allow` in `astro.config.mjs` lets the dev server read the sibling `artifacts/`.)
+- **Typst (shipped example: `nb004`).** `nb004.py` stages the same bundle, then compiles `nb004.typ` to a PDF via the `typst` package. The document reads `numbers.json` natively — `json("/artifacts/nb004/numbers.json")` — and embeds the figure with `#image(...)`, compiled with `--root` set to the repo root. For print, save the figure as vector (`savefig(..., format="pdf")` or SVG).
+- **Anything else.** Any format that can read an image and JSON can be a publisher: keep the tools and runners, swap the document and the build step.
+
+CI only builds the Astro site (`bun run build`) — it does **not** run the notebooks. So `artifacts/` must be committed; that committed bundle, not the ephemeral `temp/`, is what actually reaches the published site.
 
 ## Authoring posts
 
@@ -60,20 +70,20 @@ For a **hand-built diagram** (a schematic, a geometric illustration — a figure
 - **Expressions in attributes.** Every attribute takes a JS expression — `viewBox={`0 0 ${s} ${s}`}`, `points={`${a},0 ${s},${a} …`}`, `x={a/2}`. A `viewBox` makes the coordinate system resolution-independent; `width`/`height` just scale it.
 - **Shared style via spread.** Hold text styling once in `export const label = {…}` and spread it into each `<text {...label}>`.
 
-Rule of thumb: reach for a tool-generated PNG when the figure is *data*; reach for inline SVG when it's a *drawing*. For a figure the reader should *explore*, ship a client-side Astro component (see the in-browser playground component under `src/docs/src/components/`).
+Rule of thumb: reach for a tool-generated PNG when the figure is *data*; reach for inline SVG when it's a *drawing*. For a figure the reader should *explore*, ship a client-side Astro component (see the in-browser playground component under `demolab-web/src/components/`).
 
 ## Adding a new notebook
 
-1. Add a tool subcommand (or reuse existing ones) in the relevant `src/tools/<tool>/tool.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
-2. Create `src/notebooks/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
+1. Add a tool subcommand (or reuse existing ones) in the relevant `core/<tool>/tool.py`. Pass a `manifest` to `write_output` declaring the headline figure/video and metrics.
+2. Create `scripts/nbNNN.py` modeled on an existing runner. Declare `COMMANDS` for the commands you want; the runner reads each command's `manifest.json` to know what to copy and surface.
    - A single-tool runner (e.g. `nb000.py`) uses bare command strings: `COMMANDS = ("lif", "net")`.
    - A multi-tool runner (e.g. `nb002.py`) uses `(tool, command)` pairs: `COMMANDS = (("mujoco", "cartpole"),)`, so one notebook can drive an arbitrary mix of tools.
-3. Create `src/docs/content/notebooks/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`src/docs/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Inline parameter values from `numbers.json` into plain markdown tables.
-4. Run `uv run python src/notebooks/nbNNN.py`.
+3. Create `entries/nbNNN.mdx`. Frontmatter must satisfy the `notebooks` collection schema (`demolab-web/src/content.config.ts`): `title` and `date` are required; `description`, `collection`, and `status` are optional. Import each figure from the results layer (`import fig from '../artifacts/nbNNN/fig.png?url'`) and inline parameter values from `numbers.json` into plain markdown tables. (To publish a PDF instead of a web page, skip the `.mdx` and follow the Typst example in [Publishing](#publishing-the-results-layer).)
+4. Run `uv run python scripts/nbNNN.py`.
 
 ### The `status` field
 
-`status` tracks where a notebook sits in its lifecycle and renders as a badge on the listing pages and the post header. The values are the single source of truth in `src/docs/src/config/status.ts`:
+`status` tracks where a notebook sits in its lifecycle and renders as a badge on the listing pages and the post header. The values are the single source of truth in `demolab-web/src/config/status.ts`:
 
 | Status | Meaning |
 |--------|---------|
@@ -86,7 +96,7 @@ A notebook moves `draft → building → revising → final` and may move backwa
 
 ## Adding a new tool
 
-Each tool lives in its own directory under `src/tools/` and writes its run artifacts under `src/artifacts/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
+Each tool lives in its own directory under `core/` and writes its run artifacts under `temp/<tool>/<cmd>/`. The manifest contract is the same for all tools; a new tool just needs to write `config.json`, `output.json`, `manifest.json`, `output.log`, `run.sh`, plus the assets its manifest declares (`headline_figure` and/or `headline_video`).
 
 Reuse the established pattern in an existing `tool.py`:
 
@@ -96,13 +106,13 @@ Reuse the established pattern in an existing `tool.py`:
 
 Note the two `write_output` variants differ by design: `neuron/tool.py` requires a `headline_figure`, while `mujoco/tool.py` makes both `headline_figure` and `headline_video` optional (`.get(...)`) to support video-only runs. Same contract, generalized.
 
-> The Streamlit playground (`src/tools/playground/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
+> The Streamlit playground (`core/playground/app.py`) is an interactive demo and intentionally does **not** follow the manifest contract — it produces no artifacts and is not part of the notebook pipeline.
 
 ## The feature catalog (upstream maintainers)
 
 This repo is the upstream **reference** that downstream repos draw ideas from. They don't copy your files — their agents reimplement the features they want, their own way, using this repo as reference (see the **Updating the framework** runbook in [`CLAUDE.md`](CLAUDE.md)). So [`CHANGELOG.md`](CHANGELOG.md) is a **feature catalog**, and each entry has one job: describe a feature well enough that someone else's agent can rebuild it from the description plus your code.
 
-Whenever you add or change a reusable **framework capability** (the Astro engine under `src/docs/src/`, the contracts, the tool plumbing, CI), catalog it:
+Whenever you add or change a reusable **framework capability** (the Astro engine under `demolab-web/src/`, the contracts, the tool plumbing, CI), catalog it:
 
 1. **Bump the version** with a new top entry in `CHANGELOG.md`. Use **major** for a feature that changes a contract others may have built on, **minor** for a new additive feature, **patch** for a small fix.
 2. **Describe the feature by intent and behavior** — what it does, why, and where the reference implementation lives — not just which files moved. That's what a downstream agent reads to rebuild it natively.

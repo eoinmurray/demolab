@@ -29,5 +29,8 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    // Notebook figures live in the publisher-neutral src/results/ (a sibling of
+    // src/docs), so allow the dev server to read one level above the Astro root.
+    server: { fs: { allow: ['..'] } },
   },
 });

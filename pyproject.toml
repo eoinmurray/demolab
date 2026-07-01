@@ -10,6 +10,7 @@ dependencies = [
     "imageio[ffmpeg]>=2.34",
     "sh>=2.0",
     "streamlit>=1.36",
+    "typst>=0.15.0",
 ]
 
 [tool.uv]

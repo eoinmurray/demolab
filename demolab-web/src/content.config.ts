@@ -13,13 +13,16 @@ const entrySchema = z.object({
   order: z.number().optional(),
 });
 
+// Entries all live in the top-level ../entries/ dir (siblings of demolab-web).
+// Split by filename: nb* are notebooks, ar* are articles. Non-.md/.mdx entries
+// (e.g. Typst .typ) are ignored here — they're built by their own publisher.
 const notebooks = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './content/notebooks' }),
+  loader: glob({ pattern: 'nb*.{md,mdx}', base: '../entries' }),
   schema: entrySchema,
 });
 
 const articles = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './content/articles' }),
+  loader: glob({ pattern: 'ar*.{md,mdx}', base: '../entries' }),
   schema: entrySchema,
 });
 

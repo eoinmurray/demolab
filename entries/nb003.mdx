@@ -6,6 +6,8 @@ collection: mujoco
 status: draft
 ---
 
+import doublePendulumVideo from '../artifacts/nb003/double_pendulum.mp4?url';
+
 The double pendulum is the textbook example of a deterministic system that is, in practice, unpredictable. Two arms hinged in series have four state variables ($\theta_1, \theta_2, \dot\theta_1, \dot\theta_2$) and a Lagrangian with one nonlinear coupling term, and that is enough: trajectories that start arbitrarily close together separate exponentially in time.
 
 The demo runs two of them at once, side by side in the same MuJoCo scene. Both pendulums have identical mass, length, and damping ($0$ — no losses). The only thing that differs is the initial angle of the upper arm:
@@ -17,14 +19,14 @@ $$
 For the first ~2 seconds the two pendulums trace what looks like the same motion. Around $t \approx 3\,\text{s}$ the tip-to-tip distance crosses 0.1 m, and from then on they are visibly doing completely different things. The Lyapunov-like blow-up is the whole story.
 
 <video
-  src={`${import.meta.env.BASE_URL}/notebooks/nb003/double_pendulum.mp4`.replace(/\/+/g, '/')}
+  src={doublePendulumVideo}
   controls
   loop
   muted
   playsinline
 />
 
-The MJCF model lives inline in `src/tools/mujoco/tool.py`:
+The MJCF model lives inline in `core/mujoco/tool.py`:
 
 - two `<body>` chains of two `<joint type="hinge">` arms, anchored at $x = \pm 0.6\,\text{m}$
 - arms are $0.4\,\text{m}$ capsules; a small `<site>` marks each tip so we can read its world position
