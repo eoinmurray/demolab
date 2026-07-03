@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demolab — a lab notebook for computational science</title>
+<meta name="description" content="Reproducible, provenance-stamped computational results, published to web and PDF, run by a coding agent instead of a build system.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>%F0%9F%94%AC</text></svg>">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6a6a6a;
+    --line: #e2e2e2;
+    --accent: #c8102e;
+    --code-bg: #f4f4f2;
+    --serif: Charter, Georgia, "Times New Roman", serif;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: #fff; color: var(--ink);
+    font-family: var(--serif); font-size: 18px; line-height: 1.6;
+  }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 3rem 1.25rem 2.5rem; }
+  header { margin-bottom: 1.75rem; }
+  h1 { font-size: 2.6rem; margin: 0 0 .4rem; letter-spacing: -.5px; }
+  h1 .dot { color: var(--accent); }
+  .tagline { font-size: 1.15rem; color: var(--muted); margin: 0; }
+  h2 {
+    font-size: .82rem; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted); font-weight: 600; margin: 3rem 0 1rem;
+    padding-bottom: .4rem; border-bottom: 1px solid var(--line);
+  }
+  p { margin: 1rem 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .lede { font-size: 1.18rem; }
+
+  .cmd { margin: 1rem 0; }
+  .cmd .os { font-family: var(--mono); font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem; }
+  .cmd .row { display: flex; align-items: stretch; gap: .4rem; }
+  .cmd pre {
+    flex: 1 1 auto; min-width: 0; margin: 0;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: .85rem 1rem; overflow-x: auto;
+    font-family: var(--mono); font-size: .82rem; line-height: 1.5; color: var(--ink);
+  }
+  .cmd button {
+    flex: 0 0 auto; align-self: stretch;
+    font-family: var(--mono); font-size: .68rem; color: var(--muted);
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 0 .7rem; cursor: pointer;
+  }
+  .cmd button:hover { color: var(--ink); border-color: var(--muted); }
+  .cmd button.copied { color: #2e7d32; border-color: #2e7d32; }
+
+  ul.points { list-style: none; padding: 0; margin: 1rem 0; }
+  ul.points li { padding: .5rem 0 .5rem 1.5rem; position: relative; border-bottom: 1px solid var(--line); }
+  ul.points li:last-child { border-bottom: 0; }
+  ul.points li::before { content: "→"; position: absolute; left: 0; color: var(--accent); }
+  ul.points b { font-weight: 600; }
+
+  .actions { display: flex; gap: .7rem; flex-wrap: wrap; margin: 1.5rem 0 2rem; }
+  .btn {
+    display: inline-block; padding: .6rem 1.15rem; border-radius: 8px;
+    font-size: 1rem; text-decoration: none; border: 1px solid var(--ink);
+  }
+  .btn:hover { text-decoration: none; }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: #000; }
+  .btn-secondary { color: var(--ink); border-color: var(--line); }
+  .btn-secondary:hover { border-color: var(--ink); }
+  .lead-in { font-family: var(--mono); font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin: 0 0 1rem; }
+
+  .agent-note { font-size: .95rem; color: var(--muted); }
+  footer { margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
+  footer a { color: var(--muted); }
+  @media (max-width: 480px) { h1 { font-size: 2.1rem; } body { font-size: 17px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Demolab<span class="dot">.</span></h1>
+    <p class="tagline">A lab notebook for computational science — reproducible, published to web and PDF, run by a coding agent.</p>
+  </header>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="https://pl.eoinmurray.info">View example</a>
+    <a class="btn btn-secondary" href="https://github.com/eoinmurray/demolab">View the repo (GitHub) →</a>
+  </div>
+
+  <p class="lead-in">Start your own</p>
+
+  <div class="cmd">
+    <div class="os">macOS / Linux</div>
+    <div class="row">
+      <pre id="c-unix">curl -LsSf https://demolab.eoinmurray.info/install.sh | sh</pre>
+      <button data-copy="c-unix">copy</button>
+    </div>
+  </div>
+  <div class="cmd">
+    <div class="os">Windows</div>
+    <div class="row">
+      <pre id="c-win">powershell -ExecutionPolicy ByPass -c "irm https://demolab.eoinmurray.info/install.ps1 | iex"</pre>
+      <button data-copy="c-win">copy</button>
+    </div>
+  </div>
+
+  <p class="agent-note">Already have a coding agent? Open it in an empty folder and paste:</p>
+  <div class="cmd">
+    <div class="row">
+      <pre id="c-prompt">Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.</pre>
+      <button data-copy="c-prompt">copy</button>
+    </div>
+  </div>
+
+  <footer>
+    Open source, <a href="https://github.com/eoinmurray/demolab/blob/main/LICENSE">MIT licensed</a>.
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll(".cmd button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.getAttribute("data-copy"));
+      navigator.clipboard.writeText(el.textContent.replace(/\n/g, " ").trim()).then(function () {
+        var old = btn.textContent;
+        btn.textContent = "copied"; btn.classList.add("copied");
+        setTimeout(function () { btn.textContent = old; btn.classList.remove("copied"); }, 1400);
+      });
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+name: Deploy the landing page
+
+# Publishes landing/ (the project page + install scripts) to GitHub Pages at
+# demolab.eoinmurray.info. This is the ONLY Pages workflow that ships active in the tree;
+# the Typst-site deploy is opt-in (demolab-engine/deploy/deploy.yml, added by `task deploy-setup`).
+on:
+  push:
+    branches: [main]
+    paths: ["landing/**", ".github/workflows/landing.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Upstream only. Forks/templates inherit this file, but must never publish demolab's
+    # landing page to their own Pages — so the job is skipped everywhere but the source repo.
+    if: github.repository == 'eoinmurray/demolab'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      # landing/ is plain static files (index.html + install.sh + install.ps1 + CNAME) —
+      # no build step; upload it as-is.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: landing
+      - id: deployment
+        uses: actions/deploy-pages@v4
