@@ -14,6 +14,15 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **Command grammar: the NAME is the trigger.** `HELP` lists the runbooks + guides; a runbook's
+  SCREAMING-KEBAB name (`LINT`, `DOCTOR`, …) starts it, a guide's name (`RULES`, `SLIDES`, …) walks
+  the user through it. AGENTS.md is restructured around the three commands with the name made
+  primary (was "a phrase, or the name"), and the grammar is mirrored into the always-loaded
+  `CLAUDE.md` so a bare name routes without the agent having to have read AGENTS.md first — the
+  reason a bare `LINT` misfired in older repos. `test_command_catalog.py` keeps the AGENTS tables in
+  step with the actual runbook/guide files.
+
 ## [0.4.0] — 2026-07-06
 
 ### Added
