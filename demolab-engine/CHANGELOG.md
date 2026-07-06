@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-07-06
+
 ### Added
 - **Slide layouts are a named, liftable catalog.** Each layout is a block in the gallery deck
   (`ar005.slide.typ`) marked `// layout: <name>`; SLIDES.md D11 is the index (name → when-to-use), and
