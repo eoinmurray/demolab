@@ -14,6 +14,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-07-06
+
+### Changed
+- **LINT enforces the references system.** The lint runbook now flags any hand-rolled citation —
+  typed `[1]` brackets, a manual `== References` section, literal `doi.org` links, or author–year
+  cites like "(Smith 2020)" — as an H24 violation; references must go through `#cite` +
+  `#reference-list`. Also documented the system fully in RULES §6.6.
+
 ## [0.2.0] — 2026-07-06
 
 ### Changed

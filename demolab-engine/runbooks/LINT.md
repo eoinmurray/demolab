@@ -27,10 +27,17 @@ grep -inE 'delve|leverage|utiliz|seamless|robust|comprehensive|nuanced|multiface
 # Voice: antithesis / false-balance scaffolding ("not just X but Y", "while … also").
 grep -inE 'not (just|only) .* but( also)?|while .*, .* (also|there)' writings/*.typ
 
-# H24 — hand-typed citations. A bracketed number in the source that isn't a `#cite(...)` gets no
-# link + no hover popover. Math intervals/indices ([0,1], matrix delims) are false positives — read
-# each hit, and check it isn't a manually written references list either.
+# H24 — references must go through the system (#cite + #reference-list), never hand-rolled.
+# (a) hand-typed inline cites: a bracketed number that isn't a #cite(...). Math intervals/indices
+#     ([0,1], matrix delims) are false positives — read each hit.
 grep -nE '\[[0-9]+( *, *[0-9]+)*\]' writings/*.typ
+# (b) a manually written References section (should be #reference-list(...)).
+grep -inE '^\s*=+ +references\b' writings/*.typ
+# (c) DOI links typed by hand (reference-list builds the doi.org URL from a `doi:` field, so a
+#     literal doi.org in a writing means the reference list was hand-rolled).
+grep -in 'doi\.org' writings/*.typ
+# (d) parenthetical author–year cites, e.g. "(Smith 2020)" — a citation style that bypasses #cite.
+grep -nE '\([A-Z][a-zA-Z]+ (et al\.?,? )?[0-9]{4}[a-z]?\)' writings/*.typ
 ```
 
 ## 2. Judgment checks (read each writing — no grep suffices)
@@ -41,7 +48,7 @@ grep -nE '\[[0-9]+( *, *[0-9]+)*\]' writings/*.typ
 - **§H7 em-dashes in prose.** For each grep hit from §1, confirm it is running prose (a violation) rather than a title / heading / label (fine).
 - **§H16–H20 captions.** Each caption is standalone, follows the lead → axes-with-units + panels → takeaway anatomy, uses present tense, and pulls its numbers from the run (`#run…`) rather than a hand-typed literal.
 - **§H9 numbers.** Every run number in prose, captions, and tables traces to `numbers.json`, never a typed literal that can drift.
-- **§H24 citations.** Inline cites use `#cite(...)` and the reference list `#reference-list(...)` — not hand-typed brackets or a manual list (which get no link, popover, or auto-numbering). Each reference carries a DOI where one exists.
+- **§H24 citations.** If a writing cites anything at all, it **must go through the system** — `#cite(...)` inline and `#reference-list(...)` for the list (RULES §6.6). Any hand-rolled alternative is a violation to fix: hand-typed `[1]` brackets, a manually written `== References` section, directly-typed `doi.org` links, or author–year cites like "(Smith 2020)" — each bypasses the numbering, linking, popover, and new-tab DOI the helpers provide. Each reference carries a DOI where one exists.
 - **Voice (the real one).** Sentence rhythm varies (not every sentence the same medium length); no rule-of-three-everything; it takes a position rather than hedging both sides. Does it read like a person or a model?
 
 ## 3. Report
