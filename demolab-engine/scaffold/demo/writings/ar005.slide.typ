@@ -10,7 +10,9 @@
   date: "2026-07-06",
 )
 
-#show: simple-theme.with(aspect-ratio: "16-9")
+// header: none drops touying's running section header (the small gray repeat of the title on
+// every slide). Turn it back on for a long, multi-section talk where that navigation helps.
+#show: simple-theme.with(aspect-ratio: "16-9", header: none)
 
 #set text(font: "New Computer Modern", size: 22pt)
 #show raw: set text(font: "DejaVu Sans Mono")

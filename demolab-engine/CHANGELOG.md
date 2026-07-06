@@ -24,6 +24,8 @@ the runbook shows the entries between your version and the latest.
   real run data. Expanded to cover five more layouts (three-column, quote, section divider, big
   number, diagram) and to match demolab's two-ink web palette instead of touying's teal accent (the
   D4 skeleton now carries the palette recipe). The slide's title labels its layout (no separate tag).
+  Decks now default to `header: none` — touying's running section header just reprinted the title on
+  every slide; turn it back on for a long, multi-section talk.
 
 ## [0.3.0] — 2026-07-06
 

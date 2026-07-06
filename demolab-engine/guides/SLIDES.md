@@ -32,7 +32,9 @@ committed run outputs the writeups use, never ad-hoc images.
   date: "YYYY-MM-DD",
 )
 
-#show: simple-theme.with(aspect-ratio: "16-9")
+// header: none drops touying's running section header (a small gray repeat of the title on every
+// slide). Leave it off for most decks; turn it on for a long, multi-section talk where it navigates.
+#show: simple-theme.with(aspect-ratio: "16-9", header: none)
 
 #set text(font: "New Computer Modern", size: 22pt)
 #show raw: set text(font: "DejaVu Sans Mono")
