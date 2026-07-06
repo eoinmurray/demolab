@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-06
+
 ### Changed
 - **New dev server (`task dev`).** Replaced `typst watch`'s built-in server with a small Python
   dev server (`demolab-engine/build/devserver.py`) that rebuilds via `build.py` on any source
