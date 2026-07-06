@@ -14,6 +14,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **`task dev:demo-site`.** Serves the shipped demo (`demolab-engine/scaffold/demo/`) through the
+  live engine by symlinking its content into the root — one source of truth, no duplicated files —
+  and tears the links down on exit. Handy for previewing the reference lab or developing engine
+  features against it without a full `add-demo-content` sandbox.
+
 ## [0.3.0] — 2026-07-06
 
 ### Changed
