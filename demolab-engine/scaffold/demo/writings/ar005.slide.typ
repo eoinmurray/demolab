@@ -1,5 +1,8 @@
-// ar005: the layout-gallery deck — one slide per layout in SLIDES.md (D11). Each slide's *title*
-// names its layout, so authors can copy the one they want. It's a *deck* (`.slide.typ`): declares
+// ar005: the layout-gallery deck — the canonical source for every slide layout in SLIDES.md (D11).
+// Each layout is a named block marked `// layout: <name>`; to reuse one, copy from its marker to
+// the next marker and swap the demo content for yours. SLIDES.md D11 indexes the names + when-to-use;
+// this deck holds the one tested, page-count-checked copy. (test_engine_build.py asserts the marker
+// names here match the D11 index, so they can't drift.) It's a *deck* (`.slide.typ`): declares
 // `#let meta` but no `#let body`, compiled standalone to a PDF and linked from the homepage,
 // excluded from the HTML/book passes. Compile with `--root .` so /artifacts/... resolves (D3).
 #import "@preview/touying:0.6.1": *
@@ -33,7 +36,7 @@
 #let run = json("/artifacts/data/exp000/numbers.json")
 #let cap(body) = text(size: 14pt, fill: muted)[#body]
 
-// ── Title (mirror the closer so the deck bookends) ─────────────────────────
+// layout: title — opens the deck; mirror the closer so it bookends
 #title-slide[
   = Slide layout gallery
   #v(0.4em)
@@ -42,7 +45,7 @@
   #text(size: 17pt, fill: muted)[Demolab · SLIDES.md D11]
 ]
 
-// ── Bullets — the workhorse ────────────────────────────────────────────────
+// layout: bullets — the workhorse; bold the load-bearing phrase, five bullets max
 == Bullets
 
 - *Bold the load-bearing phrase* so the eye lands on it first.
@@ -51,7 +54,7 @@
 - Nested points are fine *once*, for a short aside.
 - The last bullet is the *so what* — say what it means.
 
-// ── Two-column — comparisons ───────────────────────────────────────────────
+// layout: two-column — comparison; parallel sides + a centred takeaway
 == Two-column
 
 #grid(columns: (1fr, 1fr), gutter: 28pt,
@@ -71,7 +74,7 @@
 #v(1em)
 #align(center)[*Parallel sides, one takeaway: tools compute, runners narrate.*]
 
-// ── Three-column — triads ──────────────────────────────────────────────────
+// layout: three-column — triads; header + one line each
 == Three-column
 
 #v(0.6em)
@@ -95,7 +98,7 @@
 #v(1em)
 #align(center)[*Three parallel items — four wants a table.*]
 
-// ── Code panel — one idea per snippet ──────────────────────────────────────
+// layout: code-panel — one snippet in a luma(245) rounded box, one idea
 == Code panel
 
 #align(center)[
@@ -113,7 +116,7 @@
   ]
 ]
 
-// ── Equation + terms — define every symbol ─────────────────────────────────
+// layout: equation-terms — displayed equation, then a where: list defining every symbol
 == Equation + terms
 
 $ tau_m (dif V) / (dif t) = -(V - V_"rest") + R_m thin I_"ext" (t) $
@@ -126,7 +129,7 @@ where:
 - $R_m$ — membrane resistance (MΩ)
 - $I_"ext" (t)$ — external input current (nA); the space keeps $(t)$ out of the subscript (D10)
 
-// ── Quote — a pull-quote ───────────────────────────────────────────────────
+// layout: quote — centred italic pull-quote + muted attribution
 == Quote
 
 #v(1fr)
@@ -144,8 +147,7 @@ where:
 ]
 #v(1fr)
 
-// ── Section divider — signpost a new part (focus-slide = chrome-free + centered, so no
-// stale running header from the previous slide) ────────────────────────────
+// layout: section-divider — chrome-free focus-slide signposting a new part (no stale header)
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART TWO]
   #v(0.4em)
@@ -154,7 +156,7 @@ where:
   #line(length: 20%, stroke: 1pt + muted)
 ]
 
-// ── Centered figure — let the plot talk (a 16:9 plot centers; a 2:1 plot fills the width) ───
+// layout: centered-figure — one image + muted caption (16:9 centers; a 2:1 plot fills the width)
 == Centered figure
 
 #v(0.5em)
@@ -163,7 +165,7 @@ where:
   #cap[Membrane potential of a single LIF neuron under tonic input; it charges and resets at threshold, firing at #calc.round(run.lif.firing_rate_hz) Hz.]
 ]
 
-// ── Figure + bullets — figure left, reading notes right ────────────────────
+// layout: figure-bullets — figure left (~55%), three reading notes right, so-what last
 == Figure + bullets
 
 #grid(columns: (55%, 1fr), gutter: 22pt, align: horizon,
@@ -175,7 +177,7 @@ where:
   ],
 )
 
-// ── Figure pair — (a)/(b) with a comparison line ───────────────────────────
+// layout: figure-pair — (a)/(b) panels, captions under each, comparison line below
 == Figure pair
 
 #grid(columns: (1fr, 1fr), gutter: 20pt,
@@ -194,7 +196,7 @@ where:
 )
 #align(center)[*Same drive, sharper threshold: the EIF spike initiates faster.*]
 
-// ── Figure grid (2×2) — four panels, per-row heights (D7) ──────────────────
+// layout: figure-grid — 2×2, four panels max, per-row heights (D7)
 == Figure grid (2×2)
 
 #grid(columns: (1fr, 1fr), rows: (auto, auto), column-gutter: 18pt, row-gutter: 10pt, align: center,
@@ -204,7 +206,7 @@ where:
   image("/artifacts/data/exp001/enet.png", height: 150pt),
 )
 
-// ── Hero + stack — the result large, evidence beside it ────────────────────
+// layout: hero-stack — the result large on the left, evidence stacked right
 == Hero + stack
 
 #grid(columns: (60%, 1fr), gutter: 20pt, align: horizon,
@@ -223,7 +225,7 @@ where:
   ],
 )
 
-// ── Diagram — boxes and arrows, drawn in Typst ─────────────────────────────
+// layout: diagram — boxes + arrows drawn in Typst (no image asset)
 == Diagram
 
 #let node(b) = box(fill: luma(245), stroke: 0.75pt + luma(200), radius: 8pt, inset: (x: 14pt, y: 10pt))[#text(size: 18pt)[#b]]
@@ -237,7 +239,7 @@ where:
 #v(0.9em)
 #align(center)[*Boxes and arrows in Typst — no image asset needed.*]
 
-// ── Table — no grid lines, numbers from the run ────────────────────────────
+// layout: table — stroke:none + one hline under the header; numbers from the run
 == Table
 
 #v(0.6em)
@@ -255,7 +257,7 @@ where:
 #v(0.4em)
 #align(center)[#cap[Every value read from `numbers.json`, so the slide can't drift from the run.]]
 
-// ── Big number — one headline metric ───────────────────────────────────────
+// layout: big-number — one headline metric huge + a muted one-line gloss
 == Big number
 
 #align(center + horizon)[
@@ -264,14 +266,14 @@ where:
   #text(size: 20pt, fill: muted)[single-neuron firing rate under tonic input — read from the run]
 ]
 
-// ── Big statement — the one line to remember (ink background) ───────────────
+// layout: big-statement — focus-slide(background: ink); don't bold on it (accent == background)
 #focus-slide(background: ink)[
   One layout per slide.
   #v(0.3em)
   Title, plus bullets or one visual.
 ]
 
-// ── Closer — mirror the title slide ────────────────────────────────────────
+// layout: closer — mirror the title slide; left-align the bullets in a #box
 == Closer
 
 #align(center)[

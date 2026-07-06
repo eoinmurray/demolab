@@ -100,50 +100,40 @@ Do not trust Finder/Spotlight metadata (`mdls`) for the count — it caches stal
 `--ppi 96` and look: overflow, clipped captions, terms swallowed into subscripts. In
 math, `$I_"ext"(t)$` puts the `(t)` in the subscript — write `$I_"ext" (t)$`.
 
-## 4. Layout vocabulary
+## 4. Layout catalog
 
-**D11 — One layout per slide, title + bullets and/or one visual.** The patterns, in the
-order you'll reach for them (each is a `==` slide unless noted):
+**D11 — The layouts are a named, liftable catalog.** Every layout is one named block in the gallery
+deck (`writings/ar005.slide.typ`), marked `// layout: <name>`. To build a slide, find the name below,
+then **copy that block out of the gallery** — from its `// layout:` marker down to the next marker —
+and swap the demo content for yours. The gallery holds the one tested, page-count-checked copy; this
+list is the index (name → when-to-use). Each is a `==` slide unless noted, in the order you'll reach
+for them:
 
-- **Bullets** — the workhorse. Bold the load-bearing phrase; two lines per bullet max;
-  five bullets is the ceiling.
-- **Two-column** — paired panels for comparisons (does/does-not, before/after). Keep the
-  sides parallel: same count, same grammatical shape. A centered bold takeaway line below
-  ties them together.
-- **Three-column** — triads only; a fourth column wants a table. Header + one line each.
-- **Code panel** — one fenced block in a `luma(245)` rounded box, one idea per snippet;
-  trim imports and error handling.
-- **Equation + terms** — the displayed equation, then `where:` and a bullet list defining
-  *every* symbol.
-- **Quote** — a centered italic pull-quote in a `~80%`-width block, attribution muted below.
-- **Section divider** — signpost a new part: `#focus-slide(background: white, foreground: ink)`
-  (chrome-free + centered, so no stale running header) with a small kicker + a big part title.
-- **Centered / full-width figure** — one image, one muted caption; let the plot talk. A wide
-  (2:1) plot sizes to the full column width; a 16:9 plot sizes by height and *centers* (going
-  full-width would overflow, D7) — call that slide "centered figure".
-- **Figure + bullets** — figure left (~55% width), ≤3 reading-notes right; the *so what*
-  goes in the last bullet.
-- **Figure pair** — two panels labelled (a)/(b), captions under each, comparison line
-  below.
-- **Figure grid (2×2)** — four panels max; beyond that it's a poster, not a slide. Per-row
-  heights per D7.
-- **Hero + stack** — the result you're arguing for large on the left, supporting evidence
-  stacked right.
-- **Diagram** — boxes-and-arrows drawn in Typst (`box` nodes + `sym.arrow.r`), no image asset;
-  for dataflow / architecture. Keep it one row where it fits.
-- **Table** — no grid lines: `stroke: none` with a single `table.hline` under the header.
-  Numbers come from the run (`numbers.json`), never typed.
-- **Big number** — one headline metric huge and centered (`text(size: 120pt)`), a muted
-  one-line gloss beneath; the number comes from the run.
-- **Big statement** — `#focus-slide(background: ink)[…]`, for the one line they must remember.
-  Don't bold on it — emphasis is the accent colour, which is the background (it vanishes).
-- **Closer** — big centered title, two or three parting bullets (in a left-aligned `#box`, or
-  the markers detach), tagline. Mirror the title slide so the deck bookends.
+- **`layout: title`** — opens the deck: `#title-slide[= … ]`. Mirror it with the closer.
+- **`layout: bullets`** — the workhorse. Bold the load-bearing phrase; two lines per bullet max; five bullets is the ceiling.
+- **`layout: two-column`** — paired panels for comparisons (does/does-not, before/after). Parallel sides — same count, same shape — with a centred bold takeaway.
+- **`layout: three-column`** — triads only; a fourth column wants a table. Header + one line each.
+- **`layout: code-panel`** — one fenced block in a `luma(245)` rounded box, one idea per snippet; trim imports and error handling.
+- **`layout: equation-terms`** — the displayed equation, then `where:` and a list defining *every* symbol.
+- **`layout: quote`** — a centred italic pull-quote in a `~80%`-width block, attribution muted below.
+- **`layout: section-divider`** — signpost a new part: `#focus-slide(background: white, foreground: ink)` (chrome-free + centred, no stale header) with a small kicker + a big part title.
+- **`layout: centered-figure`** — one image, one muted caption; let the plot talk. A wide (2:1) plot fills the column; a 16:9 plot sizes by height and *centres* (full-width would overflow, D7).
+- **`layout: figure-bullets`** — figure left (~55% width), ≤3 reading-notes right; the *so what* is the last bullet.
+- **`layout: figure-pair`** — two panels labelled (a)/(b), captions under each, comparison line below.
+- **`layout: figure-grid`** — 2×2, four panels max; beyond that it's a poster. Per-row heights per D7.
+- **`layout: hero-stack`** — the result you're arguing for large on the left, supporting evidence stacked right.
+- **`layout: diagram`** — boxes-and-arrows drawn in Typst (`box` nodes + `sym.arrow.r`), no image asset; for dataflow / architecture. One row where it fits.
+- **`layout: table`** — no grid lines: `stroke: none` + a single `table.hline` under the header. Numbers from the run (`numbers.json`), never typed.
+- **`layout: big-number`** — one headline metric huge and centred (`text(size: 120pt)`), a muted one-line gloss beneath; the number comes from the run.
+- **`layout: big-statement`** — `#focus-slide(background: ink)[…]` for the one line they must remember. Don't bold on it — emphasis is the accent colour, which is the background (it vanishes).
+- **`layout: closer`** — a centred close mirroring the title slide: parting bullets in a left-aligned `#box` (or the markers detach), tagline.
 
-**D12 — A worked gallery beats a spec.** If the repo has a layout-gallery deck (this
-repo's source ships one as `writings/ar005.slide.typ`), copy-paste from it rather than
-re-deriving layouts. In a gallery, name each slide's *title* after its layout (the title is
-the label — no separate tag). Real talks use descriptive titles instead.
+**D12 — The gallery is the source; this catalog is the index.** Don't re-derive a layout — lift the
+named block from the gallery (`writings/ar005.slide.typ`) between its `// layout:` markers, then edit.
+Keeping one tested copy (rather than a snippet pasted into this guide) is the same no-drift discipline
+as numbers-from-the-run: `test_slide_catalog.py` asserts the `// layout:` names in the gallery match
+the `` `layout: …` `` names in this catalog, so an index entry can't point at a missing block. Adding a
+layout means adding both a marked gallery slide *and* a catalog entry here (the test fails otherwise).
 
 ## 5. Serving
 

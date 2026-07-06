@@ -15,6 +15,11 @@ the runbook shows the entries between your version and the latest.
 ## [Unreleased]
 
 ### Added
+- **Slide layouts are a named, liftable catalog.** Each layout is a block in the gallery deck
+  (`ar005.slide.typ`) marked `// layout: <name>`; SLIDES.md D11 is the index (name → when-to-use), and
+  you build a slide by copying the named block out of the gallery rather than from a Typst component
+  library. One tested source of truth — `test_slide_catalog.py` asserts the gallery's marker names
+  match the D11 catalog, so the two can't drift.
 - **`task dev:demo-site`.** Serves the shipped demo (`demolab-engine/scaffold/demo/`) through the
   live engine by symlinking its content into the root — one source of truth, no duplicated files —
   and tears the links down on exit. Handy for previewing the reference lab or developing engine
