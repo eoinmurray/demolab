@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-07-06
+
 ### Changed
 - **Command grammar: the NAME is the trigger.** `HELP` lists the runbooks + guides; a runbook's
   SCREAMING-KEBAB name (`LINT`, `DOCTOR`, …) starts it, a guide's name (`RULES`, `SLIDES`, …) walks
