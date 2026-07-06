@@ -47,6 +47,7 @@ WATCH_DIRS = [
 WATCH_FILES = [ROOT / "demolab.yaml"]             # optional brand config (may not exist)
 POLL_SECONDS = 0.4
 DEBOUNCE_SECONDS = 0.15
+BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow — surface it, don't hang
 
 # --- live-reload + error-overlay client (injected into every served HTML page) ---
 RELOAD_JS = r"""
@@ -139,12 +140,14 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
     cmd = [sys.executable, str(BUILD_PY)]
     if skip_decks:
         cmd.append("--skip-decks")
-    proc = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        proc = subprocess.run(
+            cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=BUILD_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"build timed out after {BUILD_TIMEOUT}s — the compile looks stuck."
+    except Exception as e:  # never let a spawn failure kill the watch loop
+        return False, f"couldn't run build.py: {type(e).__name__}: {e}"
     if proc.returncode == 0:
         tail = proc.stdout.strip().splitlines()
         return True, (tail[-1] if tail else "built")
@@ -219,6 +222,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     _clients.remove(q)
 
 
+# Browsers routinely reset dev connections — closing an SSE stream, reloading, navigating away —
+# which raises these from deep inside http.server, below the handler's own try/excepts. They're
+# harmless, so the server swallows them instead of dumping an alarming traceback the user will read
+# as a crash.
+_BENIGN_DISCONNECT = (ConnectionResetError, BrokenPipeError, ConnectionAbortedError, TimeoutError)
+
+
+def _is_benign_disconnect(exc) -> bool:
+    return isinstance(exc, _BENIGN_DISCONNECT)
+
+
+class DevServer(http.server.ThreadingHTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True  # rebind cleanly after a restart (no TIME_WAIT stall)
+
+    def handle_error(self, request, client_address):
+        exc = sys.exc_info()[1]
+        if _is_benign_disconnect(exc):
+            return  # the client just went away
+        # A genuinely unexpected per-request error: one quiet line, never a traceback, and the
+        # server keeps serving.
+        print(f"  dev server: {type(exc).__name__}: {exc}", flush=True)
+
+
 def pick_port(argv) -> int:
     if len(argv) > 1 and argv[1].strip():
         return int(argv[1].strip())
@@ -237,35 +264,57 @@ def watch_loop():
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
     last = snapshot()
     while True:
-        time.sleep(POLL_SECONDS)
-        cur = snapshot()
-        if cur == last:
-            continue
-        # Debounce: wait for the filesystem to settle before building (editors write in bursts).
-        while True:
-            time.sleep(DEBOUNCE_SECONDS)
-            nxt = snapshot()
-            if nxt == cur:
-                break
-            cur = nxt
-        changed = {k for k in set(cur) | set(last) if cur.get(k) != last.get(k)}
-        skip = not deck_affecting(changed)
-        ok, msg = build(skip_decks=skip)
-        last = snapshot()
-        if ok:
-            _last_error[0] = ""
-            print("  rebuilt" + (" (decks skipped)" if skip else "") + ": " + msg, flush=True)
-            broadcast("reload")
-        else:
-            _last_error[0] = msg
-            print("  BUILD FAILED (shown in browser):\n" + msg, flush=True)
-            broadcast("error\n" + msg)
+        try:
+            time.sleep(POLL_SECONDS)
+            cur = snapshot()
+            if cur == last:
+                continue
+            # Debounce: wait for the filesystem to settle before building (editors write in bursts).
+            while True:
+                time.sleep(DEBOUNCE_SECONDS)
+                nxt = snapshot()
+                if nxt == cur:
+                    break
+                cur = nxt
+            changed = {k for k in set(cur) | set(last) if cur.get(k) != last.get(k)}
+            skip = not deck_affecting(changed)
+            ok, msg = build(skip_decks=skip)
+            last = snapshot()
+            if ok:
+                _last_error[0] = ""
+                print("  rebuilt" + (" (decks skipped)" if skip else "") + ": " + msg, flush=True)
+                broadcast("reload")
+            else:
+                _last_error[0] = msg
+                print("  BUILD FAILED (shown in browser):\n" + msg, flush=True)
+                broadcast("error\n" + msg)
+        except KeyboardInterrupt:
+            raise  # let main() print "stopped" and exit
+        except Exception as e:
+            # A transient error (a file vanishing mid-scan, an odd OS hiccup) must NOT kill the
+            # watcher — that would silently stop every future rebuild, the most confusing failure
+            # there is. Log one line and keep polling.
+            print(f"  watch hiccup ({type(e).__name__}: {e}); still watching", flush=True)
+            last = snapshot()
 
 
 def main():
+    explicit = len(sys.argv) > 1 and bool(sys.argv[1].strip())
     port = pick_port(sys.argv)
-    server = http.server.ThreadingHTTPServer(("0.0.0.0", port), Handler)
-    server.daemon_threads = True
+    server = None
+    while server is None:
+        try:
+            server = DevServer(("0.0.0.0", port), Handler)
+        except OSError as e:
+            # The chosen port raced (someone grabbed it between the free check and bind). For an
+            # auto-picked port, step to the next; for an explicit one, fail clearly.
+            if explicit:
+                print(f"could not bind port {port}: {e}", flush=True)
+                return
+            port += 1
+            if port > 3100:
+                print("could not find a free port in 3000-3100", flush=True)
+                return
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"→ serving on http://localhost:{port}  (Ctrl-C to stop)", flush=True)
     try:

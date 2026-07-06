@@ -14,6 +14,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Fixed
+- **Dev server no longer spews tracebacks or dies quietly.** A browser resetting a connection
+  (closing an SSE stream, reloading, navigating away) used to dump a `ConnectionResetError` stack —
+  harmless, but it reads as a crash. The server now swallows those benign disconnects (a custom
+  `handle_error`), and hardens against the genuinely bad case: the watch loop survives a transient
+  error instead of silently stopping all rebuilds, a hung compile times out (120s) instead of
+  freezing the server, and a raced port falls through to the next.
+
 ## [0.4.1] — 2026-07-06
 
 ### Changed

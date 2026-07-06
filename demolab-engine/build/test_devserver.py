@@ -32,6 +32,15 @@ def test_inject_reload_appends_when_no_body_tag():
     assert out.rstrip().endswith("</script>")
 
 
+def test_benign_disconnects_are_swallowed():
+    # Browser disconnects (reset / broken pipe / abort) are harmless and must not be logged as errors.
+    for exc in (ConnectionResetError(), BrokenPipeError(), ConnectionAbortedError(), TimeoutError()):
+        assert devserver._is_benign_disconnect(exc), exc
+    # A real error is not swallowed.
+    for exc in (ValueError(), RuntimeError(), KeyError()):
+        assert not devserver._is_benign_disconnect(exc), exc
+
+
 def test_deck_affecting_triggers_on_slide_and_data():
     # A deck PDF depends only on its own source and the data assets it embeds.
     assert devserver.deck_affecting({"/repo/writings/ar004.slide.typ"})
