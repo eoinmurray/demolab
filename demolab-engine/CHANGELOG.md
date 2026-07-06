@@ -14,7 +14,7 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
-## [0.3.1] — 2026-07-06
+## [0.4.0] — 2026-07-06
 
 ### Added
 - **Slide layouts are a named, liftable catalog.** Each layout is a block in the gallery deck
