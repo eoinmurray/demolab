@@ -19,6 +19,10 @@ the runbook shows the entries between your version and the latest.
   live engine by symlinking its content into the root — one source of truth, no duplicated files —
   and tears the links down on exit. Handy for previewing the reference lab or developing engine
   features against it without a full `add-demo-content` sandbox.
+- **Demo ships the layout-gallery deck (`ar005`).** `SLIDES.md` D12 points authors at a gallery
+  deck to copy layouts from; the demo now actually includes it — one slide per D11 layout (bullets,
+  two-column, code, equation + terms, the five figure layouts, table, big statement, closer), each
+  tagged with its layout name, driven by real run data.
 
 ## [0.3.0] — 2026-07-06
 
