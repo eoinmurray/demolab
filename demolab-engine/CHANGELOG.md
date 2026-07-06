@@ -14,6 +14,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Fixed
+- **Dev server hardening (round two).** Closed a path-traversal hole — the `.html` serving path read
+  `SITE / <request path>` directly, so a crafted `..%2f…​.html` could read files outside the served
+  dir; it's now confined to the site (verified a traversal request returns 404). Also bounded the
+  per-tab SSE queue (a stalled tab can't grow it without limit) and unified benign-disconnect
+  handling across every socket write.
+
 ### Changed
 - **A broken entry no longer takes down the whole site.** One entry that referenced a missing figure
   (or had any Typst error) aborted the single bundle compile, so the *entire* site failed to build.

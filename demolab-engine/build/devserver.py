@@ -90,7 +90,10 @@ def broadcast(msg: str) -> None:
     with _lock:
         targets = list(_clients)
     for q in targets:
-        q.put(msg)
+        try:
+            q.put_nowait(msg)
+        except queue.Full:
+            pass  # a stalled client — it catches up on the next reload, or the ping drops it
 
 
 def sse_bytes(payload: str) -> bytes:
@@ -168,7 +171,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         fs = SITE / path.lstrip("/")
         if path.endswith("/") or fs.is_dir():
             fs = fs / "index.html"
-        if fs.suffix == ".html":
+        # Serve in-tree .html through the reload-injecting path; everything else (assets, or a
+        # crafted `..` path) falls to SimpleHTTPRequestHandler, whose translate_path already confines
+        # to the served dir. _within re-checks so a `..%2f….html` can't escape SITE via this path.
+        if fs.suffix == ".html" and _within(fs, SITE):
             return self._serve_html(fs)
         return super().do_GET()
 
@@ -190,7 +196,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(data)
-        except (BrokenPipeError, ConnectionResetError):
+        except _BENIGN_DISCONNECT:
             pass
 
     def _sse(self):
@@ -199,7 +205,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("Connection", "keep-alive")
         self.end_headers()
-        q = queue.Queue()
+        q = queue.Queue(maxsize=64)  # bounded so a stalled tab can't grow it without limit
         with _lock:
             _clients.append(q)
             pending_error = _last_error[0]
@@ -214,7 +220,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 except queue.Empty:
                     self.wfile.write(b": ping\n\n")  # keep the connection warm through proxies
                 self.wfile.flush()
-        except (BrokenPipeError, ConnectionResetError, ValueError):
+        except (*_BENIGN_DISCONNECT, ValueError):  # ValueError: write to a closed connection
             pass
         finally:
             with _lock:
@@ -231,6 +237,16 @@ _BENIGN_DISCONNECT = (ConnectionResetError, BrokenPipeError, ConnectionAbortedEr
 
 def _is_benign_disconnect(exc) -> bool:
     return isinstance(exc, _BENIGN_DISCONNECT)
+
+
+def _within(p: Path, base: Path) -> bool:
+    """True if `p` resolves inside `base` — guards the .html serving path against a `..` traversal
+    that would otherwise read files outside the site directory."""
+    try:
+        p.resolve().relative_to(base.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
 
 
 class DevServer(http.server.ThreadingHTTPServer):

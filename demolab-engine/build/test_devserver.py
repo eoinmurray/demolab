@@ -41,6 +41,17 @@ def test_benign_disconnects_are_swallowed():
         assert not devserver._is_benign_disconnect(exc), exc
 
 
+def test_within_blocks_traversal(tmp_path):
+    site = tmp_path / "site"
+    site.mkdir()
+    (site / "ok.html").write_text("x")
+    assert devserver._within(site / "ok.html", site)
+    assert devserver._within(site / "sub" / "page.html", site)  # not-yet-existing, still contained
+    # `..` that climbs out of the site must be rejected
+    assert not devserver._within(site / ".." / "secret.html", site)
+    assert not devserver._within(site / ".." / ".." / "etc" / "hosts.html", site)
+
+
 def test_deck_affecting_triggers_on_slide_and_data():
     # A deck PDF depends only on its own source and the data assets it embeds.
     assert devserver.deck_affecting({"/repo/writings/ar004.slide.typ"})
