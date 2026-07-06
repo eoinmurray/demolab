@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.3] — 2026-07-06
+
 ### Fixed
 - **`task dev:demo-site` previews the demo's config, not a stale root copy.** It symlinked the demo's
   content but not its `demolab.yaml` / `HOUSESTYLE.local.md` (which live in the skeleton), so the
