@@ -264,6 +264,19 @@
   }
 }
 
+// --- heading anchors: a slug id on every heading so any section is deep-linkable (page.html#slug) ---
+// to-string flattens a heading's content to plain text; slugify lowercases it to a-z0-9-hyphens.
+#let to-string(c) = {
+  if c == none { "" }
+  else if type(c) == str { c }
+  else if c.has("text") { c.text }
+  else if c.has("children") { c.children.map(to-string).join() }
+  else if c.has("body") { to-string(c.body) }
+  else if c == [ ] { " " }
+  else { "" }
+}
+#let slugify(s) = lower(s).replace(regex("[^a-z0-9]+"), "-").trim("-")
+
 // --- page templates (one per output document) ---
 
 #let entry-page(meta, body, id: none, brand: default-brand) = {
@@ -280,6 +293,20 @@
   // outline() queries headings across the whole bundle; keep per-entry docs out of
   // the book's table of contents.
   set heading(outlined: false)
+  // Heading anchors (web only): re-emit each heading with a slug id + a quiet permalink that
+  // appears on hover, so any section is directly linkable (page.html#slug). The PDF/book keep
+  // native headings. Typst maps a level-N heading to <h(N+1)>, so match that tag.
+  show heading: it => context {
+    if target() != "html" { it } else {
+      let id = slugify(to-string(it.body))
+      if id == "" { it } else {
+        html.elem("h" + str(calc.min(it.level + 1, 6)), attrs: (id: id, class: "hx"), {
+          it.body
+          html.elem("a", attrs: (class: "permalink", href: "#" + id, "aria-label": "Link to this section"), "#")
+        })
+      }
+    }
+  }
   heading(level: 1, meta.title)
   // the metadata strip under the title — id · date on the left, a pdf link pushed to the
   // right (web only; the PDF pass shows the plain gray meta line, since it *is* the pdf).

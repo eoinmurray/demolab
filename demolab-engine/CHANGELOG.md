@@ -14,6 +14,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-07-06
+
+### Added
+- **Heading anchors.** Every heading on a web page now carries a slug `id` (its text lowercased,
+  non-alphanumerics collapsed to hyphens), so any section is directly linkable as
+  `entry.html#the-slug`. A quiet `#` permalink fades in on hover to grab that URL. Applies to entry
+  titles, section/subsection headings, and the auto-built References heading.
+
 ## [0.2.2] — 2026-07-06
 
 ### Fixed
