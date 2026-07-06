@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.4] — 2026-07-06
+
 ### Fixed
 - **Dev server hardening (round two).** Closed a path-traversal hole — the `.html` serving path read
   `SITE / <request path>` directly, so a crafted `..%2f…​.html` could read files outside the served
