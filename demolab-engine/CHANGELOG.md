@@ -14,6 +14,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Fixed
+- **`task dev:demo-site` previews the demo's config, not a stale root copy.** It symlinked the demo's
+  content but not its `demolab.yaml` / `HOUSESTYLE.local.md` (which live in the skeleton), so the
+  preview built against whatever config happened to sit at the root — losing branding and collection
+  labels/descriptions. It now symlinks those too (and tears them down on exit), so the preview
+  matches what ships, and editing the demo's `demolab.yaml` hot-reloads.
+
 ## [0.4.2] — 2026-07-06
 
 ### Fixed
