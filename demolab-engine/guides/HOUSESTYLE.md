@@ -38,7 +38,7 @@ Either way the `RULES.md` contract still applies — only *style* is overridable
 
 ## Numbers
 
-**H9 — Never hand-type a run's numbers.** Any number produced by a run comes from `numbers.json` via `#numbers-table(...)` / `json(...)` (RULES §6.2, §5.4). If you cite a value in prose *or a caption* (H19), it must trace to the run too — a hand-typed literal can drift and is the thing demolab exists to prevent.
+**H9 — Never hand-type a run's numbers.** A number a run *produced* **almost never** appears as a literal — it comes from `numbers.json` via `#numbers-table(...)` / `json(...)` (RULES §5.4, §6.2). If you state a result in prose *or a caption* (H19), it must trace to the run too — a hand-typed literal can drift and is the thing demolab exists to prevent. If the value you need isn't in `numbers.json`, add it to the tool's `headline_metrics` rather than typing it. The *"almost"* covers only numbers that are **not** run outputs: a model's fixed coefficients inside an equation (the HH rate constants), a structural count, or a target value quoted from a cited paper (§6.6). Everything a computation reported: from the run.
 
 ## Figures & plots
 
