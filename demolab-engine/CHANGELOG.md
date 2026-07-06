@@ -39,6 +39,13 @@ the runbook shows the entries between your version and the latest.
 ### Changed
 - **Status ordering reversed.** Listings now sort `final → revising → building → draft` (settled
   work first) instead of leading with work-in-progress.
+- **LINT now audits the figures, not just the prose.** The lint runbook gained a Figures pass
+  (H10–H15): mechanical greps over the rendered assets (`artifacts/data/<id>/*.svg`, `*.png`) for
+  palette, white background, format, and `alt:` text, plus a **required vision pass** (§2b) that
+  opens each figure to check labelled axes with units, no baked-in title, legibility, aspect,
+  grayscale-safety, and central style. Documents the SVG trap — matplotlib writes axis labels as
+  glyph paths, not `<text>`, so plots can't be grep-linted — the reason agents were linting prose
+  and silently skipping the plots.
 
 ## [0.2.4] — 2026-07-06
 
