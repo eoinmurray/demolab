@@ -36,6 +36,10 @@ the runbook shows the entries between your version and the latest.
   mid-weight face — Latin Modern Roman Demi, the CM-lineage demibold — for weight 600; it's fetched
   only on pages that actually carry a citation.
 
+### Changed
+- **Status ordering reversed.** Listings now sort `final → revising → building → draft` (settled
+  work first) instead of leading with work-in-progress.
+
 ## [0.2.4] — 2026-07-06
 
 ### Fixed

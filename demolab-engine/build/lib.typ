@@ -201,10 +201,10 @@
   }
 }
 
-// Lifecycle order for sorting: draft → building → revising → final. Unknown (free-form) values
-// sort mid-lifecycle. Used by grouped-entry-lists so work-in-progress surfaces above finished.
+// Lifecycle order for sorting: final → revising → building → draft. Unknown (free-form) values
+// sort mid-lifecycle. Used by grouped-entry-lists so settled work leads and work-in-progress trails.
 #let status-rank(s) = {
-  let i = ("draft", "building", "revising", "final").position(x => x == s)
+  let i = ("final", "revising", "building", "draft").position(x => x == s)
   if i == none { 2 } else { i }
 }
 
@@ -268,7 +268,7 @@
 // Render items grouped by kind — Articles, then Experiments, then Slides — each a level-2
 // section (empty groups dropped). Shared by the all-entries page and each collection page.
 // Group order: Articles, then Experiments, then Slides. Within a group, rows sort by **status**
-// (lifecycle: draft first, final last — work-in-progress surfaces) then by **id** descending
+// (lifecycle: final first, draft last — settled work leads) then by **id** descending
 // (newest first). A stable two-pass gives the id-desc tiebreak within each status.
 #let grouped-entry-lists(items, show-collection: false, collection-meta: (:)) = {
   let groups = (("article", "Articles"), ("experiment", "Experiments"), ("deck", "Slides"))
