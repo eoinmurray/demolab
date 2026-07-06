@@ -20,9 +20,10 @@ the runbook shows the entries between your version and the latest.
   and tears the links down on exit. Handy for previewing the reference lab or developing engine
   features against it without a full `add-demo-content` sandbox.
 - **Demo ships the layout-gallery deck (`ar005`).** `SLIDES.md` D12 points authors at a gallery
-  deck to copy layouts from; the demo now actually includes it — one slide per D11 layout (bullets,
-  two-column, code, equation + terms, the five figure layouts, table, big statement, closer), each
-  tagged with its layout name, driven by real run data.
+  deck to copy layouts from; the demo now actually includes it — one slide per D11 layout, driven by
+  real run data. Expanded to cover five more layouts (three-column, quote, section divider, big
+  number, diagram) and to match demolab's two-ink web palette instead of touying's teal accent (the
+  D4 skeleton now carries the palette recipe). The slide's title labels its layout (no separate tag).
 
 ## [0.3.0] — 2026-07-06
 

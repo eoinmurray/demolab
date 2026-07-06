@@ -37,6 +37,15 @@ committed run outputs the writeups use, never ad-hoc images.
 #set text(font: "New Computer Modern", size: 22pt)
 #show raw: set text(font: "DejaVu Sans Mono")
 
+// Match demolab's two-ink web palette (ink for headings + bold, muted for secondary) instead of
+// touying's teal accent. `strong` needs a *transform* rule — a plain `set text` on it is overridden
+// by the theme. Use `#focus-slide(background: ink)` for a big statement, `background: white` for a
+// chrome-free section divider.
+#let ink = rgb("#1a1a1a")
+#let muted = rgb("#666666")
+#show heading: set text(fill: ink)
+#show strong: it => text(fill: ink, weight: "bold", it.body)
+
 #title-slide[
   = Title
   #v(0.4em)
@@ -95,11 +104,17 @@ order you'll reach for them (each is a `==` slide unless noted):
 - **Two-column** — paired panels for comparisons (does/does-not, before/after). Keep the
   sides parallel: same count, same grammatical shape. A centered bold takeaway line below
   ties them together.
+- **Three-column** — triads only; a fourth column wants a table. Header + one line each.
 - **Code panel** — one fenced block in a `luma(245)` rounded box, one idea per snippet;
   trim imports and error handling.
 - **Equation + terms** — the displayed equation, then `where:` and a bullet list defining
   *every* symbol.
-- **Full-width figure** — one image, one gray caption. Let the plot do the talking.
+- **Quote** — a centered italic pull-quote in a `~80%`-width block, attribution muted below.
+- **Section divider** — signpost a new part: `#focus-slide(background: white, foreground: ink)`
+  (chrome-free + centered, so no stale running header) with a small kicker + a big part title.
+- **Centered / full-width figure** — one image, one muted caption; let the plot talk. A wide
+  (2:1) plot sizes to the full column width; a 16:9 plot sizes by height and *centers* (going
+  full-width would overflow, D7) — call that slide "centered figure".
 - **Figure + bullets** — figure left (~55% width), ≤3 reading-notes right; the *so what*
   goes in the last bullet.
 - **Figure pair** — two panels labelled (a)/(b), captions under each, comparison line
@@ -108,16 +123,21 @@ order you'll reach for them (each is a `==` slide unless noted):
   heights per D7.
 - **Hero + stack** — the result you're arguing for large on the left, supporting evidence
   stacked right.
+- **Diagram** — boxes-and-arrows drawn in Typst (`box` nodes + `sym.arrow.r`), no image asset;
+  for dataflow / architecture. Keep it one row where it fits.
 - **Table** — no grid lines: `stroke: none` with a single `table.hline` under the header.
   Numbers come from the run (`numbers.json`), never typed.
-- **Big statement** — `#focus-slide[…]`, inverted, for the one line they must remember.
-- **Closer** — big centered link, two or three parting bullets, tagline. Mirror the title
-  slide so the deck bookends.
+- **Big number** — one headline metric huge and centered (`text(size: 120pt)`), a muted
+  one-line gloss beneath; the number comes from the run.
+- **Big statement** — `#focus-slide(background: ink)[…]`, for the one line they must remember.
+  Don't bold on it — emphasis is the accent colour, which is the background (it vanishes).
+- **Closer** — big centered title, two or three parting bullets (in a left-aligned `#box`, or
+  the markers detach), tagline. Mirror the title slide so the deck bookends.
 
 **D12 — A worked gallery beats a spec.** If the repo has a layout-gallery deck (this
 repo's source ships one as `writings/ar005.slide.typ`), copy-paste from it rather than
-re-deriving layouts; tag each slide with its layout name via a small gray
-`place(top + right)` label only in gallery decks, not in real talks.
+re-deriving layouts. In a gallery, name each slide's *title* after its layout (the title is
+the label — no separate tag). Real talks use descriptive titles instead.
 
 ## 5. Serving
 
