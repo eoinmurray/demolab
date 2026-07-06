@@ -270,6 +270,10 @@
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set par(justify: true)
+  // Restart figure numbering per entry: the whole bundle is one compile, so Typst's global
+  // figure counter would otherwise carry across every document. Each entry (its page + its
+  // standalone PDF) numbers its own figures from 1.
+  counter(figure.where(kind: image)).update(0)
   // Left-align figure captions. In the PDF, align() does it; in HTML, style.css's
   // figcaption rule does — so the align (a paged-only fn) never runs during HTML export.
   show figure.caption: it => context { if target() == "html" { it } else { align(left, it) } }
@@ -387,6 +391,9 @@
   set text(font: "New Computer Modern", size: 11pt)
   set par(justify: true)
   show figure.caption: set align(left) // left-align captions (book is PDF-only)
+  // The book is emitted after every entry document in the same compile, so reset the global
+  // figure counter here too — the book then numbers figures continuously 1…N across all chapters.
+  counter(figure.where(kind: image)).update(0)
   // Table of contents (page numbers auto-resolved from each entry's heading), no cover.
   outline(title: [#brand.contents-title], depth: 1)
   for e in entries {

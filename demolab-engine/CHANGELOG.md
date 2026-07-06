@@ -14,6 +14,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-07-06
+
+### Fixed
+- **Figure numbering restarts per entry.** The whole bundle compiles in one pass, so Typst's
+  global figure counter was carrying across every document — a standalone entry PDF could open at
+  "Figure 7". Each entry (its page + standalone PDF) now numbers figures from 1; the book keeps
+  numbering continuously 1…N across chapters.
+
 ## [0.2.1] — 2026-07-06
 
 ### Changed
