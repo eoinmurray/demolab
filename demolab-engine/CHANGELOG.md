@@ -31,6 +31,10 @@ the runbook shows the entries between your version and the latest.
 - **Entry pdf link moved inline.** On an entry page the `pdf` link now sits in the meta strip next
   to the status (`ar000 · 30 May 2026 · Revising · pdf`) instead of being flexed to the right edge
   of the title row.
+- **Inline citations render demibold.** A `#cite(…)` (brackets included) now stands out from the
+  body at weight 600 on both targets. CMU ships only Roman + Bold, so the web loads a real
+  mid-weight face — Latin Modern Roman Demi, the CM-lineage demibold — for weight 600; it's fetched
+  only on pages that actually carry a citation.
 
 ## [0.2.4] — 2026-07-06
 
