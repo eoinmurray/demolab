@@ -92,8 +92,7 @@ For *how a writing should read* — prose, math, figures, structure — see [`HO
 - `numbers-table(entry, title: "…")` — a parameter/metric table straight from a `numbers.json` command entry.
 - `video("<file>.mp4", caption: […])` — plays as HTML `<video>`, omitted from the PDF. `build.py` auto-emits every mp4 as a bundle asset.
 - `provenance-footer(run.<cmd>.config)` — the git-commit footer.
-- `cite(1, 2)` — an inline numbered citation `[1, 2]` (links to the refs on the web); pair with
-- `reference-list(((text: […], doi: "10.…"), …))` — the numbered *References* section, each entry linking to `https://doi.org/<doi>`. Author-managed numbering (you pass the numbers), so it needs no bibliography file. See `ar006` for an example.
+- `cite(...)` + `reference-list(...)` — inline citations + a DOI reference list (see §6.6).
 
 Numbers must come from the run (§5.4) — never hand-type a literal that could disagree with `numbers.json`.
 
@@ -102,6 +101,15 @@ Numbers must come from the run (§5.4) — never hand-type a literal that could 
 **6.4 — The `status` field.** Optional `meta` field for lifecycle — `draft → building → revising → final`, and back freely. It renders as **plain text** next to the date **everywhere the entry appears**: its own page, every listing (each collection page + `all.html`), and the PDF/book. `final` (the default) shows **nothing** — a clean line means done, so only work-in-progress is flagged. Free-form; pick a convention and stick to it. It also drives listing order (§6.5).
 
 **6.5 — Collections & ordering.** Set `collection: <slug>` in an entry's `meta` to group it on the homepage; the slug title-cases by default (`neuron-models` → "Neuron models"). An optional `collections` map + `collection-order` list in the root `demolab.yaml` give each collection a `label` / `description` and set the display order — a collection with no registry entry still works. Decks are grouped under `slides`; uncollected entries fall under `uncategorized`. Every listing (each collection page + `all.html`) groups entries by kind — **Articles, then Experiments, then Slides** — and within a group sorts by **status** (lifecycle order, so work-in-progress surfaces above `final`) then by **id**, newest first.
+
+**6.6 — Citations & references.** Cite prior work with two `lib.typ` helpers, so numbering, linking, and the web popover all come for free — never hand-type a bracket or a manual list (HOUSESTYLE H24). Import both: `#import "/demolab-engine/build/lib.typ": cite, reference-list`.
+
+- **Inline** — `#cite(1, 2)` renders `[1, 2]`. The numbers are **author-managed** (you pass them), so there's no `.bib` file to keep in sync. On the web each number links to its entry.
+- **The list** — `#reference-list(((text: [Author A, Author B (year). Title. _Journal_ vol:pp.], doi: "10.…"), …))` renders the numbered **References** section. Each item is a dict: `text` is free Typst content (italicise the journal/title with `_…_`); `doi` is optional and, when present, renders a `doi:…` link to `https://doi.org/<doi>` that opens in a **new tab**.
+- **Numbering is positional** — `#cite(1)` points at the *first* entry in the list, `#cite(2)` the second, and so on. Keep the inline numbers and the list order in step (this is the thing hand-typing would silently break).
+- **Hover popovers (web only)** — hovering an inline cite shows a small Wikipedia-style card with that reference's text + DOI, pulled from the rendered list entry (so it can't drift). The PDF has no scripts: the inline `[n]` and the References section still render, just without the popover.
+
+See `ar006` for a worked example — ten references with DOIs, inline cites throughout, and the reference list at the foot of the body.
 
 ## 7. Adding an experiment
 
