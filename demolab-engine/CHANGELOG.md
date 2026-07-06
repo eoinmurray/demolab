@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.2.5] — 2026-07-06
+
 ### Added
 - **`guides/SLIDES.md` — deck authoring guide.** Conventions for `writings/*.slide.typ` decks,
   numbered `D1–D13`: the `.slide.typ` marker and skeleton, sizing in absolute `pt` against the
