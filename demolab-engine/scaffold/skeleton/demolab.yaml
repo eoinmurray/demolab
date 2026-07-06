@@ -16,8 +16,11 @@ description: A lab notebook for computational science — reproducible results, 
 # Homepage collections. Entries are grouped by their `collection:` meta field; this
 # registry gives each collection a display label + description and sets the order. A
 # collection with no entry here still works — its slug is just title-cased.
-collection-order: [neuron-models, mujoco, streamlit, slides]
+collection-order: [documentation, neuron-models, mujoco, streamlit, slides]
 collections:
+  documentation:
+    label: Documentation
+    description: How demolab works — the always-on guides that set the conventions and the on-demand runbooks the agent runs, each linked to its source on GitHub.
   neuron-models:
     label: Neuron models
     description: Integrate-and-fire neurons and the membrane biophysics behind them.
