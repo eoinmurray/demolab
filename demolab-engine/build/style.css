@@ -145,6 +145,11 @@ ol.refs .doi:hover { color: var(--ink); }
 /* Status marker (`.status`): plain text in the meta line — `final` renders nothing (RULES §6.4),
    so no styling is needed; it inherits the meta line's look. */
 
+/* Build-error stub: an entry that failed to compile (a missing figure, a Typst error) is served as
+   a stub page with the error in this block, so the failure is visible on its own page while the
+   rest of the site is fine. */
+.build-error { border-left: 3px solid #c0392b; background: #fcf3f2; color: #7a1f16; }
+
 /* Heading anchors: every heading carries a slug id (link to page.html#slug); a quiet # permalink
    fades in on hover to grab that URL. */
 .hx .permalink { opacity: 0; margin-left: .3em; color: var(--muted); text-decoration: none; font-weight: 400; font-size: .85em; }

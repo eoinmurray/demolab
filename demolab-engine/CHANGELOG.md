@@ -14,6 +14,15 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **A broken entry no longer takes down the whole site.** One entry that referenced a missing figure
+  (or had any Typst error) aborted the single bundle compile, so the *entire* site failed to build.
+  `build.py` now flags the failing entry and retries, and `main.typ` renders it as a visible stub
+  page at its own URL — a red "this page failed to build" notice with the error — kept out of the
+  listings and the book, while every other page builds. Decks that fail to compile are skipped the
+  same way. The build reports what it stubbed and still exits 0, so the dev server serves the good
+  site with the broken page visibly flagged rather than an all-or-nothing error overlay.
+
 ## [0.4.3] — 2026-07-06
 
 ### Fixed

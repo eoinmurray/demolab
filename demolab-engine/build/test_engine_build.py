@@ -65,6 +65,27 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
 
 
+def test_broken_entry_is_stubbed_not_fatal(tmp_path: Path) -> None:
+    """One entry that references a missing figure must not take down the whole site: it's flagged,
+    rendered as a stub at its own URL, and dropped from the listings, while everything else builds."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    (root / "writings" / "exp099.typ").write_text(
+        '#let meta = (title: "Broken on purpose", date: "2026-07-06", collection: "neuron-models")\n'
+        '#let body = [#image("/artifacts/data/exp099/missing.svg")]\n'
+    )
+    _build(root)  # check=True — the build must still succeed
+
+    site = root / "artifacts" / "site"
+    assert (site / "exp000.html").exists(), "good entries still built"
+    assert (site / "index.html").exists(), "homepage still built"
+    stub = site / "exp099.html"
+    assert stub.exists(), "the broken entry got a stub page at its URL"
+    assert "failed to build" in stub.read_text(), "the stub explains what happened"
+    assert "exp099.html" not in (site / "index.html").read_text(), "the stub stays out of the listings"
+
+
 def test_empty_tree_builds_empty_state(tmp_path: Path) -> None:
     root = tmp_path / "repo"
     root.mkdir()

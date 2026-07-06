@@ -329,6 +329,19 @@
 
 // --- page templates (one per output document) ---
 
+// --- broken-entry-page: a visible stub for an entry that failed to build (a missing figure, a
+// Typst error). build.py flags it after a failed compile and main.typ renders this instead of
+// importing the entry, so one bad page fails on its own rather than taking down the whole site.
+// HTML only (main.typ emits no PDF for a stub). ---
+#let broken-entry-page(id, error, brand: default-brand) = {
+  web-styles(brand: brand)
+  set text(font: "New Computer Modern", size: 11pt)
+  heading(level: 1, id)
+  html.elem("p", attrs: (class: "entry-meta"), [This entry failed to build, so it's a stub. The rest of the site built normally; fix the error below and rebuild to bring it back.])
+  html.elem("pre", attrs: (class: "build-error"), error)
+  html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
+}
+
 #let entry-page(meta, body, id: none, brand: default-brand) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
