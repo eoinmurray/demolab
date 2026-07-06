@@ -129,22 +129,25 @@ git provenance on every result, and lint / doctor / red-team checks. Trust the s
 // layout: two-column
 == Guides and runbooks
 
-#grid(columns: (1fr, 1fr), gutter: 28pt,
+// command chips: the names are things you type, so set them as monospace pills (atomic, so a
+// kebab name never breaks mid-hyphen).
+#let cmd(n) = box(fill: luma(244), stroke: 0.5pt + luma(214), radius: 5pt, inset: (x: 7pt, y: 3pt), text(size: 15pt, raw(n)))
+#set par(leading: 1em)
+
+#grid(columns: (1fr, 1fr), gutter: 28pt, align: top,
   [
     *Guides* — the rules, always on
-    - *RULES*: the tool ↔ experiment contract.
-    - *HOUSESTYLE*: how a writing reads.
-    - plus STRUCTURE, GLOSSARY, SLIDES, SUPPORT.
+    #v(0.7em)
+    #cmd("RULES") #cmd("HOUSESTYLE") #cmd("SLIDES") #cmd("STRUCTURE") #cmd("GLOSSARY") #cmd("SUPPORT")
   ],
   [
-    *Runbooks* — 14 named procedures
-    - *LINT · DOCTOR · RED-TEAM*: audits.
-    - *MIGRATE-CODE · UPDATE*: big moves.
-    - *GETTING-STARTED*: the first run.
+    *Runbooks* — 14, on demand
+    #v(0.7em)
+    #cmd("GETTING-STARTED") #cmd("TOUR") #cmd("LINT") #cmd("DOCTOR") #cmd("RED-TEAM") #cmd("STEELMAN") #cmd("NEXT") #cmd("MIGRATE-CODE") #cmd("MIGRATE-STACK") #cmd("UPDATE") #cmd("FROM-JUPYTER") #cmd("FROM-PAPER") #cmd("EMBED-DOCS") #cmd("GROUND-CLAIMS")
   ],
 )
-#v(1em)
-#align(center)[*Trigger any by name, in plain language; the runbook keeps the agent on rails.*]
+#v(1.2em)
+#align(center)[*Type the NAME — a guide walks you through, a runbook runs.*]
 
 // layout: code-panel
 == Driven by a handful of commands
