@@ -97,10 +97,9 @@ def write_manifest(ids: list[str], deck_ids: list[str]) -> None:
 def compile_decks(deck_ids: list[str]) -> None:
     """Compile each standalone deck to a scratch PDF (temp/bundle/decks/<id>.pdf).
 
-    main.typ embeds these as bundle assets at pdfs/<id>.pdf (so both `task build` and
-    `typst watch` (dev) emit + serve them). Must run before the bundle compile so the
-    asset `read(...)` finds the files. Decks don't live-reload in dev — re-run
-    `task dev`/`task build` to pick up deck edits."""
+    main.typ embeds these as bundle assets at pdfs/<id>.pdf. Must run before the bundle
+    compile so the asset `read(...)` finds the files. The dev server (devserver.py) reruns
+    this on every change, so deck edits and new decks live-reload like any entry."""
     DECKS.mkdir(parents=True, exist_ok=True)
     for d in deck_ids:
         subprocess.run(
@@ -111,17 +110,23 @@ def compile_decks(deck_ids: list[str]) -> None:
 
 
 def main() -> None:
-    # --generate-only writes the manifest + deck PDFs without compiling the bundle — used
-    # by `task dev`, which then runs `typst watch` on the committed main.typ (its own HTTP
-    # server + live reload; main.typ re-reads the manifest, so writing edits hot-reload).
+    # --generate-only writes the manifest + deck PDFs without compiling the bundle: a hand
+    # tool for inspecting what the compiler will see. (Dev serving is devserver.py, which runs
+    # a full build on each change; it doesn't use this flag.)
     generate_only = "--generate-only" in sys.argv
+    # --skip-decks reuses the deck PDFs already in temp/bundle/decks/ instead of recompiling
+    # them. The dev server passes it when a change touched no deck source or data asset, so a
+    # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
+    # those PDFs exist (a full build ran first); a bare `task build` never skips.
+    skip_decks = "--skip-decks" in sys.argv
     ids = discover()
     deck_ids = discover_decks()
     # Zero writings is a valid state (a freshly `task scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
     BUILD.mkdir(parents=True, exist_ok=True)
     # Compile decks first so their PDFs exist for the asset embeds in main.typ.
-    compile_decks(deck_ids)
+    if not skip_decks:
+        compile_decks(deck_ids)
     write_manifest(ids, deck_ids)
     SITE.mkdir(parents=True, exist_ok=True)
     if generate_only:

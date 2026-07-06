@@ -14,6 +14,18 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **New dev server (`task dev`).** Replaced `typst watch`'s built-in server with a small Python
+  dev server (`demolab-engine/build/devserver.py`) that rebuilds via `build.py` on any source
+  change and serves the site with live-reload. It fixes two long-standing dev annoyances: a **new
+  entry or deck now appears without restarting** (the build re-globs the filesystem each time, which
+  `typst watch` couldn't), and a **failed compile shows up in the browser** as a full-screen overlay
+  carrying the Typst error — clearing on the next good build — instead of silently serving the stale
+  site with the error buried in the terminal. To keep saves snappy it skips deck recompilation
+  when the change touched no `.slide.typ` or data asset, so a prose/CSS/lib edit rebuilds in ~0.4s
+  instead of ~1.1s. Trade-off vs `typst watch`: a full bundle compile per save rather than Typst's
+  incremental recompile. No Node, no new dependencies.
+
 ## [0.2.5] — 2026-07-06
 
 ### Added

@@ -121,9 +121,8 @@ re-deriving layouts; tag each slide with its layout name via a small gray
 
 ## 5. Serving
 
-**D13 — Decks created while `task dev` runs are invisible.** The dev server generates the
-site manifest and spawns one `typst watch` per deck once, at startup. After adding a new
-`.slide.typ`, either restart `task dev`, or run
-`uv run python demolab-engine/build/build.py --generate-only` and compile the deck to
-`temp/bundle/decks/<id>.pdf` yourself; edits to a new deck won't live-reload until a
-restart either way.
+**D13 — Decks hot-reload like entries.** The dev server rebuilds the whole bundle (via
+`build.py`, which re-globs the filesystem) on every source change, so a **new** `.slide.typ`
+appears and an **edited** deck reloads without restarting `task dev` — same as an ordinary
+entry. A deck that fails to compile shows the Typst error as a full-screen overlay in the
+browser, not just in the terminal.

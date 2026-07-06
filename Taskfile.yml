@@ -84,35 +84,13 @@ tasks:
 
   # ── publishing ───────────────────────────────────────────────────────────
   dev:
-    desc: "🔥 Serve the site with hot-reload (auto-picks a free port from 3000; override: task dev -- 3010)"
+    desc: "🔥 Serve the site with hot-reload + in-browser build errors (auto-picks a free port from 3000; override: task dev -- 3010)"
     cmds:
-      # Regenerate the manifest once (picks up added/removed entries), then let
-      # `typst watch` serve + live-reload on edits to any .typ / lib.typ / style.css.
-      - uv run python demolab-engine/build/build.py --generate-only
-      - |
-        port="{{.CLI_ARGS}}"
-        if [ -z "$port" ]; then
-          # typst's own port fallback is unreliable, so find the first free one ourselves.
-          port=3000
-          while lsof -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; do port=$((port + 1)); done
-        fi
-        # Decks (writings/*.slide.typ) are embedded in the bundle as PDF assets, which the
-        # bundle watch only re-reads when the PDF changes — not when the .slide.typ source
-        # does. So watch each deck into its temp PDF; a deck edit recompiles that PDF, the
-        # bundle watch sees the asset change, and the browser reloads. Killed on exit.
-        mkdir -p temp/bundle/decks
-        deck_pids=""
-        for f in writings/*.slide.typ; do
-          [ -e "$f" ] || continue
-          id=$(basename "$f" .slide.typ)
-          typst watch --root . "$f" "temp/bundle/decks/$id.pdf" >/dev/null 2>&1 &
-          deck_pids="$deck_pids $!"
-        done
-        # go-task's shell (mvdan/sh) only supports `trap ... EXIT` (not signal names);
-        # Ctrl-C reaches the deck watchers directly via the process group anyway.
-        trap 'kill $deck_pids 2>/dev/null' EXIT
-        echo "→ serving on http://localhost:$port  (Ctrl-C to stop)"
-        typst watch --format bundle --features bundle,html --root . demolab-engine/build/main.typ artifacts/site/ --port "$port"
+      # A Python dev server (demolab-engine/build/devserver.py) rebuilds via build.py on any
+      # source change and serves artifacts/site/ with live-reload. Unlike `typst watch` it
+      # re-globs each build (so new entries + decks appear without a restart) and surfaces a
+      # failed compile as a full-screen overlay in the browser instead of only the terminal.
+      - uv run python demolab-engine/build/devserver.py {{.CLI_ARGS}}
 
   build:
     desc: "📦 Build the whole bundle → artifacts/site/ (web) + artifacts/pdfs/ (PDFs + book)"
