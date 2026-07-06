@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.2] — 2026-07-06
+
 ### Fixed
 - **Dev server no longer spews tracebacks or dies quietly.** A browser resetting a connection
   (closing an SSE stream, reloading, navigating away) used to dump a `ConnectionResetError` stack —
