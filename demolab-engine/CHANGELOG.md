@@ -14,6 +14,15 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.2.4] — 2026-07-06
+
+### Fixed
+- **`#cite` spacing ([#1](https://github.com/eoinmurray/demolab/issues/1)).** The inline citation
+  was set flush against the preceding word (`runs[2]`). The helper now owns a thin gap before the
+  bracket — a weak `h()` in the PDF, a `margin-left` on the web span — so authors attach `#cite`
+  directly to the word (`runs#cite(2)`) and the bracket keeps its space without ever orphaning onto
+  the next line. Documented the convention in HOUSESTYLE H24.
+
 ## [0.2.3] — 2026-07-06
 
 ### Added

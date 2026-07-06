@@ -89,7 +89,7 @@
         nums.map(n => html.elem("a", attrs: (href: "#ref-" + str(n)), str(n))).join(", ")
         [\]]
       })
-    } else [\[#nums.map(n => str(n)).join(", ")\]]
+    } else [#h(0.15em, weak: true)\[#nums.map(n => str(n)).join(", ")\]]
   }
 }
 
