@@ -28,6 +28,9 @@ the runbook shows the entries between your version and the latest.
   "Figure N" and reserves the figure's footprint (a tinted, dashed, rounded panel with a small
   framed-image mark over the muted reason) so the page doesn't reflow when the real plot lands.
   Replaces the bare floating text that a missing asset used to leave on the web. RULES §6.2.
+- **Entry pdf link moved inline.** On an entry page the `pdf` link now sits in the meta strip next
+  to the status (`ar000 · 30 May 2026 · Revising · pdf`) instead of being flexed to the right edge
+  of the title row.
 
 ## [0.2.4] — 2026-07-06
 

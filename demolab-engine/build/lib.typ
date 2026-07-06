@@ -358,8 +358,8 @@
     }
   }
   heading(level: 1, meta.title)
-  // the metadata strip under the title — id · date on the left, a pdf link pushed to the
-  // right (web only; the PDF pass shows the plain gray meta line, since it *is* the pdf).
+  // the metadata strip under the title — id · date · status · pdf, all inline on the left (web
+  // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
   let meta-bits = (
     id,
     human-date(meta.date),
@@ -369,9 +369,13 @@
   let pdf-href = if id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
-      html.elem("div", attrs: (class: "entry-meta entry-bar"), {
-        html.elem("span", { meta-line; if status != "final" [ · #status-badge(status)] })
-        if pdf-href != none { html.elem("a", attrs: (class: "entry-pdf", href: pdf-href), "pdf") }
+      html.elem("div", attrs: (class: "entry-meta"), {
+        meta-line
+        if status != "final" [ · #status-badge(status)]
+        if pdf-href != none {
+          [ · ]
+          html.elem("a", attrs: (class: "entry-pdf", href: pdf-href), "pdf")
+        }
       })
     } else {
       text(size: 9pt, fill: gray, { meta-line; if status != "final" [ · #status-badge(status)] })
