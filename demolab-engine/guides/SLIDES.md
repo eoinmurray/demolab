@@ -48,6 +48,10 @@ committed run outputs the writeups use, never ad-hoc images.
 #show heading: set text(fill: ink)
 #show strong: it => text(fill: ink, weight: "bold", it.body)
 
+// Vertically centre each slide's content — adaptive: a sparse slide centres as a balanced block;
+// a nearly-full slide keeps its title near the top. Drop this line for classic top-aligned slides.
+#set align(horizon)
+
 #title-slide[
   = Title
   #v(0.4em)

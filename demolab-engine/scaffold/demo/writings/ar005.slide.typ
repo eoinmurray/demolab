@@ -25,6 +25,10 @@
 #show heading: set text(fill: ink)
 #show strong: it => text(fill: ink, weight: "bold", it.body)
 
+// Vertically centre each slide's content — adaptive: a sparse slide's title + body sit as a
+// balanced block, while a nearly-full slide keeps its title near the top (no room to float).
+#set align(horizon)
+
 // Real run data for the table / figure / big-number slides — read from the record, never typed.
 #let run = json("/artifacts/data/exp000/numbers.json")
 #let cap(body) = text(size: 14pt, fill: muted)[#body]
@@ -94,7 +98,6 @@
 // ── Code panel — one idea per snippet ──────────────────────────────────────
 == Code panel
 
-#v(1fr)
 #align(center)[
   #block(fill: luma(245), stroke: 0.75pt + luma(210), radius: 12pt, inset: 24pt)[
     #set align(left)
@@ -109,7 +112,6 @@
     ]
   ]
 ]
-#v(1fr)
 
 // ── Equation + terms — define every symbol ─────────────────────────────────
 == Equation + terms
@@ -227,7 +229,6 @@ where:
 #let node(b) = box(fill: luma(245), stroke: 0.75pt + luma(200), radius: 8pt, inset: (x: 14pt, y: 10pt))[#text(size: 18pt)[#b]]
 #let flow(lbl) = stack(dir: ttb, spacing: 3pt, align(center, text(size: 12pt, fill: muted)[#lbl]), align(center, text(size: 22pt, fill: muted)[#sym.arrow.r]))
 
-#v(1fr)
 #align(center)[
   #grid(columns: 7, align: horizon, column-gutter: 8pt,
     node[Tool], flow[data], node[Runner], flow[figures\ + numbers], node[Writeup], flow[build], node[Site + PDF],
@@ -235,7 +236,6 @@ where:
 ]
 #v(0.9em)
 #align(center)[*Boxes and arrows in Typst — no image asset needed.*]
-#v(1fr)
 
 // ── Table — no grid lines, numbers from the run ────────────────────────────
 == Table
@@ -274,7 +274,6 @@ where:
 // ── Closer — mirror the title slide ────────────────────────────────────────
 == Closer
 
-#v(1fr)
 #align(center)[
   #text(size: 28pt)[*demolab-engine/guides/SLIDES.md*]
   #v(0.8em)
@@ -289,4 +288,3 @@ where:
   #v(1em)
   #text(size: 17pt, fill: muted)[Every layout, one demolab look.]
 ]
-#v(1fr)
