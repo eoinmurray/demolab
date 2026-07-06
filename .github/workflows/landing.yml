@@ -1,12 +1,18 @@
-name: Deploy the landing page
+name: Deploy the site (landing + example)
 
-# Publishes landing/ (the project page + install scripts) to GitHub Pages at
-# demolab.eoinmurray.info. This is the ONLY Pages workflow that ships active in the tree;
-# the Typst-site deploy is opt-in (demolab-engine/deploy/deploy.yml, added by `task deploy-setup`).
+# Publishes to GitHub Pages at demolab.eoinmurray.info:
+#   /          the project landing page + install scripts  (landing/)
+#   /example/  the shipped demo, compiled by the core engine  (demolab-engine/scaffold/demo/)
+# Pages serves one artifact per site, so both are assembled into a single _site/ upload. The
+# Typst-site deploy for a *user's* own lab is separate and opt-in (demolab-engine/deploy/deploy.yml,
+# added by `task deploy-setup`).
 on:
   push:
     branches: [main]
-    paths: ["landing/**", ".github/workflows/landing.yml"]
+    paths:
+      - "landing/**"
+      - "demolab-engine/**"
+      - ".github/workflows/landing.yml"
   workflow_dispatch:
 
 permissions:
@@ -18,10 +24,13 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  TYPST_VERSION: "0.15.0"  # match the engine's local toolchain
+
 jobs:
   deploy:
-    # Upstream only. Forks/templates inherit this file, but must never publish demolab's
-    # landing page to their own Pages — so the job is skipped everywhere but the source repo.
+    # Upstream only. Forks/templates inherit this file, but must never publish demolab's site to
+    # their own Pages — so the job is skipped everywhere but the source repo.
     if: github.repository == 'eoinmurray/demolab'
     runs-on: ubuntu-latest
     environment:
@@ -29,11 +38,32 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Typst ${{ env.TYPST_VERSION }}
+        run: |
+          # Download the pinned release directly (deterministic, no third-party action to track).
+          url="https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz"
+          curl -fsSL "$url" | tar -xJ
+          echo "$PWD/typst-x86_64-unknown-linux-musl" >> "$GITHUB_PATH"
+
+      - name: Build the demo with the core engine
+        run: |
+          # Materialise the shipped demo at the repo root (skeleton + demo overlay), exactly as
+          # `task add-demo-content` does, then compile it with the engine. build.py is stdlib-only
+          # and the demo ships its rendered figures/videos, so no uv, runners, or deps are needed.
+          rsync -a demolab-engine/scaffold/skeleton/ ./
+          rsync -a demolab-engine/scaffold/demo/ ./
+          python3 demolab-engine/build/build.py
+
+      - name: Assemble the Pages tree (landing at /, demo at /example/)
+        run: |
+          rm -rf _site && mkdir -p _site/example
+          cp -R landing/.        _site/          # index.html + install.sh/ps1 + CNAME at site root
+          cp -R artifacts/site/. _site/example/  # the compiled demo (relative links → subpath-safe)
+
       - uses: actions/configure-pages@v5
-      # landing/ is plain static files (index.html + install.sh + install.ps1 + CNAME) —
-      # no build step; upload it as-is.
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: landing
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
