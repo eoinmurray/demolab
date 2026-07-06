@@ -195,7 +195,7 @@ where:
 #focus-slide[
   One layout per slide.
   #v(0.3em)
-  Title, plus bullets *or* one visual.
+  Title, plus bullets or one visual.
 ]
 
 // ── Closer — mirror the title slide ────────────────────────────────────────
@@ -206,9 +206,14 @@ where:
 #align(center)[
   #text(size: 28pt)[*demolab-engine/guides/SLIDES.md*]
   #v(0.8em)
-  - Copy a layout from this gallery; don't re-derive it.
-  - Check the page count after every edit (D9) — overflow paginates silently.
-  - Numbers and figures come from the run, never the keyboard.
+  // Left-align the list inside a shrink-wrapped box, then centre the box — otherwise the
+  // bullet markers pin to the far-left margin while the text centres (detached markers).
+  #box[
+    #set align(left)
+    - Copy a layout from this gallery; don't re-derive it.
+    - Check the page count after every edit (D9) — overflow paginates silently.
+    - Numbers and figures come from the run, never the keyboard.
+  ]
   #v(1em)
   #text(size: 17pt, fill: gray)[Thirteen slides, thirteen layouts.]
 ]
