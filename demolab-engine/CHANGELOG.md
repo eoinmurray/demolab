@@ -22,6 +22,12 @@ the runbook shows the entries between your version and the latest.
   two-column, code, equation + terms, four figure layouts, table, focus, closer), and the
   dev-server caveat for decks created mid-`task dev`. Indexed from `AGENTS.md`, RULES §3.1,
   STRUCTURE's tree, and GLOSSARY G9.
+- **`pending-figure` — placeholder for an unrendered figure.** A `#pending-figure(caption: …,
+  note: …, ratio: …)` helper (and the `#pending` body it wraps) stands in for a figure whose asset
+  isn't ready yet — a re-run in flight, data not cleared for release. It numbers as a normal
+  "Figure N" and reserves the figure's footprint (a tinted, dashed, rounded panel with a small
+  framed-image mark over the muted reason) so the page doesn't reflow when the real plot lands.
+  Replaces the bare floating text that a missing asset used to leave on the web. RULES §6.2.
 
 ## [0.2.4] — 2026-07-06
 

@@ -93,6 +93,7 @@ For *how a writing should read* — prose, math, figures, structure — see [`HO
 - `video("<file>.mp4", caption: […])` — plays as HTML `<video>`, omitted from the PDF. `build.py` auto-emits every mp4 as a bundle asset.
 - `provenance-footer(run.<cmd>.config)` — the git-commit footer.
 - `cite(...)` + `reference-list(...)` — inline citations + a DOI reference list (see §6.6).
+- `pending-figure(caption: […], note: […], ratio: 16/9)` — a placeholder for a figure whose asset isn't ready yet (a re-run in flight, data not cleared for release). Numbers as a normal "Figure N" and reserves the figure's footprint (a tinted dashed panel) so the page doesn't reflow when the real plot lands. Swap it back to `#figure(#image(...), …)` once the asset exists — a `pending-figure` left in a `final` entry is a lint smell.
 
 Numbers must come from the run (§5.4) — never hand-type a literal that could disagree with `numbers.json`.
 

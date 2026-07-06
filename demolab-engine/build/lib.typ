@@ -57,6 +57,48 @@
   }
 }
 
+// --- pending: a placeholder for a figure whose asset isn't ready yet (a re-run in flight, data
+// withheld). Drops into a #figure in place of the image, so the figure still numbers and captions
+// normally, and reserves the figure's footprint (default 16:9, H12) so the page doesn't reflow when
+// the real plot lands. A tinted dashed panel with a small framed-image mark over the muted reason.
+// `pending-figure(...)` is the one-call convenience that guarantees continuous "Figure N" numbering.
+#let pending(body, ratio: 16 / 9) = context {
+  if target() == "html" {
+    html.elem(
+      "div",
+      attrs: (class: "fig-pending", style: "aspect-ratio:" + str(ratio)),
+      {
+        html.elem("span", attrs: (class: "fig-pending-mark"))[]
+        html.elem("span", attrs: (class: "fig-pending-note"), body)
+      },
+    )
+  } else {
+    layout(size => block(
+      width: 100%,
+      height: size.width / ratio,
+      fill: luma(249),
+      radius: 5pt,
+      stroke: (thickness: 0.75pt, paint: luma(203), dash: "dashed"),
+      inset: 1.1em,
+      align(center + horizon, grid(
+        rows: (auto, auto),
+        row-gutter: 0.7em,
+        align: center,
+        box(width: 1.7em, height: 1.2em, radius: 1.5pt, stroke: 0.7pt + luma(178)),
+        text(size: 9pt, fill: luma(140), style: "italic", body),
+      )),
+    ))
+  }
+}
+
+// A whole pending figure in one call: numbers as a "Figure N" (kind: image) alongside real figures.
+#let pending-figure(caption: none, note: [figure pending], ratio: 16 / 9) = figure(
+  pending(note, ratio: ratio),
+  caption: caption,
+  kind: image,
+  supplement: [Figure],
+)
+
 // --- numbers-table: a parameter/metric table straight from a numbers.json entry ---
 // so a writing's numbers come from the run and cannot drift.
 #let numbers-table(entry, title: none) = {
