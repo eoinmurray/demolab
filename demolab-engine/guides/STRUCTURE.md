@@ -51,7 +51,7 @@ demolab/
 │   │   ├── demo-manifest.json  the exact paths `task clear-demo-content` removes
 │   │   └── ../build/test_engine_build.py  builds these fixtures end-to-end as `task test`
 │   ├── runbooks/             the 14 agent runbooks (one file each)         [AGENTS.md, G21]
-│   └── guides/               RULES.md · GLOSSARY.md · HOUSESTYLE.md · STRUCTURE.md (this file)
+│   └── guides/               RULES.md · GLOSSARY.md · HOUSESTYLE.md · SLIDES.md · STRUCTURE.md (this file)
 ├── AGENTS.md               the thin entry point — agents read this first   [§3.2]
 ├── CLAUDE.md               a thin pointer to AGENTS.md (for Claude Code)    [§3.2]
 ├── README.md               the human-facing overview                       [§3.2]

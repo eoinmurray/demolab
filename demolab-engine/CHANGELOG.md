@@ -14,6 +14,15 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **`guides/SLIDES.md` — deck authoring guide.** Conventions for `writings/*.slide.typ` decks,
+  numbered `D1–D13`: the `.slide.typ` marker and skeleton, sizing in absolute `pt` against the
+  842 × 474 pt canvas (~350 pt usable under a title), per-aspect figure rows, the
+  silent-pagination overflow trap and the page-count check, the layout vocabulary (bullets,
+  two-column, code, equation + terms, four figure layouts, table, focus, closer), and the
+  dev-server caveat for decks created mid-`task dev`. Indexed from `AGENTS.md`, RULES §3.1,
+  STRUCTURE's tree, and GLOSSARY G9.
+
 ## [0.2.4] — 2026-07-06
 
 ### Fixed

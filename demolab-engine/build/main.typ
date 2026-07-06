@@ -66,8 +66,8 @@
 }
 #for e in entries {
   [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, brand: brand)]]
-  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, brand: brand)]]
+  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, brand: brand))]]
 }
 #if entries.len() > 0 {
-  [#document("pdfs/book.pdf", title: [#brand.book-title])[#book-page(entries, brand: brand)]]
+  [#document("pdfs/book.pdf", title: [#brand.book-title])[#numbered-pages(book-page(entries, brand: brand))]]
 }

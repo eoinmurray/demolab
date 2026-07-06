@@ -277,6 +277,14 @@
 }
 #let slugify(s) = lower(s).replace(regex("[^a-z0-9]+"), "-").trim("-")
 
+// --- numbered-pages: centered footer page numbers for the paged (PDF) documents ---
+// main.typ wraps each entry PDF and the book in this. Not applied to the web pages
+// (nothing to number) or to decks (slides stay unnumbered).
+#let numbered-pages(body) = {
+  set page(numbering: "1", number-align: center)
+  body
+}
+
 // --- page templates (one per output document) ---
 
 #let entry-page(meta, body, id: none, brand: default-brand) = {
