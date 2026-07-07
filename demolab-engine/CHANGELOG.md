@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.5] — 2026-07-07
+
 ### Changed
 - **The dev server's rebuild log is now one terse line.** `task dev` reprinted the full output paths
   and every entry/deck id on *every* rebuild, so an active editing session buried the terminal in
