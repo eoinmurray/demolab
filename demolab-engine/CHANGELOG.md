@@ -14,6 +14,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.4.6] — 2026-07-07
+
 ### Changed
 - **Runbooks lead with a human overview, then a labeled `Triggers` line.** Each runbook opened with
   its agent-routing `Triggers:` line, which reads as machinery to a person. Every runbook now opens
