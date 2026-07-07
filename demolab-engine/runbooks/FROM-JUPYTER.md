@@ -1,6 +1,8 @@
 # Runbook: Convert a Jupyter notebook into an experiment
 
-Triggers: **"from jupyter"**, "convert my notebook", "import this notebook", "make my notebook reproducible", **FROM-JUPYTER**. Goal: turn a `.ipynb` into a proper demolab experiment — a runner + writeup — with the randomness seeded, the numbers wired to `numbers.json` so they can't drift, and the page reproducing (or correcting) the notebook's output.
+Turn a `.ipynb` into a proper demolab experiment — a runner + writeup — with the randomness seeded, the numbers wired to `numbers.json` so they can't drift, and the page reproducing (or correcting) the notebook's output.
+
+**Triggers** — say any of these, or just `FROM-JUPYTER`: **"from jupyter"**, "convert my notebook", "import this notebook", "make my notebook reproducible".
 
 Notebooks are where most computational science lives, and they're the opposite of reproducible: out-of-order execution, hidden global state, unseeded randomness, hardcoded numbers in the prose, no pinned environment. This runbook **launders** one into something that runs top-to-bottom, deterministically, with every published number traceable to the run. Drive it interactively — don't silently rewrite; **propose the mapping and confirm before building**.
 

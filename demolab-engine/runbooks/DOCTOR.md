@@ -1,6 +1,8 @@
 # Runbook: Doctor the repo (conformance check)
 
-Triggers: **"doctor the repo"**, "check the repo follows the conventions", "audit demolab conformance", "does this repo still obey the rules". Goal: verify the repo obeys demolab's conventions and report every violation with the rule it breaks and a `file:line` — a **health check, not an auto-fixer**. Fix only what the user approves, then re-run.
+Verify the repo obeys demolab's conventions and report every violation with the rule it breaks and a `file:line` — a **health check, not an auto-fixer**. Fix only what the user approves, then re-run.
+
+**Triggers** — say any of these, or just `DOCTOR`: **"doctor the repo"**, "check the repo follows the conventions", "audit demolab conformance", "does this repo still obey the rules".
 
 `../guides/RULES.md` is the source of truth for every rule; this runbook is the *inspection* that the repo obeys it — it cites each rule, it doesn't restate it. (There is no `task doctor` — this replaced it, and folds the toolchain check in as step 0.)
 

@@ -14,6 +14,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **Runbooks lead with a human overview, then a labeled `Triggers` line.** Each runbook opened with
+  its agent-routing `Triggers:` line, which reads as machinery to a person. Every runbook now opens
+  with a plain-language description of what it does and when to use it, followed by a
+  `**Triggers** — say any of these, or just \`NAME\`:` line. The trigger phrases are unchanged and
+  the step-by-step bodies are untouched, so agent routing is unaffected; the files just read as
+  documentation for a human too. (The guides already led with a human summary.)
+
 ## [0.4.5] — 2026-07-07
 
 ### Changed
