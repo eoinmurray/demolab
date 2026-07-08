@@ -33,7 +33,7 @@ welcome:
     - label: Documentation
       href: documentation.html
   install:
-    label: Start your own
+    label: Installation
     unix: curl -LsSf https://demolab.eoinmurray.info/install.sh | sh
     windows: powershell -ExecutionPolicy ByPass -c "irm https://demolab.eoinmurray.info/install.ps1 | iex"
   prompt:
@@ -42,3 +42,4 @@ welcome:
   footer:
     text: Open source, MIT licensed.
     href: https://github.com/eoinmurray/demolab/blob/main/LICENSE
+  hide-directory: true  # upstream landing: welcome only, no collection index below

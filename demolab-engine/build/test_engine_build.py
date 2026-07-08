@@ -61,7 +61,10 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     index = (site / "index.html").read_text()
     # ".empty-state" also appears in the inlined stylesheet, so key on the rendered copy.
     assert "Your lab is ready" not in index, "demo has content, so no empty state"
-    assert "Start your own" in index, "demo welcome block renders on the homepage"
+    assert "Installation" in index, "demo welcome block renders on the homepage"
+    assert "Open source, MIT licensed" in index, "demo welcome footer renders"
+    assert '<ul class="coll-list"' not in index, "demo landing hides the collection directory"
+    assert '<p class="page-foot"' not in index, "demo landing hides the page foot"
     entry = (site / "exp000.html").read_text()
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
 

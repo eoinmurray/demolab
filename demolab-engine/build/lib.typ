@@ -411,6 +411,8 @@
 // after, by first appearance. Entry rows live on the per-collection pages.
 // An optional `welcome` block in demolab.yaml renders a hero above the directory (pitch,
 // install commands, links) — used by the upstream demo site; absent on a normal lab.
+// `welcome.hide-directory: true` stops the homepage after the welcome block (no collection
+// index or page foot) — an upstream-only landing-page mode, not documented in the skeleton.
 #let welcome-block(welcome) = {
   if welcome == none { return }
   html.elem("div", attrs: (class: "welcome"), {
@@ -510,13 +512,16 @@
       })
     } else {
       welcome-block(welcome)
-      collection-index(colls, collection-meta)
-      html.elem("p", attrs: (class: "page-foot"), {
-        link("all.html", "Browse all entries")
-        [ · also available as a ]
-        link("pdfs/book.pdf", "single pdf")
-        [.]
-      })
+      let hide-dir = welcome != none and welcome.at("hide-directory", default: false)
+      if not hide-dir {
+        collection-index(colls, collection-meta)
+        html.elem("p", attrs: (class: "page-foot"), {
+          link("all.html", "Browse all entries")
+          [ · also available as a ]
+          link("pdfs/book.pdf", "single pdf")
+          [.]
+        })
+      }
     }
   })
 }
