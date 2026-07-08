@@ -122,6 +122,14 @@ See `ar006` for a worked example — ten references with DOIs, inline cites thro
 
 **7.4 — Run + build.** `uv run python experiments/expNNN.py`, then `task build` (or the running `task dev`).
 
+**7.5 — Staged runs (optional).** An expensive experiment — long training, a big sweep — may split its runner into ordered stages so you can re-enter without repeating the costly prefix. The flow, in dependency order:
+
+- **compute** — the simulation/training itself; writes bulk output to `temp/` (scratch, §5.1).
+- **analyse** — reads that scratch and distils what the figures need into the committed record `artifacts/data/<id>/` (the plot-ready bundle: `numbers.json` plus any arrays a plot consumes).
+- **plot** — renders the figures, reading **only** from `artifacts/data/<id>/`.
+
+Each stage depends only on its predecessor's output, so a run can start at any stage: full (default), analyse + plot (reuse `temp/`), or plot only (reuse the committed record). **The invariant is the boundary, not the mechanism** — the plot stage reads only from `artifacts/data/<id>/`, which is exactly what lets "plot only" reproduce every figure from a clean clone with no `temp/` (§5.1, §5.3). demolab does **not** mandate *how* you stage: flag names, a stage harness, function signatures, where scratch lives — all the author's call. Most runners need none of this and stay a single one-shot `main()` (§7.2); staging is opt-in, earned by compute cost. Reproducibility never depends on it either — a full run always regenerates `temp/` from `run.sh` (§4.7) and the figures fall out.
+
 ## 8. Adding a tool
 
 **8.1 — One directory, the file set.** Each tool lives in its own directory under `tools/` and writes its run artifacts under `temp/<tool>/<cmd>/` (§4.3). A rendering tool also writes its video and declares `headline_video`. It does **not** write plots (§4.2).

@@ -60,6 +60,7 @@ git ls-files temp artifacts/site | head -1 | grep -q . && echo "VIOLATION: temp/
 - **§4.2 — tools emit data, not plots.** Scan each `tools/*/tool.py` for figure-drawing (`savefig`, `plt.`, writing a `.png`); the exception is a *rendering* tool writing an `.mp4` (declared `headline_video`).
 - **§4.1 — no forced one-off tools.** Flag any `tools/<t>` used by exactly one experiment and unlikely to be reused — it may belong inline; don't force a change.
 - **§6.2 — numbers don't drift.** Spot-check that each `writings/*.typ` pulls figures/tables from `json(...)` / `#image(...)` / `#numbers-table(...)`, not hand-typed literals.
+- **§7.5 — staged runs plot from the record.** *Only for a runner that offers a plot-only / skip-compute mode* — a one-shot `main()` is out of scope. Check the flow holds: the plot stage reads its inputs from `artifacts/data/<id>/`, never `temp/`. A grep can't prove this — verify it **behaviourally**: confirm `artifacts/data/<id>/` is committed and complete, then re-run the runner's plot-only mode with scratch hidden (move `temp/` aside, or point the runner's scratch root at an empty dir — however *that* runner locates it) and confirm it exits 0 and reproduces the figures. A plot-only pass that fails only once `temp/` is hidden is reaching into scratch. Don't prescribe the fix — the rule defines the flow, not the mechanism; report the boundary breach and let the author choose how to close it. Advisory unless the experiment claims clone-and-replot, since plotting from warm `temp/` while iterating is fine (§5.1).
 - **§3 — docs match reality.** Runbook counts, path references, and the firewall in `../guides/RULES.md` still describe the actual tree.
 
 ## 4. Report
@@ -67,6 +68,6 @@ Present one grouped report:
 
 - **Broken** (build/test red, agent authorship, import-boundary breach) — fix now.
 - **Conformance** (missing tests, malformed writings, missing records/provenance, tracked scratch) — fix before publishing.
-- **Advisory** (judgment flags: plots-in-tools, forced one-offs, possible drift, stale docs) — the user's call.
+- **Advisory** (judgment flags: plots-in-tools, forced one-offs, possible drift, stale docs, staged-run plot boundary) — the user's call.
 
 For each finding: cite the rule by its `§N.M` in [`../guides/RULES.md`](../guides/RULES.md), the `file:line`, and the fix. Apply only what the user approves, then re-run the relevant checks to confirm green.

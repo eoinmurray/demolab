@@ -14,6 +14,21 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-07-08
+
+### Added
+- **Staged-experiment flow (RULES §7.5) + a DOCTOR check for it.** An optional, opt-in
+  contract for expensive runners: split the runner into `compute → analyse → plot` so a run
+  can re-enter at any stage (full / skip-compute / plot-only) without repeating the costly
+  prefix. The one boundary the contract enforces is that the **plot** stage reads only from the
+  committed `artifacts/data/<id>/` record — which is what makes a plot-only pass reproducible
+  from a clean clone with no `temp/` (§5.1, §5.3). The rule deliberately defines the *flow and
+  the boundary, not the mechanism*: no mandated flag names, stage harness, or function
+  signatures, and most runners stay one-shot. DOCTOR §3 adds a matching **behavioural** check —
+  re-run a staged runner's plot-only mode with `temp/` hidden and confirm the figures still
+  render; a pass that only fails with scratch hidden is reaching into `temp/`. Advisory unless
+  the experiment claims clone-and-replot, since plotting from warm `temp/` while iterating is fine.
+
 ## [0.5.0] — 2026-07-08
 
 ### Added
