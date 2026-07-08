@@ -155,6 +155,9 @@
 - *Weak judgement* — won't kill a bad experiment.
 - *Brainrot* — can't agent-code and read deeply the same day.
 
+#v(1.1em)
+#align(center)[#text(size: 24pt, weight: "bold", fill: ink)[Powerful tool, needs supervision.]]
+
 // layout: table (custom: agent pricing — seat price + usage tail; June 2026 billing)
 == The price of coding agents
 
