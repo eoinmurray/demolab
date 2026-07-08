@@ -55,9 +55,8 @@ say "Fetching demolab into ./${DIR} ..."
 git clone --depth 1 "$REPO" "$DIR"
 cd "$DIR"
 rm -rf .git
-# Drop demolab-project-only files that shouldn't live in a user's lab: the project landing
-# page and its (upstream-guarded) deploy workflow. `task deploy-setup` adds a real one later.
-rm -rf landing .github/workflows/landing.yml
+# Drop upstream-only deploy workflow; `task deploy-setup` adds a real one later.
+rm -rf .github/workflows/landing.yml
 git init -q && git add -A && git commit -q -m "Start my lab from demolab"
 
 # --- lay down the bare structure (so there are real folders to review, agent or not) ---

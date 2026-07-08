@@ -7,17 +7,17 @@ engine-only. There are two ways to get one, depending on what you're doing.
 ## Serve the shipped demo (no copies) — the usual case
 
 ```sh
-task dev:demo-site      # symlinks demolab-engine/scaffold/demo in, serves it, cleans up on exit
+task dev:demo-site      # serves demolab-engine/scaffold/demo directly
 ```
 
-This points the dev server at the **shipped demo** (`demolab-engine/scaffold/demo/`) via symlinks —
-one source of truth, no duplicated files at the root. Edit the engine (`demolab-engine/build/lib.typ`,
-`style.css`, `main.typ`, `build.py`) *or* the demo content (in `scaffold/demo/`) and it hot-reloads.
-On Ctrl-C the symlinks and build outputs are torn down, so the tree is left clean. Nothing is
-committed, and the demo folder is never written to.
+This reads content from and writes build output to **shipped demo**
+(`demolab-engine/scaffold/demo/`) via `DEMOLAB_ROOT` — no symlinks, copies, or `temp/` staging
+at the repo root. Edit the engine (`demolab-engine/build/lib.typ`, `style.css`, `main.typ`,
+`build.py`) *or* the demo content (in `scaffold/demo/`) and it hot-reloads. Build scratch lands
+in `scaffold/demo/temp/` and the site in `scaffold/demo/artifacts/site/` (both gitignored).
 
 Use this for almost all engine work — you're iterating on the engine against real content without
-polluting the root.
+polluting the root or conflicting with a local `add-demo-content` sandbox.
 
 ## Full sandbox — when you need to *run* the experiments
 
@@ -49,11 +49,11 @@ EOF
 
 Tear it down with `task clear-demo-content` (or `rm -rf writings experiments tools artifacts`).
 
-## Why the content has to live at the root
+## Why demo preview doesn't touch the repo root
 
 Writings use root-relative paths (`/demolab-engine/…`, `/artifacts/…`) and Typst confines every read
-to `--root`, which must be the repo root. So the content and the real engine have to share that one
-root. The nuance that makes `dev:demo-site` work: a symlink whose target resolves **inside** `--root`
-is fine (the demo's `writings/` → `scaffold/demo/writings/`, still under the repo root), whereas a
-symlink pointing **outside** it — e.g. a tidy `dev/` subfolder linking up to the engine — trips
-Typst's containment check. That's why we symlink the content *in*, not the engine *out*.
+to `--root`. The shipped demo lives under `demolab-engine/scaffold/demo/`, so `dev:demo-site` sets
+`DEMOLAB_ROOT` there: the build reads writings, data assets, and `demolab.yaml` from that tree,
+passes a `content-prefix` into Typst so `/artifacts/data/…` resolves correctly, and serves from
+`scaffold/demo/artifacts/site/`. Typst `--root` stays at the repo checkout so the engine paths
+still work.

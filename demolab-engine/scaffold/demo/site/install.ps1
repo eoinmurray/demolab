@@ -37,8 +37,8 @@ Write-Host "Fetching demolab into ./$Dir ..."
 git clone --depth 1 $Repo $Dir
 Set-Location $Dir
 Remove-Item -Recurse -Force .git
-# Drop demolab-project-only files that shouldn't live in a user's lab.
-Remove-Item -Recurse -Force landing, .github/workflows/landing.yml -ErrorAction SilentlyContinue
+# Drop upstream-only deploy workflow.
+Remove-Item -Recurse -Force .github/workflows/landing.yml -ErrorAction SilentlyContinue
 git init -q; git add -A; git commit -q -m "Start my lab from demolab"
 
 # --- lay down the bare structure ---

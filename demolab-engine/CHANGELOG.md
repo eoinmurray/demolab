@@ -14,6 +14,29 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **`task dev:demo-site` reads and serves directly from `demolab-engine/scaffold/demo/`.** Sets
+  `DEMOLAB_ROOT` there (no root symlinks, no `temp/demo-site/` staging). A `content-prefix`
+  Typst input + `data-file()` in `lib.typ` let demo writings resolve `/artifacts/data/…` while
+  `--root` stays at the repo checkout for the engine.
+- **Install scripts moved into the shipped demo.** `install.sh`, `install.ps1`, and `CNAME` now live
+  at `demolab-engine/scaffold/demo/site/` (served at the Pages root alongside the demo). The
+  top-level `landing/` directory is gone. `task add-demo-content` skips `site/` so installers
+  don't land in a user's lab root.
+
+## [0.5.2] — 2026-07-08
+
+### Added
+- **Homepage welcome block (`demolab.yaml` `welcome:`).** An optional hero on the index page —
+  pitch prose, quick links, install commands, and an agent prompt — rendered above the
+  collection directory. Absent on a normal lab; the shipped demo sets it so
+  demolab.eoinmurray.info is the example site with a welcome, not a separate landing page.
+
+### Changed
+- **Upstream Pages deploy publishes the demo at `/`.** `.github/workflows/landing.yml` now uploads
+  `artifacts/site/` at the site root (plus `install.sh`, `install.ps1`, and `CNAME` from
+  `landing/`). The old `/example/` prefix and standalone `landing/index.html` are gone.
+
 ## [0.5.1] — 2026-07-08
 
 ### Added

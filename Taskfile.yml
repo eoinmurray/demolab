@@ -38,7 +38,7 @@ tasks:
     cmds:
       - |
         # Overlay the committed demo (the engine's own smoke-test fixture) on top of the skeleton.
-        rsync -a demolab-engine/scaffold/demo/ ./
+        rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
         echo "✓ added the demo content. Run 'task build' to publish it, or 'task clear-demo-content' to remove it."
 
   clear-demo-content:
@@ -93,34 +93,12 @@ tasks:
       - uv run python demolab-engine/build/devserver.py {{.CLI_ARGS}}
 
   dev:demo-site:
-    desc: "🔎 Serve the shipped demo (demolab-engine/scaffold/demo) via the live engine — symlinked, no copies"
+    desc: "🔎 Serve the shipped demo (demolab-engine/scaffold/demo) via the live engine — no root pollution"
     cmds:
       - |
         set -e
-        demo=demolab-engine/scaffold/demo
-        skel=demolab-engine/scaffold/skeleton
-        # Don't clobber a real dev sandbox at the root (task add-demo-content). Existing *symlinks*
-        # from a prior run are fine (idempotent); real dirs are not.
-        if { [ -e writings ] && [ ! -L writings ]; } || { [ -e artifacts/data ] && [ ! -L artifacts/data ]; }; then
-          echo "✗ ./writings or ./artifacts/data already exists as real content (a dev sandbox?)." >&2
-          echo "  Clear it first: task clear-demo-content  (or  rm -rf writings experiments tools artifacts)" >&2
-          exit 1
-        fi
-        # The content contract is root-relative (/demolab-engine, /artifacts) and Typst's --root is
-        # the repo root, so the demo's content has to be *reachable* from the root. We symlink it in
-        # — one source of truth, no duplicated files — rather than copying, and tear the links down on
-        # exit so the tree stays clean. Build outputs land in the git-excluded artifacts/site + pdfs.
-        # We link the demo's *content* (writings + the data assets its figures embed) AND its
-        # effective *config* — demolab.yaml + HOUSESTYLE.local.md live in the skeleton, so without
-        # them the preview loses branding + collection labels/descriptions. (experiments/ + tools/
-        # are only for *running* the demo, so they're not needed to serve.)
-        ln -sfn "$demo/writings" writings
-        mkdir -p artifacts
-        ln -sfn "../$demo/artifacts/data" artifacts/data
-        ln -sfn "$skel/demolab.yaml" demolab.yaml
-        ln -sfn "$skel/HOUSESTYLE.local.md" HOUSESTYLE.local.md
-        trap 'rm -f writings artifacts/data demolab.yaml HOUSESTYLE.local.md; rm -rf artifacts/site artifacts/pdfs; rmdir artifacts 2>/dev/null || true' EXIT
-        echo "→ demo content + config symlinked from scaffold (edit it there; changes hot-reload)"
+        export DEMOLAB_ROOT="$(pwd)/demolab-engine/scaffold/demo"
+        echo "→ reading + serving from demolab-engine/scaffold/demo"
         uv run python demolab-engine/build/devserver.py {{.CLI_ARGS}}
 
   build:

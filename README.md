@@ -30,8 +30,7 @@ Install [`uv`](https://docs.astral.sh/uv/), [`typst`](https://typst.app), and [`
 
 ```sh
 git clone --depth 1 https://github.com/eoinmurray/demolab my-lab
-rm -rf my-lab/.git                                          # strip demolab's history + remote
-rm -rf my-lab/landing my-lab/.github/workflows/landing.yml  # drop demolab-project files
+rm -rf my-lab/.git my-lab/.github/workflows/landing.yml  # strip history + upstream deploy workflow
 cd my-lab && git init && git add -A && git commit -m "Start my lab from demolab"
 ```
 

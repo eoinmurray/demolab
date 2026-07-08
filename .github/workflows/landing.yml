@@ -1,16 +1,14 @@
-name: Deploy the site (landing + example)
+name: Deploy the site (demo at root)
 
 # Publishes to GitHub Pages at demolab.eoinmurray.info:
-#   /          the project landing page + install scripts  (landing/)
-#   /example/  the shipped demo, compiled by the core engine  (demolab-engine/scaffold/demo/)
-# Pages serves one artifact per site, so both are assembled into a single _site/ upload. The
-# Typst-site deploy for a *user's* own lab is separate and opt-in (demolab-engine/deploy/deploy.yml,
-# added by `task deploy-setup`).
+#   /  the shipped demo (artifacts/site/) + install scripts + CNAME
+# The demo homepage carries an optional welcome block (demolab.yaml `welcome:`) in place of a
+# separate landing page. A user's own lab deploy is separate and opt-in
+# (demolab-engine/deploy/deploy.yml, added by `task deploy-setup`).
 on:
   push:
     branches: [main]
     paths:
-      - "landing/**"
       - "demolab-engine/**"
       - ".github/workflows/landing.yml"
   workflow_dispatch:
@@ -51,15 +49,14 @@ jobs:
           # Materialise the shipped demo at the repo root (skeleton + demo overlay), exactly as
           # `task add-demo-content` does, then compile it with the engine. build.py is stdlib-only
           # and the demo ships its rendered figures/videos, so no uv, runners, or deps are needed.
-          rsync -a demolab-engine/scaffold/skeleton/ ./
-          rsync -a demolab-engine/scaffold/demo/ ./
+          rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
+          rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
           python3 demolab-engine/build/build.py
 
-      - name: Assemble the Pages tree (landing at /, demo at /example/)
+      - name: Assemble the Pages tree (demo at /, installers at root)
         run: |
-          rm -rf _site && mkdir -p _site/example
-          cp -R landing/.        _site/          # index.html + install.sh/ps1 + CNAME at site root
-          cp -R artifacts/site/. _site/example/  # the compiled demo (relative links → subpath-safe)
+          rm -rf _site && cp -R artifacts/site/. _site/
+          cp demolab-engine/scaffold/demo/site/install.sh demolab-engine/scaffold/demo/site/install.ps1 demolab-engine/scaffold/demo/site/CNAME _site/
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

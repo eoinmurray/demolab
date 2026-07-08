@@ -20,6 +20,8 @@ __pycache__/
 temp/
 dist/
 artifacts/site/
+demolab-engine/scaffold/demo/temp/
+demolab-engine/scaffold/demo/artifacts/site/
 
 # Secrets — never commit
 .env
