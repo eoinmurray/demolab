@@ -381,7 +381,7 @@
 == Autoresearch
 
 - *Give the agent a goal* — an open question, not a checklist.
-- *It runs the loop* — hypothesise → experiment → read the data → iterate.
+- *It runs the loop* — goal → code → compute → read the data → document → iterate.
 - *Every step is recorded* — a committed experiment and write-up per attempt.
 - *The rails already exist* — provenance, reproducibility, and a published trail come free.
 
