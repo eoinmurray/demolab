@@ -17,9 +17,9 @@ package = false
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-# The engine smoke test always runs; tools/ tests are collected when the dir exists (it's
-# scaffolded content, absent on a clean engine-only tree). Missing testpaths are skipped.
-testpaths = ["demolab-engine/build", "tools"]
+# The engine smoke test always runs; tools/ + experiments/ tests are collected when those dirs
+# exist (scaffolded content, absent on a clean engine-only tree). Missing testpaths are skipped.
+testpaths = ["demolab-engine/build", "tools", "experiments"]
 
 [dependency-groups]
 dev = [

@@ -14,6 +14,21 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-07-08
+
+### Added
+- **Experiment runners now carry provenance like tools do**, via a new
+  `experiments/helpers/provenance.py`. Two helpers: `stamp(config)` adds the same
+  `_provenance` block (git commit, `dirty` flag, UTC timestamp) that a tool's
+  `setup_run_dir` writes — so an **inline** runner (no tool to inherit from) produces a
+  `numbers.json` indistinguishable to `numbers-table` / `provenance-footer` / DOCTOR; and
+  `write_run_sh(ARTIFACTS)` drops a `run.sh` reproducer into the committed
+  `artifacts/data/<id>/` record — the committed twin of the `run.sh` tools write into
+  scratch `temp/`. The demo runners (`exp000`–`exp003`) now emit `run.sh`, DOCTOR flags a
+  record missing one, and the stamp is kept as a separate copy from `tools/*/tool.py`
+  because the firewall (§4.5) forbids a tool importing `experiments/`. (RULES §4.1, §4.7,
+  §7.2; FROM-JUPYTER step 4–5.)
+
 ## [0.4.6] — 2026-07-07
 
 ### Changed

@@ -40,6 +40,10 @@ for f in experiments/exp*.py; do id=$(basename "$f" .py); \
 # RULES §4.7 — provenance stamped into every committed record.
 grep -rL '_provenance' artifacts/data/*/numbers.json 2>/dev/null | sed 's/^/MISSING PROVENANCE: /'
 
+# RULES §4.7 — every experiment record carries a run.sh reproducer.
+for f in experiments/exp*.py; do id=$(basename "$f" .py); \
+  [ -f "artifacts/data/$id/run.sh" ] || echo "MISSING REPRODUCER: artifacts/data/$id/run.sh"; done
+
 # RULES §2.1 — no agent authorship anywhere in history.
 git log --format='%an|%cn|%b' | grep -iE 'co-authored-by:.*(claude|anthropic|\[bot\])|generated with|claude' \
   && echo "VIOLATION: agent authorship in git history"
