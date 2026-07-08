@@ -34,6 +34,13 @@
   #text(size: 17pt, fill: muted)[Eoin Murray]
 ]
 
+// layout: bullets (numbered — the agenda)
+== Agenda
+
++ *Coding agents* — why now?
++ *Demolab v1* — ready for trial.
++ *Demolab v2* — autoresearch and lab scale.
+
 // ═══════════════════════════════ PART ONE ═══════════════════════════════
 // layout: section-divider
 #focus-slide(background: white, foreground: ink)[
@@ -137,6 +144,8 @@
 
 - *The same work faster*.
 - *Do the things you always wanted but didn't have time*.
+- *Autodocumentation* — the work writes itself down as it goes.
+- *Read the literature* — turn a paper straight into runnable code.
 
 // layout: bullets
 == Weaknesses of coding agents
@@ -179,10 +188,27 @@
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART TWO]
   #v(0.4em)
-  #text(size: 44pt, weight: "bold", fill: ink)[Demolab]
+  #text(size: 44pt, weight: "bold", fill: ink)[Demolab v1]
   #v(0.4em)
   #text(size: 20pt, fill: muted)[Rails for the agent]
 ]
+
+// layout: bullets
+== What demolab is
+
+- *A lab notebook for computational science* — the science lives as code.
+- *One loop* — run → data → write-up → publish.
+- *One build* — the whole repo becomes a website and PDFs.
+- *Numbers come from the run* — never retyped, so the page can't drift.
+- *Reproducible by default* — provenance stamped on every result.
+
+// layout: bullets
+== Why demolab
+
+- *Results drift* — retyped numbers, stale figures. Here they come from the run.
+- *Reproducibility rots* — a year on, nothing builds. One command rebuilds it all.
+- *Code and paper split up* — the experiment and the write-up live in one repo.
+- *Agents need rails* — operate in plain language, keep the science yours.
 
 // layout: code-panel
 == The shape of a demolab repo (demo: pinglab)
@@ -298,7 +324,8 @@
 - *MATLAB · R · Julia · Octave* — Typst and the contract stay put.
 - *Python optional* — plotting only, or drop it entirely.
 
-// layout: closer — bare focus-slide; no card, just a clean centred stack
+// layout: closer — bare focus-slide; no card, just a clean centred stack.
+// Closes the Demolab v1 section before the v2 divider.
 #focus-slide(background: white, foreground: ink)[
   #align(center)[
     #text(size: 12pt, fill: muted, tracking: 2pt)[GETTING STARTED]
@@ -320,3 +347,29 @@
     ]
   ]
 ]
+
+// ═══════════════════════════════ PART THREE ═══════════════════════════════
+// layout: section-divider
+#focus-slide(background: white, foreground: ink)[
+  #text(size: 15pt, fill: muted)[PART THREE]
+  #v(0.4em)
+  #text(size: 44pt, weight: "bold", fill: ink)[Demolab v2]
+  #v(0.4em)
+  #text(size: 20pt, fill: muted)[The future of demolab]
+]
+
+// layout: bullets
+== Autoresearch
+
+- *Give the agent a goal* — an open question, not a checklist.
+- *It runs the loop* — hypothesise → experiment → read the data → iterate.
+- *Every step is recorded* — a committed experiment and write-up per attempt.
+- *The rails already exist* — provenance, reproducibility, and a published trail come free.
+
+// layout: bullets
+== Lab scale
+
+- *v1 is one person* — a single researcher's lab notebook.
+- *Next: a lab on a GitHub org* — many users, one shared flow.
+- *PIs included* — professors operate it too, not just students.
+- *It compounds* — questions and answers, code review, shared code across the lab.
