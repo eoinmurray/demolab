@@ -191,9 +191,7 @@
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART TWO]
   #v(0.4em)
-  #text(size: 44pt, weight: "bold", fill: ink)[Demolab v1]
-  #v(0.4em)
-  #text(size: 20pt, fill: muted)[Rails for the agent]
+  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v1 — a framework for the agent]
 ]
 
 // layout: bullets
@@ -372,15 +370,13 @@
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART THREE]
   #v(0.4em)
-  #text(size: 44pt, weight: "bold", fill: ink)[Demolab v2]
-  #v(0.4em)
-  #text(size: 20pt, fill: muted)[The future of demolab]
+  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v2 — the future of demolab]
 ]
 
 // layout: bullets
 == Autoresearch
 
-- *Give the agent a goal* — an open question, not a checklist.
+- *Give the agent a goal and compute.*
 - *It runs the loop* — goal → code → compute → read the data → document → iterate.
 - *Every step is recorded* — a committed experiment and write-up per attempt.
 - *The rails already exist* — provenance, reproducibility, and a published trail come free.
