@@ -196,6 +196,7 @@
 // layout: bullets
 == What demolab is
 
+- *Demolab writes code, runs programs, and documents results.*
 - *A lab notebook for computational science* — the science lives as code.
 - *One loop* — run → data → write-up → publish.
 - *One build* — the whole repo becomes a website and PDFs.
@@ -209,6 +210,16 @@
 - *Reproducibility rots* — a year on, nothing builds. One command rebuilds it all.
 - *Code and paper split up* — the experiment and the write-up live in one repo.
 - *Agents need rails* — operate in plain language, keep the science yours.
+
+// layout: bullets (numbered — the principles)
+== Principles of demolab
+
++ *Tools compute, experiments analyse* — clean split.
++ *One experiment* = a runner + a write-up.
++ *Talk through files*, never imports.
++ *Raw data is disposable* — the record is committed.
++ *Bring any stack.*
++ *Provenance built in.*
 
 // layout: code-panel
 == The shape of a demolab repo (demo: pinglab)
@@ -229,16 +240,6 @@
     ]
   ]
 ]
-
-// layout: bullets (numbered — the principles)
-== Principles of demolab
-
-+ *Tools compute, experiments analyse* — clean split.
-+ *One experiment* = a runner + a write-up.
-+ *Talk through files*, never imports.
-+ *Raw data is disposable* — the record is committed.
-+ *Bring any stack.*
-+ *Provenance built in.*
 
 // layout: two-column
 == Typst: a modern LaTeX
@@ -264,10 +265,9 @@
 #v(1em)
 #align(center)[*The same beautiful math: selectable MathML on the web, typeset in the PDF.*]
 
-// custom: guides + runbooks rendered as a stylised terminal panel — dark, monospace, with a cursor —
-// so the slide *shows* the command grammar: you type a NAME to your coding agent and it drives
-// demolab. The dark panel also gives the light deck a striking break.
-== Guides and runbooks
+// custom: guides as a dark terminal panel — type HELP and the agent walks you through the docs.
+// The dark panel also gives the light deck a striking break.
+== Guides
 
 #let fg = rgb("#f4f4f2")
 #let dim = rgb("#8f8f8f")
@@ -283,17 +283,33 @@
       baseline: 0.12em,
     )
     #v(1.1em)
-    #text(weight: "bold")[GUIDES]#h(1.4em)#text(fill: dim)[\# always on — walk me through it]
+    #text(weight: "bold")[GUIDES]#h(1.4em)#text(fill: dim)[\# always on — the conventions]
     #v(0.4em)
     RULES HOUSESTYLE SLIDES STRUCTURE GLOSSARY SUPPORT
-    #v(1.1em)
+  ]
+]
+#v(0.9em)
+#align(center)[*Type `HELP` — demolab walks you through its own documentation.*]
+
+// custom: runbooks as a dark terminal panel — named agent programs you invoke by name.
+== Runbooks
+
+#let fg = rgb("#f4f4f2")
+#let dim = rgb("#8f8f8f")
+#align(center)[
+  #block(fill: ink, radius: 12pt, inset: (x: 30pt, y: 26pt), width: 90%)[
+    #set align(left)
+    #set text(font: "DejaVu Sans Mono", fill: fg, size: 16pt)
+    #set par(leading: 0.85em)
     #text(weight: "bold")[RUNBOOKS]#h(1.1em)#text(fill: dim)[\# on demand — run it, step by step]
-    #v(0.4em)
+    #v(0.6em)
     GETTING-STARTED TOUR LINT DOCTOR RED-TEAM STEELMAN \
     NEXT MIGRATE-CODE MIGRATE-STACK FROM-JUPYTER FROM-PAPER \
     EMBED-DOCS GROUND-CLAIMS UPDATE
   ]
 ]
+#v(0.9em)
+#align(center)[*Agent programs — read papers, convert code, migrate the stack, update.*]
 
 // layout: code-panel
 == Driven by a handful of commands
@@ -371,5 +387,4 @@
 
 - *v1 is one person* — a single researcher's lab notebook.
 - *Next: a lab on a GitHub org* — many users, one shared flow.
-- *PIs included* — professors operate it too, not just students.
 - *It compounds* — questions and answers, code review, shared code across the lab.
