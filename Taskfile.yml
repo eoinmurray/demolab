@@ -26,8 +26,9 @@ tasks:
     cmds:
       - |
         # Copy the skeleton into the repo root without clobbering anything you already have
-        # (--ignore-existing), so re-running is safe. The engine itself is never touched.
-        rsync -a --ignore-existing demolab-engine/scaffold/skeleton/ ./
+        # (--keep-existing), so re-running is safe. The engine itself is never touched.
+        # Python, not rsync — Windows doesn't have rsync.
+        uv run python demolab-engine/build/overlay.py demolab-engine/scaffold/skeleton --keep-existing
         echo "✓ scaffolded the folder structure. Add a writeup in writings/ and run 'task build'."
         echo "  (want a worked example instead? run 'task add-demo-content')"
 
@@ -38,7 +39,7 @@ tasks:
     cmds:
       - |
         # Overlay the committed demo (the engine's own smoke-test fixture) on top of the skeleton.
-        rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+        uv run python demolab-engine/build/overlay.py demolab-engine/scaffold/demo --exclude site
         echo "✓ added the demo content. Run 'task build' to publish it, or 'task clear-demo-content' to remove it."
 
   clear-demo-content:
@@ -114,17 +115,8 @@ tasks:
     desc: "🎞  Compile standalone Typst decks (writings/*.typ with no meta+body) to artifacts/pdfs/"
     silent: true
     cmds:
-      - |
-        mkdir -p artifacts/pdfs
-        found=0
-        for f in writings/*.typ; do
-          [ -e "$f" ] || continue
-          if grep -qE '^#let meta' "$f" && grep -qE '^#let body' "$f"; then continue; fi  # bundle entry
-          id=$(basename "$f" .typ)
-          typst compile --root . "$f" "artifacts/pdfs/$id.pdf" && echo "wrote artifacts/pdfs/$id.pdf"
-          found=1
-        done
-        if [ "$found" -eq 0 ]; then echo "no standalone decks in writings/"; fi
+      # Python, not a shell loop — the old one needed grep + basename, which Windows lacks.
+      - uv run python demolab-engine/build/slides.py
 
   playground:
     desc: "🎛  Launch the interactive Streamlit demo (http://localhost:8501)"
