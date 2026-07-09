@@ -5,9 +5,14 @@ name: Tests
 # resolves `localhost` to ::1, so an IPv4-only bind makes the printed URL dead there), the
 # overlay.py copy behind task scaffold / add-demo-content (rsync doesn't exist on Windows),
 # and slides.py's deck detection (grep/basename didn't either). macOS/Linux pass these
-# trivially — only a real Windows runner is an honest check. Typst is not installed here —
-# the typst-dependent tests self-skip — so the job stays fast; full builds are exercised by
-# the landing deploy.
+# trivially — only a real Windows runner is an honest check.
+#
+# The install scripts are RUN end-to-end, not just parsed: install.ps1 on Windows with
+# DEMOLAB_PORTABLE=1 (the no-winget release-zip fallback), install.sh on Linux — which needs
+# go-task + typst preinstalled below, so the script's happy path executes instead of wandering
+# into a live brew/cargo install branch (that would test third-party uptime, not our script).
+# Installing typst on the Linux leg also unskips the engine build smoke test there; Windows
+# stays typst-less and fast.
 on:
   push:
     branches: [main]
@@ -36,6 +41,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: astral-sh/setup-uv@v5
+
+      - name: Install go-task + typst (Linux — unskips the install.sh e2e + engine build tests)
+        if: runner.os == 'Linux'
+        env:
+          TYPST_VERSION: "0.15.0"  # match the engine's toolchain (see landing.yml)
+        run: |
+          sh -c "$(curl -sL https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          curl -sL "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz" \
+            | tar -xJf - -C /usr/local/bin --strip-components=1 "typst-x86_64-unknown-linux-musl/typst"
 
       - name: Run the test suite
         run: uv run pytest

@@ -47,7 +47,13 @@ def test_install_sh_end_to_end(tmp_path):
     result = subprocess.run(
         ["sh", str(SH), "mylab"],
         cwd=tmp_path,
-        env={**os.environ, "DEMOLAB_REPO": str(REPO)},
+        env={
+            **os.environ,
+            "DEMOLAB_REPO": str(REPO),
+            # the script commits the degitted tree; CI runners have no git identity configured
+            "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@example.com",
+            "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@example.com",
+        },
         capture_output=True,
         text=True,
     )
