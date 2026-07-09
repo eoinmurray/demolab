@@ -38,6 +38,9 @@ following this runbook.
   run brought you), don't re-clone — resume at step 2.
 - **Toolchain:** drive everything through **`task`** (it wraps `uv` + `typst`). Never call `pip`
   / `python` / `python3` directly.
+- **Paths are repo-root-relative.** Every path in this runbook (and the guides) starts at the
+  repo root — `cd` into the clone before following one; if you started a directory above it,
+  prefix the clone's folder name.
 - **Commits:** author every commit as the **human only** — never an agent or `Co-Authored-By:`
   trailer.
 - Deeper conventions are in [`../guides/RULES.md`](../guides/RULES.md); the other runbooks
@@ -61,8 +64,12 @@ following this runbook.
 
 2. **Get the tree standing.** *(Door B already did the install + bare scaffold — skip to the dev
    server + editor below.)* The repo needs `uv`, `typst`, `go-task`; if any are missing,
-   **offer to install them and, once approved, do it** (macOS: `brew install uv typst go-task`;
-   `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`; confirm each is on PATH). Then
+   **offer to install them and, once approved, do it** — macOS: `brew install uv typst go-task`;
+   Linux: `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`, typst + task from the
+   distro or their release pages; Windows: `winget install astral-sh.uv Typst.Typst Task.Task`.
+   **No package manager** (locked-down or sandboxed machine)? Download the `typst` and `task`
+   release binaries into a repo-local `.tools/bin/` and put it on PATH — the build prefers
+   `.tools/bin/` over PATH automatically. Confirm each tool resolves, then
    `task install`. Now ask **demo or clean**: most people learn best from the worked example, so
    unless they choose clean (bare `task scaffold`), run `task add-demo-content` (the
    `neuron`/`mujoco` tools, `exp00*` runners + writeups, a deck), then `task run -- exp000` and
@@ -73,6 +80,11 @@ following this runbook.
      exp000 page, and **confirm they've actually looked before you continue** — the whole point
      is that they *see* a run become a page; don't proceed on a URL they haven't opened. It stays
      running, so branding and the first experiment render live.
+   - **Sandboxed / locked-down environments:** if `uv` can't write its default cache (e.g.
+     `AppData\Local\uv` on Windows), set `UV_CACHE_DIR=.uv-cache`; if pytest can't reach the
+     system temp dir, point `TMP`/`TEMP` at a repo-local folder. `task install` and the first
+     `task build` download packages (PyPI + Typst universe), so a network-restricted agent
+     needs those runs approved.
 
 3. **Brand it** (one pass). Gather, then write the optional root `demolab.yaml`: site name
    (default "Demolab"), tagline, book/PDF title (defaults from the name), and **author +
