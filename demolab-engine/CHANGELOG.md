@@ -57,6 +57,33 @@ the runbook shows the entries between your version and the latest.
   top-level `landing/` directory is gone. `task add-demo-content` skips `site/` so installers
   don't land in a user's lab root.
 
+## [0.5.3] — 2026-07-09
+
+Windows portability, driven by a field report from a real Windows setup (thank you!). The flow
+worked conceptually; everything below is plumbing that assumed Unix.
+
+### Fixed
+- **`http://localhost` now works on Windows.** The dev server bound IPv4-only while printing a
+  `localhost` URL — and Windows resolves `localhost` to the IPv6 `::1` first, so the printed URL
+  was unreachable (only `127.0.0.1` worked). It now binds dual-stack, with an IPv4-only fallback
+  where IPv6 is absent.
+- **No more Unix-only shell in tasks.** `task scaffold` / `task add-demo-content` used `rsync`
+  and `task slides` used `grep` + `basename` — none exist on Windows. Both are now small stdlib
+  Python engines (`overlay.py`, `slides.py`) with the same semantics (re-scaffold never clobbers,
+  the demo's prebuilt `site/` never lands in your tree).
+- **Demo runners no longer use the `sh` package** (it does not support Windows) — they invoke
+  tools via `subprocess` + `sys.executable`, the same idiom as the playground.
+- **Figures render headless.** The shared figure style forces matplotlib's `Agg` backend;
+  the default GUI backend broke where Tcl/Tk is absent (notably uv-managed pythons on Windows).
+- **`typst` resolution.** The build prefers a repo-local `.tools/bin/typst(.exe)` — the blessed
+  fallback for machines with no package manager — then PATH.
+
+### Added
+- **CI runs the test suite on Windows** (`tests.yml`, ubuntu + windows matrix), so these
+  regressions get caught on a real Windows runner.
+- **GETTING-STARTED covers Windows**: `winget` install line, the portable `.tools/bin/` fallback,
+  and sandbox notes (`UV_CACHE_DIR`, repo-local temp, network approvals for dependency fetches).
+
 ## [0.5.2] — 2026-07-08
 
 ### Added
