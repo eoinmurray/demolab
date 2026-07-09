@@ -69,7 +69,8 @@ following this runbook.
    distro or their release pages; Windows: `winget install astral-sh.uv Typst.Typst Task.Task`.
    **No package manager** (locked-down or sandboxed machine)? Download the `typst` and `task`
    release binaries into a repo-local `.tools/bin/` and put it on PATH — the build prefers
-   `.tools/bin/` over PATH automatically. Confirm each tool resolves, then
+   `.tools/bin/` over PATH automatically (the site's `install.ps1` does exactly this when
+   `winget` is missing; `DEMOLAB_PORTABLE=1` forces it). Confirm each tool resolves, then
    `task install`. Now ask **demo or clean**: most people learn best from the worked example, so
    unless they choose clean (bare `task scaffold`), run `task add-demo-content` (the
    `neuron`/`mujoco` tools, `exp00*` runners + writeups, a deck), then `task run -- exp000` and

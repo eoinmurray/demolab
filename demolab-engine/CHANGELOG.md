@@ -15,6 +15,11 @@ the runbook shows the entries between your version and the latest.
 ## [Unreleased]
 
 ### Added
+- **`install.ps1` works without winget.** On a Windows box with no package manager (or with
+  `DEMOLAB_PORTABLE=1` set), the installer now downloads the `task` + `typst` release binaries
+  into the lab's own `.tools\bin` — the fallback the build already prefers — instead of dying
+  on a missing `winget`. Arch-aware (amd64/arm64), and covered end-to-end by a Windows CI test
+  that forces the portable path.
 - **Semi-autonomous research programs (AUTORESEARCH).** A new flow for steered-by-day,
   run-overnight research: a program is one collection with a pre-registered `plan` article
   (hypothesis + kill criteria + a machine-readable experiment queue), an append-only `log`
