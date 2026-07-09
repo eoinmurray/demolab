@@ -10,8 +10,9 @@
 #import "@preview/cetz-plot:0.1.1": plot
 
 #let meta = (
-  title: "An opinionated take on coding agents in computational science",
+  title: "Introduction slides",
   date: "2026-07-06",
+  collection: "documentation",
 )
 
 #show: simple-theme.with(aspect-ratio: "16-9", header: none)
@@ -139,13 +140,24 @@
 - Many exist, commercial and open — no vendor lock-in.
 - Only recently good enough — still uneven, still supervised.
 
-// layout: bullets
+// layout: bullets (each bullet is a literal prompt you could type at an agent — one per mode;
+// the last two show off modern features: MCP tool connections and background/scheduled runs)
+== What an agent can do
+
+- *Coding* — "Port this script to Python; check outputs match."
+- *Reading* — "Read this paper and reproduce figure 3."
+- *Writing* — "Draft the methods section from the run log."
+- *Connecting* — "Pull yesterday's runs from the database and plot them."
+- *Scheduling* — "Run the sweep overnight; write up what you find."
+
+// layout: bullets (framed as capabilities — what agents can do, not abstract strengths)
 == Strengths of coding agents
 
-- *The same work faster*.
-- *Do the things you always wanted but didn't have time*.
-- *Autodocumentation* — the work writes itself down as it goes.
+- *Do your work faster* — the same tasks, less time.
+- *Clear the backlog* — the things you never had time for.
+- *Document as they go* — the work writes itself down.
 - *Read the literature* — turn a paper straight into runnable code.
+- *Work much better with larger contexts* — whole repos, not snippets.
 
 // layout: bullets
 == Weaknesses of coding agents
@@ -221,6 +233,7 @@
 + *Raw data is disposable* — the record is committed.
 + *Bring any stack.*
 + *Provenance built in.*
++ *Documentation is everything.*
 
 // layout: code-panel
 == The shape of a demolab repo (demo: pinglab)
@@ -365,6 +378,11 @@
   ]
 ]
 
+// layout: big-statement — the one line to leave with; HELP in mono, it's the command.
+#focus-slide(background: ink)[
+  Need help? Just type #text(font: "DejaVu Sans Mono")[HELP].
+]
+
 // ═══════════════════════════════ PART THREE ═══════════════════════════════
 // layout: section-divider
 #focus-slide(background: white, foreground: ink)[
@@ -379,7 +397,11 @@
 - *Give the agent a goal and compute.*
 - *It runs the loop* — goal → code → compute → read the data → document → iterate.
 - *Every step is recorded* — a committed experiment and write-up per attempt.
+- *Runs safely in a pull request* — review the work before it merges.
 - *The rails already exist* — provenance, reproducibility, and a published trail come free.
+
+#v(1.1em)
+#align(center)[#text(size: 15pt, fill: muted)[Status: implemented, but untested.]]
 
 // layout: bullets
 == Lab scale
