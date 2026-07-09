@@ -303,3 +303,5 @@ Initial versioned release — the engine after its foundational build-out.
 ### Changed
 - The figure-data format is the author's choice (CSV, JSON, `.npz`, …); only the contract files
   (`config`/`output`/`manifest`/`numbers.json`) stay JSON.
+
+<!-- preview smoke test — remove -->
