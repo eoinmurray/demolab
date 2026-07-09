@@ -69,6 +69,35 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
 
 
+def test_emitted_html_has_no_root_absolute_urls(tmp_path: Path) -> None:
+    """Every emitted href/src must be relative — no leading-slash root-absolute URLs.
+
+    This is a hosting contract, not cosmetics: the PR-preview deploy (demolab-engine/deploy/
+    preview.yml) serves each site from a subpath (pr-preview/pr-N/), so a root-absolute
+    `href="/foo.html"` or `src="/artifacts/…"` would resolve against the domain root and 404 in
+    every preview. lib.typ emits only relative links today; this test stops a future engine
+    change from silently breaking previews. (Protocol-relative `//host` and absolute
+    `https://…` are fine; a lone leading `/` is the violation.)"""
+    import re
+
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    _build(root)
+
+    site = root / "artifacts" / "site"
+    bad = re.compile(r'(?:href|src)="/(?!/)')  # a single leading slash, not // (protocol-relative)
+    offenders = []
+    for html in site.rglob("*.html"):
+        for i, line in enumerate(html.read_text().splitlines(), 1):
+            if bad.search(line):
+                offenders.append(f"{html.relative_to(site)}:{i}")
+    assert not offenders, (
+        "root-absolute URLs break subpath-served PR previews — make them relative:\n  "
+        + "\n  ".join(offenders)
+    )
+
+
 def test_broken_entry_is_stubbed_not_fatal(tmp_path: Path) -> None:
     """One entry that references a missing figure must not take down the whole site: it's flagged,
     rendered as a stub at its own URL, and dropped from the listings, while everything else builds."""

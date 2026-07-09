@@ -14,6 +14,39 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **Semi-autonomous research programs (AUTORESEARCH).** A new flow for steered-by-day,
+  run-overnight research: a program is one collection with a pre-registered `plan` article
+  (hypothesis + kill criteria + a machine-readable experiment queue), an append-only `log`
+  article (decisions/anomalies, digest at top), and a night-shift contract (budgets, scope,
+  stop conditions). Three runbooks — **AUTORESEARCH** (start/steer a program), **PLAN** (triage
+  last night + queue the next pre-registered experiments), **NIGHT-SHIFT** (work the queue on a
+  branch, open a PR whose description is the digest) — plus the **AUTORESEARCH-RULES** guide
+  they cite. DOCTOR gains a one-plan-one-log / every-queued-entry-has-a-kill check; LINT exempts
+  the `log` from the prose rules; NEXT reads the `log`'s decision arc. Opt-in and additive:
+  nothing changes for a lab that doesn't create a `plan` article.
+- **Per-PR site previews (`deploy.yml` rewrite + new `preview.yml`).** `task deploy-setup` now
+  installs two workflows. Production (`deploy.yml`) switched from the GitHub-Actions Pages flow
+  to the **branch-based** flow (build main → commit `artifacts/site` to a `gh-pages` branch, via
+  `JamesIves/github-pages-deploy-action`, `single-commit`, `clean-exclude: [pr-preview/, CNAME]`).
+  Previews (`preview.yml`, via `rossjrw/pr-preview-action`) build every PR to
+  `pr-preview/pr-<N>/`, post a sticky comment with the URL, and tear down on close/merge — so a
+  night-shift PR is a clickable doc set, not a raw diff. A new build test asserts the emitted
+  HTML carries no root-absolute URLs, since subpath-served previews depend on relative links.
+
+  > **Migration — action required if you already publish (`.github/workflows/deploy.yml` exists).**
+  > The new deploy uses a `gh-pages` branch instead of the GitHub-Actions Pages source, so an
+  > *"update demolab"* that refreshes the template will not publish until you flip one setting.
+  > After updating:
+  > 1. Re-run `task deploy-setup` (rewrites `deploy.yml`, adds `preview.yml`), commit, push to main.
+  > 2. **Settings → Pages → Source: "Deploy from a branch" → `gh-pages` / `(root)`.** The first
+  >    push to main creates the branch; until you switch the source, the site keeps serving the
+  >    last GitHub-Actions deploy.
+  > 3. (Recommended) **Settings → General → Pull Requests → "Automatically delete head branches"**,
+  >    and protect `main`.
+  > On a **custom domain**, your `CNAME` is preserved by `clean-exclude` — no action. A lab that
+  > never opted into Pages is unaffected until it runs `task deploy-setup`.
+
 ### Changed
 - **`task dev:demo-site` reads and serves directly from `demolab-engine/scaffold/demo/`.** Sets
   `DEMOLAB_ROOT` there (no root symlinks, no `temp/demo-site/` staging). A `content-prefix`

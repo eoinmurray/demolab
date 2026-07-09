@@ -1,0 +1,57 @@
+name: PR preview (demo site)
+
+# Builds the shipped demo for every pull request and publishes it under pr-preview/pr-<N>/ on the
+# gh-pages branch, posts a sticky comment on the PR with the URL, and tears the preview down when
+# the PR closes or merges. This is what makes a PR's rendered doc set readable in place instead of
+# a raw diff. Pairs with landing.yml (the same gh-pages branch); needs the Pages source set to
+# "Deploy from a branch → gh-pages / (root)".
+#
+# Fork PRs get a read-only token and cannot write gh-pages, so previews are skipped for external
+# contributors. Do NOT switch this to pull_request_target to "fix" that — it runs untrusted PR
+# code with a write token (privilege-escalation footgun).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# One in-flight run per PR: rapid pushes supersede rather than race commits to gh-pages.
+concurrency:
+  group: preview-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  TYPST_VERSION: "0.15.0"
+
+jobs:
+  preview:
+    # Upstream only, same as the production deploy — a fork must not publish into demolab's Pages.
+    if: github.repository == 'eoinmurray/demolab'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # On 'closed' we only tear the preview down (no build needed), so guard the build steps.
+      - name: Install Typst ${{ env.TYPST_VERSION }}
+        if: github.event.action != 'closed'
+        run: |
+          url="https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz"
+          curl -fsSL "$url" | tar -xJ
+          echo "$PWD/typst-x86_64-unknown-linux-musl" >> "$GITHUB_PATH"
+
+      - name: Build the demo with the core engine
+        if: github.event.action != 'closed'
+        run: |
+          rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
+          rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+          python3 demolab-engine/build/build.py
+
+      # Deploy artifacts/site (the raw built demo — no CNAME/installers; those only belong at the
+      # production root) to pr-preview/pr-<N>/, maintain the sticky comment, and remove the subdir
+      # on 'closed'. The action auto-detects deploy vs remove from the event type.
+      - name: Deploy / update / tear down the preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: artifacts/site

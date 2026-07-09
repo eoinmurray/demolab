@@ -19,6 +19,14 @@ the user asks.
 pass, because a grep can't see a plot and an SVG *looks* like text but isn't (see §2b). A lint
 that never opened a figure is half a lint — §2b is not optional.
 
+**The `log` article is exempt from the prose rules.** In an autoresearch program (see
+[`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md)) the `log` is a
+chronological, append-only notebook — it deliberately doesn't lead with a claim, define every
+symbol, or read like a polished article, so **skip H2–H5 and the voice/structure judgment checks
+for `writings/log.typ`**. What still applies: it's a published page, so the can't-drift rules
+hold — no hand-typed run numbers (H9), citations through the system (H24), and figures it embeds
+obey H10–H15. The `plan` article is a normal article and gets the full pass.
+
 **Lint against the *effective* style.** First check for a root `HOUSESTYLE.local.md`. If it's
 absent, use these defaults. In `extend` mode (default) its rules override or add to the defaults
 — apply the merged set, and where the two conflict the local file wins. In `replace` mode (its

@@ -60,6 +60,12 @@ re-runs.
 
    # RULES §3.3 — branding belongs in demolab.yaml, not hacked into the black box.
    # (Informational — compare against upstream during "update demolab".)
+
+   # AUTORESEARCH-RULES §1 — an autoresearch program (a collection with a plan article) has
+   # exactly one `plan` and one `log`. Only fires for repos that use the autoresearch flow.
+   [ -f writings/plan.typ ] && { [ -f writings/log.typ ] || echo "AUTORESEARCH: plan without a log article"; }
+   for a in plan log; do n=$(ls writings/$a.typ writings/*-$a.typ 2>/dev/null | wc -l | tr -d ' '); \
+     [ "$n" -gt 1 ] && echo "AUTORESEARCH: $n '$a' articles (expected one per program — split into collections)"; done
    ```
 
 3. **Judgment checks (no grep suffices — the agent decides).**
@@ -83,6 +89,10 @@ re-runs.
      while iterating is fine (§5.1).
    - **§3 — docs match reality.** Runbook counts, path references, and the firewall in
      [`../guides/RULES.md`](../guides/RULES.md) still describe the actual tree.
+   - **AUTORESEARCH-RULES §2 — every `queued` entry has a kill criterion.** In an autoresearch
+     program, read the `plan`'s queue: any entry with `status: queued` and no `kill` field is a
+     violation (PLAN should have refused it). Also confirm `status` values are read from run
+     outputs, not hand-typed to `done` (spot-check against `artifacts/data/<id>/`).
 
 4. **Report.** Present one grouped report:
    - **Broken** (build/test red, agent authorship, import-boundary breach) — fix now.

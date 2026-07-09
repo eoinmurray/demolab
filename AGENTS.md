@@ -41,6 +41,9 @@ demolab is driven by typing a **name in CAPS** (SCREAMING-KEBAB). Three commands
 | [`LINT`](demolab-engine/runbooks/LINT.md) | audit the prose + figures vs the house style | "lint the writings" |
 | [`RED-TEAM`](demolab-engine/runbooks/RED-TEAM.md) | attack the result's validity | "red-team", "critique this experiment" |
 | [`STEELMAN`](demolab-engine/runbooks/STEELMAN.md) | make the strongest case for it | "steelman", "make the case for this" |
+| [`AUTORESEARCH`](demolab-engine/runbooks/AUTORESEARCH.md) | start / steer a research program | "start a research program", "set up autoresearch" |
+| [`PLAN`](demolab-engine/runbooks/PLAN.md) | plan the next experiments + triage last night | "plan the next experiments", "triage last night" |
+| [`NIGHT-SHIFT`](demolab-engine/runbooks/NIGHT-SHIFT.md) | work the queue overnight, autonomously | "work the queue overnight", "run tonight's experiments" |
 
 ### Guides — `NAME` walks you through it
 
@@ -50,5 +53,6 @@ demolab is driven by typing a **name in CAPS** (SCREAMING-KEBAB). Three commands
 | [`HOUSESTYLE`](demolab-engine/guides/HOUSESTYLE.md) | prose / math / figure style (the H-rules) |
 | [`SLIDES`](demolab-engine/guides/SLIDES.md) | deck conventions + the layout catalog |
 | [`STRUCTURE`](demolab-engine/guides/STRUCTURE.md) | the annotated file tree |
+| [`AUTORESEARCH-RULES`](demolab-engine/guides/AUTORESEARCH-RULES.md) | the semi-autonomous research contract (plan/log/queue/night-shift, git flow) |
 | [`GLOSSARY`](demolab-engine/guides/GLOSSARY.md) | the vocabulary |
 | [`SUPPORT`](demolab-engine/guides/SUPPORT.md) | getting a human (issues / email) |

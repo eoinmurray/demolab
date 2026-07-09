@@ -53,16 +53,21 @@ tasks:
           print('✓ removed', len(m['paths']), 'demo paths')"
 
   deploy-setup:
-    desc: "🚀 Opt in to GitHub Pages — copy the deploy workflow into .github/workflows/ (then enable Pages in Settings)"
+    desc: "🚀 Opt in to GitHub Pages — copy the deploy + preview workflows into .github/workflows/ (then enable Pages in Settings)"
     silent: true
     cmds:
       - |
         mkdir -p .github/workflows
         cp demolab-engine/deploy/deploy.yml .github/workflows/deploy.yml
-        echo "✓ wrote .github/workflows/deploy.yml"
-        echo "  Last step (a GitHub-UI click, can't be scripted):"
-        echo "    Settings → Pages → Source: GitHub Actions"
-        echo "  Then commit + push — the Action builds the site and deploys it."
+        cp demolab-engine/deploy/preview.yml .github/workflows/preview.yml
+        echo "✓ wrote .github/workflows/deploy.yml   (production: build main → gh-pages branch)"
+        echo "✓ wrote .github/workflows/preview.yml  (per-PR previews under pr-preview/pr-N/)"
+        echo "  Last steps (GitHub-UI clicks, can't be scripted):"
+        echo "    1. Settings → Pages → Source: Deploy from a branch → gh-pages / (root)"
+        echo "       (the first push to main creates the gh-pages branch)"
+        echo "    2. Settings → General → Pull Requests: enable 'Automatically delete head branches'"
+        echo "    3. (recommended) Settings → Branches: protect main"
+        echo "  Then commit + push — main deploys the site; each PR gets its own preview URL."
 
   # ── the loop ─────────────────────────────────────────────────────────────
   run:

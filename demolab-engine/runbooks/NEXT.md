@@ -16,7 +16,12 @@ over the committed record.
 0. **Read the whole lab.** For each experiment, read the **writeup** (the claim), the
    **`numbers.json`** (what was actually measured), and the **runner** (what was done + the
    parameter ranges). Build a short internal map: what each entry establishes, and the
-   parameters/assumptions it held fixed.
+   parameters/assumptions it held fixed. **In an autoresearch program** (a collection with a
+   `plan` + `log`, see [`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md)) also
+   read the **`log`** — the decision arc, killed hypotheses, and parked anomalies say what's
+   already been tried and ruled out, which a published-results-only view can't see. NEXT's
+   proposals here are candidate directions the scientist turns into pre-registered queue entries
+   via **PLAN**; they are not self-approved experiments.
 
 1. **Find the openings.** Across that map, look for:
    - **Untested regimes** — a parameter held fixed that the conclusion might hinge on (one value
