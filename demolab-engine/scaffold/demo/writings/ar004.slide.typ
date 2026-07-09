@@ -207,7 +207,7 @@
 ]
 
 // layout: bullets
-== What demolab is
+== What Demolab is
 
 - *Demolab writes code, runs programs, and documents results.*
 - *A lab notebook for computational science* — the science lives as code.
@@ -216,8 +216,15 @@
 - *Numbers come from the run* — never retyped, so the page can't drift.
 - *Reproducible by default* — provenance stamped on every result.
 
+// layout: big-statement — what demolab is *not*; don't bold on it (accent == background), emph instead.
+#focus-slide(background: ink)[
+  Demolab is not a replacement for your thinking.
+  #v(0.3em)
+  You review #emph[everything].
+]
+
 // layout: bullets
-== Why demolab
+== Why Demolab
 
 - *Results drift* — retyped numbers, stale figures. Here they come from the run.
 - *Reproducibility rots* — a year on, nothing builds. One command rebuilds it all.
@@ -225,7 +232,7 @@
 - *Agents need rails* — operate in plain language, keep the science yours.
 
 // layout: bullets (numbered — the principles)
-== Principles of demolab
+== Principles of Demolab
 
 + *Tools compute, experiments analyse* — clean split.
 + *One experiment* = a runner + a write-up.
@@ -236,7 +243,7 @@
 + *Documentation is everything.*
 
 // layout: code-panel
-== The shape of a demolab repo (demo: pinglab)
+== The shape of a Demolab repo (demo: pinglab)
 
 #align(center)[
   #block(fill: luma(245), stroke: 0.75pt + luma(210), radius: 12pt, inset: 26pt)[
@@ -303,7 +310,7 @@
   ]
 ]
 #v(0.9em)
-#align(center)[*Type `HELP` — demolab walks you through its own documentation.*]
+#align(center)[*Type `HELP` — Demolab walks you through its own documentation.*]
 
 // custom: runbooks as a dark terminal panel — named agent programs you invoke by name.
 == Runbooks
@@ -388,7 +395,7 @@
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART THREE]
   #v(0.4em)
-  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v2 — the future of demolab]
+  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v2 — the future of Demolab]
 ]
 
 // layout: bullets
