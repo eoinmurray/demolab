@@ -1,0 +1,41 @@
+name: Tests
+
+# Runs the Python test suite on Linux AND Windows. The Windows leg guards the portability
+# fixes a real Windows user's field report drove: the dev server's dual-stack bind (Windows
+# resolves `localhost` to ::1, so an IPv4-only bind makes the printed URL dead there), the
+# overlay.py copy behind task scaffold / add-demo-content (rsync doesn't exist on Windows),
+# and slides.py's deck detection (grep/basename didn't either). macOS/Linux pass these
+# trivially — only a real Windows runner is an honest check. Typst is not installed here —
+# the typst-dependent tests self-skip — so the job stays fast; full builds are exercised by
+# the landing deploy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demolab-engine/**"
+      - "pyproject.toml"
+      - ".github/workflows/tests.yml"
+  pull_request:
+    paths:
+      - "demolab-engine/**"
+      - "pyproject.toml"
+      - ".github/workflows/tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Run the test suite
+        run: uv run pytest
