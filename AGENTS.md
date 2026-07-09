@@ -4,7 +4,7 @@ Demolab — an agent-operated lab notebook for computational science. This file 
 thin entry point; the substance lives in the engine so it updates cleanly (_"update
 demolab"_). **Read the rules before working here.**
 
-**Rules, contract & how-tos** → [`demolab-engine/guides/RULES.md`](demolab-engine/guides/RULES.md) — the single conventions doc: toolchain, the framework/content firewall, commits, the tool ↔ experiment contract + schemas, and how to add a tool / experiment / writing. Unfamiliar with a term (tool, experiment, deck, collection, provenance…)? → [`demolab-engine/guides/GLOSSARY.md`](demolab-engine/guides/GLOSSARY.md). Authoring a writing? → [`demolab-engine/guides/HOUSESTYLE.md`](demolab-engine/guides/HOUSESTYLE.md) for prose/math/figure style (a root `HOUSESTYLE.local.md`, if present, extends or replaces it — read it too). Authoring a slide deck? → [`demolab-engine/guides/SLIDES.md`](demolab-engine/guides/SLIDES.md) for deck conventions, layouts, and sizing. New to the layout? → [`demolab-engine/guides/STRUCTURE.md`](demolab-engine/guides/STRUCTURE.md) for the annotated file tree. Stuck and need a human? → [`demolab-engine/guides/SUPPORT.md`](demolab-engine/guides/SUPPORT.md) (GitHub issues / email).
+**Rules, contract & how-tos** → [`demolab-engine/guides/RULES.md`](demolab-engine/guides/RULES.md) — the single conventions doc: toolchain, the framework/content firewall, commits, the tool ↔ experiment contract + schemas, and how to add a tool / experiment / writing. Unfamiliar with a term (tool, experiment, deck, collection, provenance…)? → [`demolab-engine/guides/GLOSSARY.md`](demolab-engine/guides/GLOSSARY.md). Authoring a writing? → [`demolab-engine/guides/HOUSESTYLE.md`](demolab-engine/guides/HOUSESTYLE.md) for prose/math/figure style (a root `HOUSESTYLE.local.md`, if present, extends or replaces it — read it too). Authoring a slide deck? → [`demolab-engine/guides/SLIDES.md`](demolab-engine/guides/SLIDES.md) for deck conventions, layouts, and sizing. New to the layout? → [`demolab-engine/guides/STRUCTURE.md`](demolab-engine/guides/STRUCTURE.md) for the annotated file tree. Stuck and need a human? → [`demolab-engine/guides/SUPPORT.md`](demolab-engine/guides/SUPPORT.md) (GitHub issues — the agent can file one for you via `gh`).
 
 Two rules important enough to state here too:
 
@@ -20,6 +20,8 @@ demolab is driven by typing a **name in CAPS** (SCREAMING-KEBAB). Three commands
 - **`<GUIDE>`** — a guide name → **walk the user through it**: summarise it, go section by section, answer questions — don't just paste the file. E.g. `RULES`, `SLIDES`.
 
 **The NAME is the command.** If the user's message is (or starts with) one of these names — `LINT`, `RULES`, `HELP` — that *is* the request: act on it, don't ask what they mean. The lower-case phrasings in the "also triggers on" column still work as aliases, but the CAPS name is canonical and always routes.
+
+**Docs are the source of truth.** When the user is confused, stuck, or asks "how do I…" about operating demolab, check the runbook and guide tables *before* improvising an answer. If one covers it, ground your answer in it — cite it, or offer to start it — rather than explaining from memory. Don't turn every question into a runbook pitch; just don't answer from memory what a doc already answers.
 
 > **`GETTING-STARTED`** ("set up my lab", "how do I get started") means **following the runbook as a conversation** — orient the user, then ask the gated questions *in order* and wait for answers. **Do not autonomously clone, scaffold, install, run the demo, and report back** — that races past every choice the user is supposed to make (fresh-or-migrate, demo-or-clean, stack, branding, publish, what to compute). Read the runbook first; run nothing before its step-0 orient + ready-check.
 
@@ -47,12 +49,12 @@ demolab is driven by typing a **name in CAPS** (SCREAMING-KEBAB). Three commands
 
 ### Guides — `NAME` walks you through it
 
-| Name | Covers |
-| ---- | ------ |
-| [`RULES`](demolab-engine/guides/RULES.md) | the contract, toolchain, firewall, how-tos |
-| [`HOUSESTYLE`](demolab-engine/guides/HOUSESTYLE.md) | prose / math / figure style (the H-rules) |
-| [`SLIDES`](demolab-engine/guides/SLIDES.md) | deck conventions + the layout catalog |
-| [`STRUCTURE`](demolab-engine/guides/STRUCTURE.md) | the annotated file tree |
-| [`AUTORESEARCH-RULES`](demolab-engine/guides/AUTORESEARCH-RULES.md) | the semi-autonomous research contract (plan/log/queue/night-shift, git flow) |
-| [`GLOSSARY`](demolab-engine/guides/GLOSSARY.md) | the vocabulary |
-| [`SUPPORT`](demolab-engine/guides/SUPPORT.md) | getting a human (issues / email) |
+| Name | Covers | Also triggers on |
+| ---- | ------ | ---------------- |
+| [`RULES`](demolab-engine/guides/RULES.md) | the contract, toolchain, firewall, how-tos | "what are the conventions", "how do I add a tool / experiment / writing" |
+| [`HOUSESTYLE`](demolab-engine/guides/HOUSESTYLE.md) | prose / math / figure style (the H-rules) | "how should I write this", any prose/figure style question |
+| [`SLIDES`](demolab-engine/guides/SLIDES.md) | deck conventions + the layout catalog | "make a deck", "which slide layout" |
+| [`STRUCTURE`](demolab-engine/guides/STRUCTURE.md) | the annotated file tree | "where does X live", "what's this folder for" |
+| [`AUTORESEARCH-RULES`](demolab-engine/guides/AUTORESEARCH-RULES.md) | the semi-autonomous research contract (plan/log/queue/night-shift, git flow) | "how does the queue / night-shift work" |
+| [`GLOSSARY`](demolab-engine/guides/GLOSSARY.md) | the vocabulary | an unfamiliar term — tool, experiment, deck, collection, provenance… |
+| [`SUPPORT`](demolab-engine/guides/SUPPORT.md) | getting a human (GitHub issues, via `gh`) | "is this a bug", "where do I report this", stuck after repeated failures |
