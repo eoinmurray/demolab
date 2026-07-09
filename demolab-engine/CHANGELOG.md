@@ -15,11 +15,6 @@ the runbook shows the entries between your version and the latest.
 ## [Unreleased]
 
 ### Added
-- **`install.ps1` works without winget.** On a Windows box with no package manager (or with
-  `DEMOLAB_PORTABLE=1` set), the installer now downloads the `task` + `typst` release binaries
-  into the lab's own `.tools\bin` — the fallback the build already prefers — instead of dying
-  on a missing `winget`. Arch-aware (amd64/arm64), and covered end-to-end by a Windows CI test
-  that forces the portable path.
 - **Semi-autonomous research programs (AUTORESEARCH).** A new flow for steered-by-day,
   run-overnight research: a program is one collection with a pre-registered `plan` article
   (hypothesis + kill criteria + a machine-readable experiment queue), an append-only `log`
@@ -57,10 +52,16 @@ the runbook shows the entries between your version and the latest.
   `DEMOLAB_ROOT` there (no root symlinks, no `temp/demo-site/` staging). A `content-prefix`
   Typst input + `data-file()` in `lib.typ` let demo writings resolve `/artifacts/data/…` while
   `--root` stays at the repo checkout for the engine.
-- **Install scripts moved into the shipped demo.** `install.sh`, `install.ps1`, and `CNAME` now live
-  at `demolab-engine/scaffold/demo/site/` (served at the Pages root alongside the demo). The
-  top-level `landing/` directory is gone. `task add-demo-content` skips `site/` so installers
-  don't land in a user's lab root.
+- **The top-level `landing/` directory is gone.** `CNAME` now lives at
+  `demolab-engine/scaffold/demo/site/` (served at the Pages root alongside the demo).
+  `task add-demo-content` skips `site/` so it doesn't land in a user's lab root.
+
+### Removed
+- **The one-line install scripts are retired.** `install.sh` / `install.ps1` (and their
+  end-to-end tests) are gone; the agent-based install is the one supported path — open a coding
+  agent in an empty folder and paste the GETTING-STARTED prompt. The runbook's step 2 owns the
+  toolchain install, including the portable `.tools/bin/` fallback for machines without a
+  package manager.
 
 ## [0.5.3] — 2026-07-09
 

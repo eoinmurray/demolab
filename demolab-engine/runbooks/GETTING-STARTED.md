@@ -9,11 +9,9 @@ When a user is new to demolab and wants their lab set up: scaffolded, branded, b
 published, and carried through their first experiment. **Onboarding is a conversation, not an
 interrogation.** Orient first, then ask only what you must, in order, and **wait for each answer
 before moving on** — do *not* autonomously scaffold, run, or publish past the choices the user
-hasn't made yet. Users arrive by **two doors**: pasting a prompt into an agent, or via
-`curl … install.sh | sh`. Door B has already installed the toolchain and laid down a bare
-scaffold, so **detect tools-present + tree-already-scaffolded and resume at step 2**,
-acknowledging it ("your lab's already fetched and scaffolded — now let's shape it") rather than
-re-running install.
+hasn't made yet. If the toolchain is already present and the tree already scaffolded (someone
+set things up by hand, or a previous run got that far), **don't redo the install — acknowledge
+it ("your lab's already fetched and scaffolded — now let's shape it") and resume at step 2.**
 
 Have handy before starting: a rough idea of a first thing to compute; a GitHub account if you'd
 like it online; or the repo/path if you're bringing in existing code.
@@ -34,8 +32,8 @@ following this runbook.
   clone + *degit* it first, so there's **no `origin` remote** pointing at upstream and the
   upstream Pages workflow is gone: `git clone --depth 1 https://github.com/eoinmurray/demolab .
   && rm -rf .git .github/workflows/landing.yml && git init && git add -A && git commit -m
-  "Start my lab from demolab"`. If the tree is **already here and scaffolded** (an `install.sh`
-  run brought you), don't re-clone — resume at step 2.
+  "Start my lab from demolab"`. If the tree is **already here and scaffolded**, don't re-clone —
+  resume at step 2.
 - **Toolchain:** drive everything through **`task`** (it wraps `uv` + `typst`). Never call `pip`
   / `python` / `python3` directly.
 - **Paths are repo-root-relative.** Every path in this runbook (and the guides) starts at the
@@ -53,24 +51,22 @@ following this runbook.
    - **What to have handy** — a rough idea of a first thing to compute; a GitHub account if you'd
      like it online; or the repo/path if you're bringing in existing code.
    - **How long** — about 5–10 minutes to a built, live lab; the first experiment takes as long
-     as it takes. Less if `install.sh` already ran, or if you skip publishing.
-   - Then **"Ready?"** — and wait. For a Door-B arrival, say the fetch + install are already done
-     and the estimate is shorter.
+     as it takes. Less if the toolchain's already installed, or if you skip publishing.
+   - Then **"Ready?"** — and wait.
 
 1. **Fresh or migrate?** "Starting fresh, or bringing in an existing codebase?" *Fresh* →
    continue. *Migrate* → it settles the stack (step 4) from their code and turns the finale
    (step 8) into [`MIGRATE-CODE.md`](MIGRATE-CODE.md); set the expectation now that migration is
    **incremental** — one experiment at a time, wrapping functions, not rewriting the science.
 
-2. **Get the tree standing.** *(Door B already did the install + bare scaffold — skip to the dev
-   server + editor below.)* The repo needs `uv`, `typst`, `go-task`; if any are missing,
+2. **Get the tree standing.** *(Toolchain already installed and tree already scaffolded? Skip to
+   the dev server + editor below.)* The repo needs `uv`, `typst`, `go-task`; if any are missing,
    **offer to install them and, once approved, do it** — macOS: `brew install uv typst go-task`;
    Linux: `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`, typst + task from the
    distro or their release pages; Windows: `winget install astral-sh.uv Typst.Typst Task.Task`.
    **No package manager** (locked-down or sandboxed machine)? Download the `typst` and `task`
    release binaries into a repo-local `.tools/bin/` and put it on PATH — the build prefers
-   `.tools/bin/` over PATH automatically (the site's `install.ps1` does exactly this when
-   `winget` is missing; `DEMOLAB_PORTABLE=1` forces it). Confirm each tool resolves, then
+   `.tools/bin/` over PATH automatically. Confirm each tool resolves, then
    `task install`. Now ask **demo or clean**: most people learn best from the worked example, so
    unless they choose clean (bare `task scaffold`), run `task add-demo-content` (the
    `neuron`/`mujoco` tools, `exp00*` runners + writeups, a deck), then `task run -- exp000` and
@@ -198,8 +194,8 @@ clean (an uncommitted run stamps *dirty*).
   - **Ready to start?** — after the orient. `[0]`
   - **Fresh, or migrate an existing codebase?** — fresh → a new experiment; migrate →
     `MIGRATE-CODE.md`, incremental. `[1]`
-  - **Install missing toolchain?** — `uv`/`typst`/`go-task`, default yes. Door B already did
-    this. `[2]`
+  - **Install missing toolchain?** — `uv`/`typst`/`go-task`, default yes; skip if all three
+    already resolve. `[2]`
   - **Demo or clean?** — `task add-demo-content` vs bare `task scaffold`, default demo. `[2]`
   - **Stack?** — Python (default, `uv`) or MATLAB/Julia/R/Octave (`MIGRATE-STACK.md`). If
     migrating, confirm from their code — don't ask blind. `[4]`
@@ -226,8 +222,6 @@ clean (an uncommitted run stamps *dirty*).
 - **Two things you drive, not ask:** the **dev server** (start it at step 2 and leave it up, so
   branding and the first experiment render live) and the **editor** (offer once at step 2 —
   `code .` / `cursor .` — unless they're already in an editor-agent).
-- **Two doors, one runbook.** Users arrive either by pasting a prompt into an agent, or via
-  `curl … install.sh | sh`. Door B has already installed the toolchain and laid down a bare
-  scaffold, so **detect tools-present + tree-already-scaffolded and resume at step 2**,
-  acknowledging it ("your lab's already fetched and scaffolded — now let's shape it") rather than
-  re-running install.
+- **Meet the tree where it is.** If the toolchain is already present and the tree already
+  scaffolded, **resume at step 2**, acknowledging it ("your lab's already fetched and scaffolded
+  — now let's shape it") rather than re-running install.

@@ -8,20 +8,11 @@ You write a model or experiment once as a small program. Demolab runs it, captur
 
 ## Quickstart
 
-**One line** — installs the toolchain (`uv`, `typst`, `go-task`), makes you your own copy, and hands you off to your coding agent:
-
-```sh
-# macOS / Linux
-curl -LsSf https://demolab.eoinmurray.info/install.sh | sh
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://demolab.eoinmurray.info/install.ps1 | iex"
-```
-
-**Already have a coding agent?** Open it in an empty folder and paste:
+Open your coding agent in an empty folder and paste:
 
 > Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.
 
-Either way, it walks you through setup and your first experiment, one step at a time.
+It installs the toolchain (`uv`, `typst`, `go-task`), makes you your own copy, and walks you through setup and your first experiment, one step at a time.
 
 <details>
 <summary><b>Set it up by hand instead?</b></summary>

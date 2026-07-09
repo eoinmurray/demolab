@@ -35,12 +35,8 @@ welcome:
     - label: Documentation
       href: documentation.html
 
-  install:
-    label: Installation
-    unix: curl -LsSf https://demolab.eoinmurray.info/install.sh | sh
-    windows: powershell -ExecutionPolicy ByPass -c "irm https://demolab.eoinmurray.info/install.ps1 | iex"
   prompt:
-    label: Already have a coding agent?
+    label: Install — paste into your coding agent
     text: Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.
   footer:
     text: Open source, MIT licensed.

@@ -1,7 +1,7 @@
 name: Deploy the site (demo at root)
 
 # Publishes to GitHub Pages at demolab.eoinmurray.info via the BRANCH-based flow:
-#   build the shipped demo → assemble _site (demo at /, install scripts, CNAME) → commit to the
+#   build the shipped demo → assemble _site (demo at /, CNAME) → commit to the
 #   `gh-pages` branch. Branch-based (not the GitHub-Actions Pages flow) so per-PR previews
 #   (landing-preview.yml) can live in the same branch under pr-preview/. Requires the Pages source
 #   set to "Deploy from a branch → gh-pages / (root)". A user's own lab deploy is separate and
@@ -52,10 +52,10 @@ jobs:
           rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
           python3 demolab-engine/build/build.py
 
-      - name: Assemble the Pages tree (demo at /, installers + CNAME at root)
+      - name: Assemble the Pages tree (demo at /, CNAME at root)
         run: |
           rm -rf _site && cp -R artifacts/site/. _site/
-          cp demolab-engine/scaffold/demo/site/install.sh demolab-engine/scaffold/demo/site/install.ps1 demolab-engine/scaffold/demo/site/CNAME _site/
+          cp demolab-engine/scaffold/demo/site/CNAME _site/
 
       # Publish _site to the root of gh-pages. clean-exclude preserves the live PR previews
       # (pr-preview/, owned by landing-preview.yml) — CNAME is re-emitted from _site every run.

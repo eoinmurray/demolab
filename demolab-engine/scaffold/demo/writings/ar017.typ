@@ -17,25 +17,18 @@
 
   == Install
 
-  Either run the installer:
+  Open a coding agent in an empty folder and paste:
 
-  ```sh
-  # macOS / Linux
-  curl -LsSf https://demolab.eoinmurray.info/install.sh | sh
-
-  # Windows (PowerShell)
-  powershell -ExecutionPolicy ByPass -c "irm https://demolab.eoinmurray.info/install.ps1 | iex"
+  ```
+  Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.
   ```
 
-  or open a coding agent in an empty folder, point it at the
-  #link("https://github.com/eoinmurray/demolab")[repository], and say _"get me started"_, and it runs
-  the #link(runbooks + "/GETTING-STARTED.md")[GETTING-STARTED] runbook and sets everything up with
-  you.
-
-  Either path installs the toolchain: #link("https://docs.astral.sh/uv/")[uv] for Python,
+  It runs the #link(runbooks + "/GETTING-STARTED.md")[GETTING-STARTED] runbook and sets everything
+  up with you: the toolchain — #link("https://docs.astral.sh/uv/")[uv] for Python,
   #link("https://typst.app")[Typst] for publishing, and #link("https://taskfile.dev")[go-task] as
-  the command runner. You drive everything through `task`, which wraps `uv` and `typst`; you never
-  call `pip` or `python` directly.
+  the command runner — then your own copy of the repository, the scaffold, and your first
+  experiment. You drive everything through `task`, which wraps `uv` and `typst`; you never call
+  `pip` or `python` directly.
 
   == Your first run
 
