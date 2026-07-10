@@ -377,6 +377,14 @@
       }
     }
   }
+  // A small home link at the very top (web only) — one quiet click back to the lab directory,
+  // so a reader who lands deep on an entry (e.g. straight from the onboarding flow) is never
+  // stranded. The PDF/book carry no navigation chrome, so this is html-only.
+  context {
+    if target() == "html" {
+      html.elem("a", attrs: (class: "home-link", href: "index.html"), [← Home])
+    }
+  }
   heading(level: 1, meta.title)
   // the metadata strip under the title — id · date · status · pdf, all inline on the left (web
   // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
