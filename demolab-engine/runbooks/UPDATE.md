@@ -51,8 +51,10 @@ overwriting the engine can't touch the user's identity — that's the point.
    change, apply only what the user approves. CI and `pyproject.toml` especially: *merge*, never
    blind-overwrite (their deps live there).
 
-6. **Verify.** `task build` and `task test`; open `task dev` and confirm branding + content survived
-   and the new features work.
+6. **Verify.** `task build` and `task test` — inspect the built output in `artifacts/` to confirm
+   branding + content survived and the new features work. (Don't babysit a `task dev` server for
+   this; `task build` produces the same site as static output you can check directly. If the user
+   wants a live look, have *them* run `task dev` in their own terminal.)
 
 7. **Clean up.** Remove the temp clone. Commit describing what was pulled.
 

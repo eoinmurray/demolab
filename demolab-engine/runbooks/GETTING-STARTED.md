@@ -75,16 +75,25 @@ stop: you are freestyling, not following this runbook.
      their release pages; Windows: `winget install astral-sh.uv Typst.Typst Task.Task`.
      **No package manager** (locked-down or sandboxed machine)? Download the `typst` and `task`
      release binaries into a repo-local `.tools/bin/` and put it on PATH — the build prefers
-     `.tools/bin/` over PATH automatically. Confirm each tool resolves.
+     `.tools/bin/` over PATH automatically. Confirm each tool resolves. **Windows note:** `winget`
+     edits PATH for *new* shells, so `typst`/`task` may not resolve in the session that ran the
+     install — restart PowerShell (or use the `.tools/bin/` fallback, which needs no PATH change).
    - **Scaffold:** `task install`, then `task scaffold` — the bare structure (`writings/
      experiments/ tools/ artifacts/` + `demolab.yaml`), nothing else. Verify quietly: `task
      build` green (the friendly empty-state homepage) and `task test` passes — report the result
      in one line, don't make a ceremony of it. If either fails, fix it before going on: nothing
      of theirs gets built on a broken scaffold.
-   - **Dev server:** `task dev` in the background, then present the live URL **prominently**
-     (<http://localhost:3000>, or the next free port — read it from the output, don't assume).
-     Ask them to open it — they should see the empty-state homepage ("your lab is ready"). It
-     stays up for the whole session, so their experiment and branding render live.
+   - **Dev server:** **don't run this yourself — hand it to them.** Ask them to open a *second
+     terminal* at the repo root and run `task dev`. A server you background from a tool call is a
+     weak pattern everywhere and an outright hazard under managed/detached shells (it can be killed
+     when the tool call ends); a server in *their* terminal is session-lived by construction, shows
+     them its own output and errors, and teaches the command they'll use every day. It prints
+     `serving on http://localhost:PORT` (first free port from 3000 — have them paste that line so
+     you know the port). Verify it's up yourself with a single `curl -sf http://localhost:PORT`,
+     then present the URL **prominently** and ask them to open it — they should see the empty-state
+     homepage ("your lab is ready"). It stays up for the whole session, so their experiment and
+     branding render live. **Headless run** (cloud/autonomous, no human at a terminal)? Skip the
+     dev server entirely — nobody's opening the URL — and rely on `task build` for rendering.
    - **Editor:** offer once — `code .` / `cursor .` / their `$EDITOR` — unless they're already
      in one. Walk the tree in a sentence: `writings/` (prose), `experiments/` (runners),
      `tools/` (reusable science), `artifacts/` (the record). Don't gate on it.

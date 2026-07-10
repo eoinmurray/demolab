@@ -351,6 +351,13 @@ def make_server(port):
 
 
 def main():
+    # Windows captures stdout as CP1252 by default (e.g. inside a PowerShell background job),
+    # which crashes on non-ASCII output like the "→" below. Force UTF-8 so scripted / agent-driven
+    # onboarding that pipes our stdout doesn't die on a cosmetic character.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
     explicit = len(sys.argv) > 1 and bool(sys.argv[1].strip())
     port = pick_port(sys.argv)
     server = None

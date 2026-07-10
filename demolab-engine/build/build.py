@@ -209,6 +209,41 @@ def compile_bundle(ids: list[str], deck_ids: list[str]) -> dict:
               + broken[bad].splitlines()[0], flush=True)
 
 
+def _warn_if_content_misplaced(ids: list[str]) -> None:
+    """Tripwire for the classic agent slip: creating experiments/ or writings/ one level ABOVE
+    the repo — a patch applied from the workspace root instead of the repo root. build.py globs
+    from the true repo root (REPO, derived from __file__, not cwd), so misplaced files are simply
+    invisible: the build quietly renders the empty-state homepage and gives no signal that the
+    work landed in the wrong place. So when the root has no content, peek at the parent dir; if the
+    stray dirs are sitting there with real files, say so loudly and point at the fix.
+
+    A warning, not an error: an empty scaffold is a valid state, and a nested/monorepo layout could
+    put an unrelated experiments/ in the parent — we don't want a false positive to block a build.
+    ASCII only: this output is often captured by an agent harness on Windows (CP1252), where a
+    stray non-ASCII byte would crash the pipe (see devserver.py)."""
+    if DEMO:
+        return  # demo content is read from the shipped demo dir, not the repo root
+    # A populated lab has writings (ids) or a top-level experiment runner. helpers/*.py in a bare
+    # scaffold live in a subdir, so a non-recursive experiments/*.py glob stays empty until there's
+    # a real runner — no false "has content" on a fresh scaffold.
+    if ids or any((ROOT / "experiments").glob("*.py")):
+        return
+    stray = [d for d, pat in ((REPO.parent / "writings", "*.typ"),
+                              (REPO.parent / "experiments", "*.py"))
+             if d.is_dir() and any(d.glob(pat))]
+    if not stray:
+        return
+    print("WARNING: this lab has no content at its root, but found populated content OUTSIDE the",
+          file=sys.stderr)
+    print(f"         repo root ({REPO}) — the build cannot see these:", file=sys.stderr)
+    for d in stray:
+        print(f"           {d}", file=sys.stderr)
+    print("         This usually means files were created from the workspace root instead of the",
+          file=sys.stderr)
+    print(f"         repo root. Move them into {REPO} (writings/, experiments/) and rebuild.",
+          file=sys.stderr)
+
+
 def main() -> None:
     # --generate-only writes the manifest + deck PDFs without compiling the bundle: a hand
     # tool for inspecting what the compiler will see. (Dev serving is devserver.py, which runs
@@ -220,6 +255,7 @@ def main() -> None:
     # those PDFs exist (a full build ran first); a bare `task build` never skips.
     skip_decks = "--skip-decks" in sys.argv
     ids = discover()
+    _warn_if_content_misplaced(ids)
     deck_ids = discover_decks()
     # Zero writings is a valid state (a freshly `task scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
