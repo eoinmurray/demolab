@@ -35,7 +35,7 @@ Open the repo in your agent and say a runbook's name — it follows that runbook
 
 | Say… | …and it will |
 |------|--------------|
-| **GETTING-STARTED** | set you up end to end: scaffold, brand, publish, first experiment |
+| **GETTING-STARTED** | set you up end to end: scaffold, your first experiment live on a page, brand, publish |
 | **TOUR** | guided walkthrough of the lab — what's here, what it found, where to start |
 | **MIGRATE-CODE** | bring an existing codebase in, one experiment at a time |
 | **FROM-JUPYTER** | launder a Jupyter notebook into a reproducible, seeded experiment |

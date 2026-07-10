@@ -23,7 +23,7 @@ demolab is driven by typing a **name in CAPS** (SCREAMING-KEBAB). Three commands
 
 **Docs are the source of truth.** When the user is confused, stuck, or asks "how do I…" about operating demolab, check the runbook and guide tables *before* improvising an answer. If one covers it, ground your answer in it — cite it, or offer to start it — rather than explaining from memory. Don't turn every question into a runbook pitch; just don't answer from memory what a doc already answers.
 
-> **`GETTING-STARTED`** ("set up my lab", "how do I get started") means **following the runbook as a conversation** — orient the user, then ask the gated questions *in order* and wait for answers. **Do not autonomously clone, scaffold, install, run the demo, and report back** — that races past every choice the user is supposed to make (fresh-or-migrate, demo-or-clean, stack, branding, publish, what to compute). Read the runbook first; run nothing before its step-0 orient + ready-check.
+> **`GETTING-STARTED`** ("set up my lab", "how do I get started") means **following the runbook as a conversation** — orient the user, then ask the gated questions *in order* and wait for answers. **Do not autonomously clone, scaffold, install, build an experiment, and report back** — that races past every choice the user is supposed to make (what to compute, branding, publishing). Read the runbook first; run nothing before its step-0 orient + ready-check.
 
 ### Runbooks — `NAME` starts it
 

@@ -32,15 +32,21 @@
 
   == Your first run
 
+  The agent drives this: GETTING-STARTED stands the lab up, then builds your first experiment
+  with you — your own science, or a suggested starter — and you watch it land on a live page.
+  By hand, the loop is:
+
   ```sh
-  task install           # resolve dependencies
-  task add-demo-content  # overlay the worked demo (optional, but the best way to learn)
-  task run -- exp000     # run an experiment end to end
-  task dev               # serve the site at localhost:3000, live-reloading on save
+  task install        # resolve dependencies
+  task scaffold       # lay down writings/ experiments/ tools/ artifacts/
+  task dev            # serve the site at localhost:3000, live-reloading on save
+  task run -- exp000  # run an experiment end to end (once you've written one)
   ```
 
-  Open the URL, click into the `exp000` page, and you've seen the whole point: a run became a page.
-  `task build` compiles everything once; `task test` runs the suite.
+  Change a parameter, `task run` again, and watch the page update — figures and numbers, no
+  prose touched. That's the whole point. `task build` compiles everything once; `task test`
+  runs the suite. (Want a worked example in your tree? `task add-demo-content` overlays the
+  same demo this site is built from; `task clear-demo-content` removes it.)
 
   == How a lab is laid out
 

@@ -48,6 +48,16 @@ the runbook shows the entries between your version and the latest.
   > never opted into Pages is unaffected until it runs `task deploy-setup`.
 
 ### Changed
+- **GETTING-STARTED rebuilt around the user's own first experiment.** Onboarding no longer
+  overlays the demo into a fresh lab — the lab starts clean, and the finished example is the
+  landing site (built from `scaffold/demo/`, which stays as the agent's file-shape reference
+  and the test fixture). The flow is now three questions (ready? · what should your first
+  experiment be? — with field-calibrated starter suggestions for the blank-canvas case, and
+  code/notebook/paper as branches into the migrate runbooks · publish?) and a mandatory
+  **touch-it moment**: change a parameter, re-run, watch the page's figures and numbers update
+  with no prose touched. Branding and publishing moved after the first experiment;
+  fresh-vs-migrate, demo-or-clean, and stack are no longer standalone questions.
+  `task add-demo-content` remains as an unadvertised escape hatch.
 - **`task dev:demo-site` reads and serves directly from `demolab-engine/scaffold/demo/`.** Sets
   `DEMOLAB_ROOT` there (no root symlinks, no `temp/demo-site/` staging). A `content-prefix`
   Typst input + `data-file()` in `lib.typ` let demo writings resolve `/artifacts/data/…` while
