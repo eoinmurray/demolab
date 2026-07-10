@@ -7,8 +7,13 @@ engine-only. There are two ways to get one, depending on what you're doing.
 ## Serve the shipped demo (no copies) — the usual case
 
 ```sh
-demolab dev --demo      # serves demolab-engine/scaffold/demo directly
+demolab dev --demo             # serves demolab-engine/scaffold/demo directly
+demolab dev --demo --landing   # …and previews the marketing landing page (site/landing.typ)
 ```
+
+`--landing` copies `scaffold/demo/site/landing.typ` into the demo root for the session (what the
+Pages deploy does), so the homepage renders the hero instead of the collection directory; it's
+removed again on exit. Without it, the demo shows the normal collection-directory homepage.
 
 This reads content from and writes build output to **shipped demo**
 (`demolab-engine/scaffold/demo/`) via `DEMOLAB_ROOT` — no symlinks, copies, or `temp/` staging

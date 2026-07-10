@@ -51,7 +51,7 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("new", "✨ How to start a new experiment (hint — ask your coding agent)"),
     ]),
     ("publishing", [
-        ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (--demo serves the shipped demo; PORT overrides the auto-picked 3000)"),
+        ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (--demo serves the shipped demo, add --landing for its landing page; PORT overrides the auto-picked 3000)"),
         ("build", "📦 Build the whole bundle → artifacts/site/ (web) + artifacts/pdfs/ (PDFs + book)"),
         ("slides", "🎞  Compile standalone Typst decks (writings/*.typ with no meta+body) to artifacts/pdfs/"),
         ("playground", "🎛  Launch the interactive Streamlit demo (http://localhost:8501)"),
@@ -180,12 +180,34 @@ def cmd_new(args: argparse.Namespace) -> int:
 def cmd_dev(args: argparse.Namespace) -> int:
     server = BUILD / "devserver.py"
     port_args = [str(args.port)] if args.port else []
-    if args.demo:
-        # Serve the shipped demo through the live engine without copying it to the root.
-        env = {**os.environ, "DEMOLAB_ROOT": str(SCAFFOLD / "demo")}
-        print("→ reading + serving from demolab-engine/scaffold/demo")
+    if not args.demo:
+        if args.landing:
+            print("--landing only applies to --demo. For your own lab, create a landing.typ at the",
+                  file=sys.stderr)
+            print("repo root and `demolab dev` renders it (and hot-reloads it).", file=sys.stderr)
+            return 2
+        return _py(server, *port_args)
+    # --demo: serve the shipped demo through the live engine. The demo's landing page lives under
+    # site/ (kept out of user labs), so it only renders as the homepage when copied to the content
+    # root — which is what --landing does for the session, mirroring the Pages deploy (landing.yml).
+    env = {**os.environ, "DEMOLAB_ROOT": str(SCAFFOLD / "demo")}
+    landing_dst = SCAFFOLD / "demo" / "landing.typ"
+    created = False
+    if args.landing:
+        if landing_dst.exists():
+            print(f"→ {landing_dst.relative_to(REPO)} already present — serving it as-is (leaving it in place)")
+        else:
+            shutil.copy(SCAFFOLD / "demo" / "site" / "landing.typ", landing_dst)
+            created = True
+            print("→ previewing the upstream landing page (copied site/landing.typ to the demo root)")
+    print("→ reading + serving from demolab-engine/scaffold/demo")
+    try:
         return _run(sys.executable, str(server), *port_args, env=env)
-    return _py(server, *port_args)
+    finally:
+        # Only remove what we created — never a landing.typ the user had already put there.
+        if created:
+            landing_dst.unlink(missing_ok=True)
+            print(f"✓ removed the temporary {landing_dst.relative_to(REPO)}")
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -252,6 +274,9 @@ def _build_parser() -> argparse.ArgumentParser:
         elif name == "dev":
             sp.add_argument("port", nargs="?", type=int, help="port to serve on (default: first free from 3000)")
             sp.add_argument("--demo", action="store_true", help="serve the shipped demo instead of the repo root")
+            sp.add_argument("--landing", action="store_true",
+                            help="with --demo: preview the upstream landing page (copies site/landing.typ "
+                                 "into the demo root for the session, removed on exit)")
     return p
 
 

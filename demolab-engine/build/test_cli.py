@@ -33,10 +33,10 @@ def test_every_command_parses():
 def test_run_and_dev_arguments():
     parser = cli._build_parser()
     assert parser.parse_args(["run", "exp042"]).experiment == "exp042"
-    dev = parser.parse_args(["dev", "3010", "--demo"])
-    assert dev.port == 3010 and dev.demo is True
+    dev = parser.parse_args(["dev", "3010", "--demo", "--landing"])
+    assert dev.port == 3010 and dev.demo is True and dev.landing is True
     bare_dev = parser.parse_args(["dev"])
-    assert bare_dev.port is None and bare_dev.demo is False
+    assert bare_dev.port is None and bare_dev.demo is False and bare_dev.landing is False
 
 
 def test_no_command_prints_catalog():
