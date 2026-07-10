@@ -16,7 +16,7 @@ Install the [GitHub CLI](https://cli.github.com/) (`gh`, e.g. `brew install gh` 
 
 ## Before you open an issue
 
-1. **Run the doctor.** Say *"doctor the repo"* — it checks the toolchain (`uv` / `typst` / `task`) and audits the repo against the conventions, often surfacing the problem directly with a RULES anchor and a `file:line`.
+1. **Run the doctor.** Say *"doctor the repo"* — it checks the toolchain (`uv` / `typst` / `demolab`) and audits the repo against the conventions, often surfacing the problem directly with a RULES anchor and a `file:line`.
 2. **Check the guides + runbooks.** [`STRUCTURE.md`](STRUCTURE.md) (the layout), [`RULES.md`](RULES.md) (the contract), [`HOUSESTYLE.md`](HOUSESTYLE.md) (authoring), and the runbooks cover most "how do I…" questions.
 3. **Search existing issues.** Someone may have hit it already.
 
@@ -24,7 +24,7 @@ Install the [GitHub CLI](https://cli.github.com/) (`gh`, e.g. `brew install gh` 
 
 Include, in order:
 
-1. **What you ran and what happened** — the exact command (e.g. `task build`) and the *full* error output, not a paraphrase.
+1. **What you ran and what happened** — the exact command (e.g. `demolab build`) and the *full* error output, not a paraphrase.
 2. **Toolchain versions** — `uv --version`, `typst --version`, `task --version`.
 3. **The commit.** demolab stamps every run's git SHA into `numbers.json` and the page/PDF footer (RULES §4.7), so you can say *exactly* which code produced the problem — paste the footer line, or `git rev-parse --short HEAD` for the repo state.
 4. **Framework or content?** State whether it's the engine (`demolab-engine/` — a demolab bug) or your own tool / experiment / writing (your code). The firewall (§3) is the dividing line; a framework bug is ours to fix, a content bug is usually yours — but ask if you're unsure.

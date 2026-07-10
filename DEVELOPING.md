@@ -7,7 +7,7 @@ engine-only. There are two ways to get one, depending on what you're doing.
 ## Serve the shipped demo (no copies) — the usual case
 
 ```sh
-task dev:demo      # serves demolab-engine/scaffold/demo directly
+demolab dev --demo      # serves demolab-engine/scaffold/demo directly
 ```
 
 This reads content from and writes build output to **shipped demo**
@@ -21,13 +21,13 @@ polluting the root or conflicting with a local `add-demo-content` sandbox.
 
 ## Full sandbox — when you need to *run* the experiments
 
-`dev:demo` only symlinks what's needed to *serve* (writings + figures). To also **run** the
+`demolab dev --demo` only symlinks what's needed to *serve* (writings + figures). To also **run** the
 demo's experiments (regenerate figures, tweak a runner), materialise the whole thing, which brings
 `tools/` + `experiments/` and their Python deps:
 
 ```sh
-task add-demo-content   # copy the worked demo (skeleton + demo) to the repo root
-task dev                # serve whatever content is at the root
+demolab add-demo-content   # copy the worked demo (skeleton + demo) to the repo root
+demolab dev                # serve whatever content is at the root
 uv run python experiments/exp000.py   # re-run a runner, etc.
 ```
 
@@ -47,12 +47,12 @@ cat >> .git/info/exclude <<'EOF'
 EOF
 ```
 
-Tear it down with `task clear-demo-content` (or `rm -rf writings experiments tools artifacts`).
+Tear it down with `demolab clear-demo-content` (or `rm -rf writings experiments tools artifacts`).
 
 ## Why demo preview doesn't touch the repo root
 
 Writings use root-relative paths (`/demolab-engine/…`, `/artifacts/…`) and Typst confines every read
-to `--root`. The shipped demo lives under `demolab-engine/scaffold/demo/`, so `dev:demo` sets
+to `--root`. The shipped demo lives under `demolab-engine/scaffold/demo/`, so `demolab dev --demo` sets
 `DEMOLAB_ROOT` there: the build reads writings, data assets, and `demolab.yaml` from that tree,
 passes a `content-prefix` into Typst so `/artifacts/data/…` resolves correctly, and serves from
 `scaffold/demo/artifacts/site/`. Typst `--root` stays at the repo checkout so the engine paths

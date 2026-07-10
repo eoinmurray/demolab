@@ -36,7 +36,7 @@ style; drop or adjust any the local file overrides.
 
 ## What it does
 
-0. **Build is green.** `task build` must compile first. Linting broken Typst is noise.
+0. **Build is green.** `demolab build` must compile first. Linting broken Typst is noise.
 
 1. **Mechanical checks (grep — each hit is a candidate, not a verdict).**
 

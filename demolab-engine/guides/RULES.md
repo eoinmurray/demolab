@@ -14,9 +14,9 @@ defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 **1.1 — Python via `uv`.** Never call `python` / `python3` directly. Deps are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python tools/neuron/tool.py lif`); `uv sync` after pulling.
 
-**1.2 — Publishing via `typst`.** Use the `typst` CLI (an installed prerequisite, like `go-task`). It compiles the site + PDFs (`task build` / `task dev`); the bundle build passes `--features bundle,html` (experimental, deliberately used here). No Node/`bun` — demolab publishes entirely with Typst.
+**1.2 — Publishing via `typst`.** Use the `typst` CLI (an installed prerequisite, alongside `uv`). It compiles the site + PDFs (`demolab build` / `demolab dev`); the bundle build passes `--features bundle,html` (experimental, deliberately used here). No Node/`bun` — demolab publishes entirely with Typst.
 
-**1.3 — Prefer `task`.** Common commands are wrapped in a `Taskfile` — prefer `task <name>` (run `task` to list them). To check the toolchain *and* that the repo obeys these conventions, run the *Doctor the repo* runbook (*"doctor the repo"*).
+**1.3 — Prefer `demolab`.** Common commands are exposed through the `demolab` CLI — prefer `demolab <name>` (run `demolab` to list them). To check the toolchain *and* that the repo obeys these conventions, run the *Doctor the repo* runbook (*"doctor the repo"*).
 
 **1.4 — Python is the default, not a requirement.** The contract (§4) is *file-based and language-neutral* — a tool is reached by running its CLI (a subprocess), never by importing it, and speaks only through files; Typst publishes from `numbers.json` + PNGs regardless of what produced them. To move the tool layer to MATLAB / R / Julia / Octave, follow the *Migrating the stack* runbook ([MIGRATE-STACK.md](../runbooks/MIGRATE-STACK.md)).
 
@@ -28,9 +28,9 @@ defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 The concrete annotated file tree is in [`STRUCTURE.md`](STRUCTURE.md); this section is the *why* — which zone each path belongs to and how it updates.
 
-**3.1 — Black box** (pure upstream; never edited here, swapped wholesale on update): `demolab-engine/build/` (the Typst engine: `main.typ`, `lib.typ`, `build.py`, `devserver.py`, `style.css`, `cite-popover.js`, `favicon.svg`, `test_engine_build.py`, `test_devserver.py`, `test_slide_catalog.py`, `test_command_catalog.py`, `test_build_resilience.py`), `demolab-engine/runbooks/` (the runbooks), `demolab-engine/guides/` (this file + `GLOSSARY.md` + `HOUSESTYLE.md` + `SLIDES.md` + `STRUCTURE.md` + `SUPPORT.md`), `demolab-engine/scaffold/` (the `skeleton/` + `demo/` overlays that `task scaffold`/`add-demo-content` lay down, and `demo-manifest.json`), and the engine's `VERSION` + `CHANGELOG.md` (SemVer; `task version` prints it, *"update demolab"* compares it). demolab ships **engine-only** — this zone plus the reconciled root files, no content dirs — so the demo isn't committed working-tree clutter; it's engine data, materialised on demand and doubling as the smoke-test fixture. Updates cleanly and survives any deletion of scaffolded content.
+**3.1 — Black box** (pure upstream; never edited here, swapped wholesale on update): `demolab-engine/build/` (the Typst engine: `main.typ`, `lib.typ`, `build.py`, `devserver.py`, `style.css`, `cite-popover.js`, `favicon.svg`, `test_engine_build.py`, `test_devserver.py`, `test_slide_catalog.py`, `test_command_catalog.py`, `test_build_resilience.py`), `demolab-engine/runbooks/` (the runbooks), `demolab-engine/guides/` (this file + `GLOSSARY.md` + `HOUSESTYLE.md` + `SLIDES.md` + `STRUCTURE.md` + `SUPPORT.md`), `demolab-engine/scaffold/` (the `skeleton/` + `demo/` overlays that `demolab scaffold`/`add-demo-content` lay down, and `demo-manifest.json`), and the engine's `VERSION` + `CHANGELOG.md` (SemVer; `demolab version` prints it, *"update demolab"* compares it). demolab ships **engine-only** — this zone plus the reconciled root files, no content dirs — so the demo isn't committed working-tree clutter; it's engine data, materialised on demand and doubling as the smoke-test fixture. Updates cleanly and survives any deletion of scaffolded content.
 
-**3.2 — Reconciled** (framework, but kept thin or pinned to root by tooling; updated by diff, not swap): `AGENTS.md` + its `CLAUDE.md` pointer (both thin — they just point here), `README.md`, the `Taskfile`, `pyproject.toml`, and `.github/` CI.
+**3.2 — Reconciled** (framework, but kept thin or pinned to root by tooling; updated by diff, not swap): `AGENTS.md` + its `CLAUDE.md` pointer (both thin — they just point here), `README.md`, `demolab.py`, `pyproject.toml`, and `.github/` CI.
 
 **3.3 — Your root overrides, optional** (root files the framework reads; never overwritten by updates): `demolab.yaml` (wordmark + PDF titles + collections) and `HOUSESTYLE.local.md` (your house-style overrides, which extend or replace the default `HOUSESTYLE.md`; an agent reads it). Absent ⇒ engine defaults. Deeper web theming (`style.css`, `favicon.svg`) currently lives inside the black box, so editing it is possible but gets overwritten on update — treat as advanced.
 
@@ -73,7 +73,7 @@ The concrete annotated file tree is in [`STRUCTURE.md`](STRUCTURE.md); this sect
 
 **5.1 — Scratch vs record.** `temp/<tool>/<cmd>/` is scratch — gitignored, overwritten every run. The runner writes the rendered figure(s) + aggregated `numbers.json` (and any video) + a `run.sh` reproducer into **`artifacts/data/<id>/`**, which *is* committed. That folder is the publisher-neutral record: the single place the publisher reads from. (The tool's own `run.sh` stays in scratch `temp/`; the runner's is committed here.)
 
-**5.2 — Typst is the publisher.** `task build` runs `demolab-engine/build/build.py`, which globs `writings/*.typ` (and each entry's mp4s) into a JSON manifest (`temp/bundle/index.json`), then compiles the committed, static `demolab-engine/build/main.typ` (which reads the manifest) to **three targets in one pass** — no generated Typst source:
+**5.2 — Typst is the publisher.** `demolab build` runs `demolab-engine/build/build.py`, which globs `writings/*.typ` (and each entry's mp4s) into a JSON manifest (`temp/bundle/index.json`), then compiles the committed, static `demolab-engine/build/main.typ` (which reads the manifest) to **three targets in one pass** — no generated Typst source:
 - **Web** — `artifacts/site/`: `index.html` (entries grouped by collection, §6.5), `all.html` (every entry, newest first), and an HTML page per entry (figures inline, videos play, math as MathML, styled by `demolab-engine/build/style.css`).
 - **Per-entry PDFs** — `artifacts/site/pdfs/<id>.pdf`.
 - **Book** — `artifacts/site/pdfs/book.pdf`: every entry, with a table of contents.
@@ -97,7 +97,7 @@ For *how a writing should read* — prose, math, figures, structure — see [`HO
 
 Numbers must come from the run (§5.4) — never hand-type a literal that could disagree with `numbers.json`.
 
-**6.3 — Figures.** A data figure is a tool-rendered PNG staged by the runner — `#image("/artifacts/data/<id>/fig.png", width: 100%)`. A *drawing* (a schematic, not a simulation result) can be drawn directly in Typst — native graphics scale crisply, no image file. For something a reader should *explore*, point them at the Streamlit playground (`task playground`); in-browser interactivity is deliberately not part of the static site.
+**6.3 — Figures.** A data figure is a tool-rendered PNG staged by the runner — `#image("/artifacts/data/<id>/fig.png", width: 100%)`. A *drawing* (a schematic, not a simulation result) can be drawn directly in Typst — native graphics scale crisply, no image file. For something a reader should *explore*, point them at the Streamlit playground (`demolab playground`); in-browser interactivity is deliberately not part of the static site.
 
 **6.4 — The `status` field.** Optional `meta` field for lifecycle — `draft → building → revising → final`, and back freely. It renders as **plain text** next to the date **everywhere the entry appears**: its own page, every listing (each collection page + `all.html`), and the PDF/book. `final` (the default) shows **nothing** — a clean line means done, so only work-in-progress is flagged. Free-form; pick a convention and stick to it. It also drives listing order (§6.5).
 
@@ -120,7 +120,7 @@ See `ar006` for a worked example — ten references with DOIs, inline cites thro
 
 **7.3 — Writeup.** Create `writings/expNNN.typ` as a `meta` + `body` pair (§6.1); read the run with `json(...)`, embed figures with `#image(...)`, render tables with `#numbers-table(...)`.
 
-**7.4 — Run + build.** `uv run python experiments/expNNN.py`, then `task build` (or the running `task dev`).
+**7.4 — Run + build.** `uv run python experiments/expNNN.py`, then `demolab build` (or the running `demolab dev`).
 
 **7.5 — Staged runs (optional).** An expensive experiment — long training, a big sweep — may split its runner into ordered stages so you can re-enter without repeating the costly prefix. The flow, in dependency order:
 
@@ -138,6 +138,6 @@ Each stage depends only on its predecessor's output, so a run can start at any s
 
 **8.3 — `write_output` validation.** `headline_metrics` is required and validated against `output.json`; any declared `headline_video`/`headline_figure` must exist on disk. Data tools declare no asset (`{"headline_metrics": [...]}`); a rendering tool adds `headline_video`.
 
-**8.4 — Every tool ships tests.** Put them in `tools/<tool>/test_<tool>.py` (run with `task test`). Unit-test the science functions directly — shapes, known properties, determinism (seeded) — and the manifest contract (`write_output` rejects a metric absent from `output.json`, or a missing figure). Keep tests off the filesystem where possible — call the sim functions, not the CLI.
+**8.4 — Every tool ships tests.** Put them in `tools/<tool>/test_<tool>.py` (run with `demolab test`). Unit-test the science functions directly — shapes, known properties, determinism (seeded) — and the manifest contract (`write_output` rejects a metric absent from `output.json`, or a missing figure). Keep tests off the filesystem where possible — call the sim functions, not the CLI.
 
 **8.5 — The playground is exempt.** The Streamlit playground (`experiments/playground.py`) is an interactive demo, not an `exp*` runner: it authors no committed artifacts and is exempt from *producing* a manifest. But it still **runs the `neuron lif` CLI** on each slider change and reads back `temp/neuron/lif/lif.csv` + `output.json`, rather than reimplementing the simulation. **Don't duplicate the science** — reach the tool through its CLI.

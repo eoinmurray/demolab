@@ -12,7 +12,7 @@ sure a real result gets stated at full strength, not to invent one.
 
 ## What it does
 
-0. **Build is green.** `task build` and `task test` pass — steelmanning a broken run is
+0. **Build is green.** `demolab build` and `demolab test` pass — steelmanning a broken run is
    fiction.
 
 1. **Find the real strength.** Read the writeup, `numbers.json`, and the figure data

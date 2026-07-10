@@ -22,7 +22,7 @@ Adapt the depth to who's asking: a new lab member wants the on-ramp, a reviewer 
    - **The experiments** — for each (or each collection), the one-line takeaway: what it asked and
      what it found. Most important / newest first.
    - **The tools** — the reusable science, and which experiments use them.
-   - **Where to start** — point the newcomer at the best entry to read first, and the `task dev`
+   - **Where to start** — point the newcomer at the best entry to read first, and the `demolab dev`
      site to browse.
 
 2. **Orient for their goal.** Ask what they're here to do, and tailor the close:

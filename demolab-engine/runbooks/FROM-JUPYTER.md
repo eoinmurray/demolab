@@ -10,12 +10,12 @@ where most computational science lives, and they're the opposite of reproducible
 execution, hidden global state, unseeded randomness, hardcoded numbers in the prose, no pinned
 environment. This runbook **launders** one into something that runs top-to-bottom,
 deterministically, with every published number traceable to the run. Have the repo scaffolded (a
-working lab, or a bare `task scaffold`) and `task build` green before you start.
+working lab, or a bare `demolab scaffold`) and `demolab build` green before you start.
 
 ## What it does
 
-0. **Prerequisites.** The repo is scaffolded (a working lab, or a bare `task scaffold`) and
-   `task build` is green. Ask **which `.ipynb`** to convert and pick the experiment id (`expNNN`).
+0. **Prerequisites.** The repo is scaffolded (a working lab, or a bare `demolab scaffold`) and
+   `demolab build` is green. Ask **which `.ipynb`** to convert and pick the experiment id (`expNNN`).
    The notebook can live anywhere — it isn't part of the contract and won't be published.
 
 1. **Run it first — capture ground truth.** Execute the notebook top-to-bottom (`uv run jupyter
@@ -62,7 +62,7 @@ working lab, or a bare `task scaffold`) and `task build` green before you start.
 
 5. **Build and check parity.** End the runner's `main()` with
    `helpers/provenance.write_run_sh(ARTIFACTS)` so the committed record carries a reproducer
-   (RULES §4.7), then `task run -- expNNN` and `task build` (or the running `task dev`). Open the
+   (RULES §4.7), then `demolab run expNNN` and `demolab build` (or the running `demolab dev`). Open the
    new page beside the notebook's original output and confirm the figures + numbers match. If they
    differ, **explain why** — usually the notebook's numbers were stale or from out-of-order runs,
    and the reproducible version is the correct one. That's a feature, not a regression.
@@ -78,7 +78,7 @@ working lab, or a bare `task scaffold`) and `task build` green before you start.
 ## Agent contract
 - **Triggers** — `FROM-JUPYTER`, **"from jupyter"**, "convert my notebook", "import this
   notebook", "make my notebook reproducible".
-- **Gates** — §0 must hold: repo scaffolded and `task build` green; a target `.ipynb` and an
+- **Gates** — §0 must hold: repo scaffolded and `demolab build` green; a target `.ipynb` and an
   `expNNN` id chosen.
 - **Report & apply** — drive it interactively; don't silently rewrite. **Propose the mapping and
   confirm before building**, and confirm a multi-result split before proceeding.

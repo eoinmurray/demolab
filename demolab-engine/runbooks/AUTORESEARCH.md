@@ -43,7 +43,7 @@ the plan's hypothesis and kill criteria are human-reviewed by construction (RULE
      slot at top.
    - The **night-shift contract** — `night-shift.yaml` beside the collection (or a fenced block
      in the plan) with budgets, `scope.collection`, and stop conditions (AUTORESEARCH-RULES §4).
-   Build to confirm it renders (`task build` / the running `task dev`), then commit on `main`
+   Build to confirm it renders (`demolab build` / the running `demolab dev`), then commit on `main`
    ("Open program <slug>"). That commit is the pre-registration anchor.
 
 4. **Amend (existing program, a pivot).** A hypothesis or kill criterion never gets edited in

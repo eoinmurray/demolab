@@ -6,8 +6,7 @@ for term definitions see [`GLOSSARY.md`](GLOSSARY.md). Bracketed `[§x]` / `[Gn]
 tags point at the rule that governs each path.
 
 demolab ships **engine-only** — a clean tree with just `demolab-engine/` and the reconciled
-root files, no content dirs. `task scaffold` lays down the empty structure below; `task
-add-demo-content` also overlays the worked demo. The demo + skeleton live *inside the engine* at
+root files, no content dirs. `demolab scaffold` lays down the empty structure below; `demolab add-demo-content` also overlays the worked demo. The demo + skeleton live *inside the engine* at
 `demolab-engine/scaffold/` (so they version with it), and doubles as the engine's smoke test
 ([`test_engine_build.py`](../build/test_engine_build.py)). See [Scaffolding](#scaffolding) below.
 
@@ -36,7 +35,7 @@ demolab/
 ├── demolab.yaml            optional branding + collections config          [§3.3, §6.5, G4]
 ├── HOUSESTYLE.local.md     optional — your house-style overrides (extend/replace)  [§3.3]
 ├── demolab-engine/         the engine — the BLACK BOX, swapped wholesale on update  [§3.1, G3]
-│   ├── VERSION               the engine's SemVer (`task version`); compared on update
+│   ├── VERSION               the engine's SemVer (`demolab version`); compared on update
 │   ├── CHANGELOG.md          notable engine changes per version (Keep a Changelog)
 │   ├── build/                the Typst publisher                           [§5.2, G9]
 │   │   ├── main.typ            the bundle root — reads the manifest, emits every document
@@ -45,17 +44,17 @@ demolab/
 │   │   ├── style.css          the web theme
 │   │   ├── cite-popover.js    hover popovers for inline citations (web-only)
 │   │   └── favicon.svg        the tab icon
-│   ├── scaffold/             what `task scaffold`/`add-demo-content` lay down (+ smoke-test fixture)
+│   ├── scaffold/             what `demolab scaffold`/`add-demo-content` lay down (+ smoke-test fixture)
 │   │   ├── skeleton/           the bare structure: writings/ experiments/ tools/ artifacts/ + config
 │   │   ├── demo/               the worked demo overlaid by add-demo-content (tools, exp00*, writeups)
-│   │   ├── demo-manifest.json  the exact paths `task clear-demo-content` removes
-│   │   └── ../build/test_engine_build.py  builds these fixtures end-to-end as `task test`
+│   │   ├── demo-manifest.json  the exact paths `demolab clear-demo-content` removes
+│   │   └── ../build/test_engine_build.py  builds these fixtures end-to-end as `demolab test`
 │   ├── runbooks/             the 17 agent runbooks (one file each)         [AGENTS.md, G21]
 │   └── guides/               RULES.md · GLOSSARY.md · HOUSESTYLE.md · SLIDES.md · AUTORESEARCH-RULES.md · STRUCTURE.md (this file)
 ├── AGENTS.md               the thin entry point — agents read this first   [§3.2]
 ├── CLAUDE.md               a thin pointer to AGENTS.md (for Claude Code)    [§3.2]
 ├── README.md               the human-facing overview                       [§3.2]
-├── Taskfile.yml            the task wrapper (task install/run/dev/build/test/…)   [§1.3]
+├── demolab.py              the command runner (demolab install/run/dev/build/test/…)   [§1.3]
 ├── pyproject.toml          pinned Python deps (uv)                          [§1.1]
 ├── uv.lock                 the resolved lockfile
 ├── .github/workflows/      CI — builds the bundle, deploys artifacts/site/ to Pages   [§3.2, §5.3]
@@ -76,14 +75,14 @@ demolab/
 
 **S4 — Committed vs regenerable.** *Committed* (the record CI can't reproduce, so it must be in git): `artifacts/data/` and `artifacts/pdfs/`. *Gitignored* (rebuilt on demand): `temp/` and `artifacts/site/`. Never commit scratch; never rely on it surviving (§5.1, §5.3).
 
-**S5 — The black box vs your stuff.** Everything under `demolab-engine/` is pure upstream — you never hand-edit it, and *"update demolab"* overwrites it wholesale (§3.1). Everything you own lives *outside* it: `tools/`, `experiments/`, `writings/`, `artifacts/`, and your `demolab.yaml`. Root files (`AGENTS.md`, `README.md`, `Taskfile.yml`, `pyproject.toml`, CI) are framework-but-reconciled — updated by diff, not swap (§3.2).
+**S5 — The black box vs your stuff.** Everything under `demolab-engine/` is pure upstream — you never hand-edit it, and *"update demolab"* overwrites it wholesale (§3.1). Everything you own lives *outside* it: `tools/`, `experiments/`, `writings/`, `artifacts/`, and your `demolab.yaml`. Root files (`AGENTS.md`, `README.md`, `demolab.py`, `pyproject.toml`, CI) are framework-but-reconciled — updated by diff, not swap (§3.2).
 
-**S6 — Where the build goes.** `task build` runs `demolab-engine/build/build.py`, which globs `writings/*.typ` into `temp/bundle/index.json`, then compiles `demolab-engine/build/main.typ` to three targets in one pass: the web site → `artifacts/site/`, per-entry PDFs + `book.pdf` → `artifacts/site/pdfs/` (mirrored to `artifacts/pdfs/`). On an empty (freshly-scaffolded) tree the build still succeeds — it emits a single `index.html` with a friendly empty state, and skips `all.html`/collection pages/`book.pdf`. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
+**S6 — Where the build goes.** `demolab build` runs `demolab-engine/build/build.py`, which globs `writings/*.typ` into `temp/bundle/index.json`, then compiles `demolab-engine/build/main.typ` to three targets in one pass: the web site → `artifacts/site/`, per-entry PDFs + `book.pdf` → `artifacts/site/pdfs/` (mirrored to `artifacts/pdfs/`). On an empty (freshly-scaffolded) tree the build still succeeds — it emits a single `index.html` with a friendly empty state, and skips `all.html`/collection pages/`book.pdf`. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
 
 ## Scaffolding
 
 demolab ships engine-only; the content tree is materialised on demand from `demolab-engine/scaffold/`.
 
-**S7 — Two overlays, one command each.** `skeleton/` is the bare structure (empty `writings/` `experiments/` `tools/` `artifacts/` + the config templates `demolab.yaml`, `HOUSESTYLE.local.md`, `experiments/helpers/style.py` + `experiments/helpers/provenance.py`); `task scaffold` copies it into the repo root non-destructively (`rsync --ignore-existing`, so re-running never clobbers your work). `demo/` is the worked example; `task add-demo-content` runs `scaffold` then overlays it. `task clear-demo-content` deletes exactly the paths in `demo-manifest.json` — nothing you authored is listed there, so it can't touch your content.
+**S7 — Two overlays, one command each.** `skeleton/` is the bare structure (empty `writings/` `experiments/` `tools/` `artifacts/` + the config templates `demolab.yaml`, `HOUSESTYLE.local.md`, `experiments/helpers/style.py` + `experiments/helpers/provenance.py`); `demolab scaffold` copies it into the repo root non-destructively (`rsync --ignore-existing`, so re-running never clobbers your work). `demo/` is the worked example; `demolab add-demo-content` runs `scaffold` then overlays it. `demolab clear-demo-content` deletes exactly the paths in `demo-manifest.json` — nothing you authored is listed there, so it can't touch your content.
 
-**S8 — The demo is the engine's test.** Because `demo/` lives inside the swapped-wholesale `demolab-engine/`, it versions with the engine and can't drift from it. [`test_engine_build.py`](../build/test_engine_build.py) (run by `task test`) assembles skeleton + demo in a throwaway tree via `DEMOLAB_ROOT` and builds it end-to-end — so the shipped example is also the integration smoke test. It also asserts the empty (skeleton-only) tree builds its empty-state homepage.
+**S8 — The demo is the engine's test.** Because `demo/` lives inside the swapped-wholesale `demolab-engine/`, it versions with the engine and can't drift from it. [`test_engine_build.py`](../build/test_engine_build.py) (run by `demolab test`) assembles skeleton + demo in a throwaway tree via `DEMOLAB_ROOT` and builds it end-to-end — so the shipped example is also the integration smoke test. It also asserts the empty (skeleton-only) tree builds its empty-state homepage.

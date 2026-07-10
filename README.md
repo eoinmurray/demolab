@@ -12,12 +12,12 @@ Open your coding agent in an empty folder and paste:
 
 > Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.
 
-It installs the toolchain (`uv`, `typst`, `go-task`), makes you your own copy, and walks you through setup and your first experiment, one step at a time.
+It installs the toolchain (`uv`, `typst`), makes you your own copy, and walks you through setup and your first experiment, one step at a time.
 
 <details>
 <summary><b>Set it up by hand instead?</b></summary>
 
-Install [`uv`](https://docs.astral.sh/uv/), [`typst`](https://typst.app), and [`go-task`](https://taskfile.dev) (`brew install uv typst go-task`), then make a *fresh* copy — don't plain-`git clone`, it drags demolab's history and remote along:
+Install [`uv`](https://docs.astral.sh/uv/) and [`typst`](https://typst.app) (`brew install uv typst`), then make a *fresh* copy — don't plain-`git clone`, it drags demolab's history and remote along:
 
 ```sh
 git clone --depth 1 https://github.com/eoinmurray/demolab my-lab
@@ -25,7 +25,7 @@ rm -rf my-lab/.git my-lab/.github/workflows/landing.yml  # strip history + upstr
 cd my-lab && git init && git add -A && git commit -m "Start my lab from demolab"
 ```
 
-Then `task add-demo-content && task run -- exp000 && task dev` to see the loop. `task clear-demo-content` wipes the demo; `task scaffold` gives a bare tree.
+Then `uv sync` (installs the deps and the `demolab` command), and `demolab add-demo-content && demolab run exp000 && demolab dev` to see the loop. `demolab clear-demo-content` wipes the demo; `demolab scaffold` gives a bare tree.
 
 </details>
 
@@ -63,7 +63,7 @@ The detail lives in the guides:
 
 ## Commands
 
-`task --list` shows them all. The everyday ones: `install`, `scaffold` · `add-demo-content` · `clear-demo-content`, `run -- expNNN`, `dev`, `build`, `test`.
+`demolab` shows them all. The everyday ones: `install`, `scaffold` · `add-demo-content` · `clear-demo-content`, `run expNNN`, `dev`, `build`, `test`.
 
 ## License
 

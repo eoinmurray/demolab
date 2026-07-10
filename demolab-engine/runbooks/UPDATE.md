@@ -18,7 +18,7 @@ lab. **The model: the engine is a black box; your stuff lives outside it.** Upda
   `HOUSESTYLE.local.md` (their house-style overrides, if present), `writings/`, `tools/`,
   `experiments/`, `artifacts/`, `temp/`.
 - **Reconcile carefully** (framework, but often customised or pinned to root): `AGENTS.md`,
-  `Taskfile.yml`, `.github/workflows/deploy.yml`, `pyproject.toml`, `README.md`. Diff these and apply
+  `demolab.py`, `.github/workflows/deploy.yml`, `pyproject.toml`, `README.md`. Diff these and apply
   changes *with the user's say-so* — don't clobber their added tasks, deps, or prose.
 
 Branding (the wordmark + PDF titles) lives in the root `demolab.yaml`, *outside* the swapped dirs, so
@@ -51,10 +51,10 @@ overwriting the engine can't touch the user's identity — that's the point.
    change, apply only what the user approves. CI and `pyproject.toml` especially: *merge*, never
    blind-overwrite (their deps live there).
 
-6. **Verify.** `task build` and `task test` — inspect the built output in `artifacts/` to confirm
-   branding + content survived and the new features work. (Don't babysit a `task dev` server for
-   this; `task build` produces the same site as static output you can check directly. If the user
-   wants a live look, have *them* run `task dev` in their own terminal.)
+6. **Verify.** `demolab build` and `demolab test` — inspect the built output in `artifacts/` to confirm
+   branding + content survived and the new features work. (Don't babysit a `demolab dev` server for
+   this; `demolab build` produces the same site as static output you can check directly. If the user
+   wants a live look, have *them* run `demolab dev` in their own terminal.)
 
 7. **Clean up.** Remove the temp clone. Commit describing what was pulled.
 

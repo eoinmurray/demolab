@@ -13,8 +13,8 @@ any URL path with no base config.
 1. **Place it.** Copy demolab degitted (no `.git`) into the host project, e.g. `docs/`.
    Delete the copy's bundled `.github/workflows/deploy.yml` (it assumes demolab is the repo
    root).
-2. **Run from inside the subfolder** so `uv`/`typst`/`task` resolve demolab's manifests:
-   `cd docs && task install && task build` (or `task dev`). Output lands in
+2. **Run from inside the subfolder** so `uv`/`typst`/`demolab` resolve demolab's manifests:
+   `cd docs && demolab install && demolab build` (or `demolab dev`). Output lands in
    `docs/artifacts/site/`.
 3. **Deploy from the HOST repo.** Add a Pages workflow to the *host* repo that installs
    `typst`, runs `python3 docs/demolab-engine/build/build.py`, and uploads

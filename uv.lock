@@ -384,7 +384,7 @@ wheels = [
 [[package]]
 name = "demolab"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "imageio", extra = ["ffmpeg"] },
     { name = "matplotlib" },

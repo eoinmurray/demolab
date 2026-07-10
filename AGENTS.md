@@ -8,7 +8,7 @@ demolab"_). **Read the rules before working here.**
 
 Two rules important enough to state here too:
 
-- **Toolchain:** use `uv` (Python) and `typst` (publishing) via `task` (go-task). Never call `pip` / `python` / `python3` directly.
+- **Toolchain:** use `uv` (Python) and `typst` (publishing) via the `demolab` CLI. Never call `pip` / `python` / `python3` directly.
 - **Commits:** author every commit as the human only — never a `Co-Authored-By:` / agent trailer, never an agent in the author/committer fields.
 
 ## Commands — type a NAME

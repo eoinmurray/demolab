@@ -140,6 +140,6 @@ layout means adding both a marked gallery slide *and* a catalog entry here (the 
 
 **D13 — Decks hot-reload like entries.** The dev server rebuilds the whole bundle (via
 `build.py`, which re-globs the filesystem) on every source change, so a **new** `.slide.typ`
-appears and an **edited** deck reloads without restarting `task dev` — same as an ordinary
+appears and an **edited** deck reloads without restarting `demolab dev` — same as an ordinary
 entry. A deck that fails to compile shows the Typst error as a full-screen overlay in the
 browser, not just in the terminal.

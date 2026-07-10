@@ -15,12 +15,12 @@ re-runs.
 ## What it does
 
 0. **Toolchain present.** `command -v uv typst task` — all three must resolve. If any is
-   missing, give the install (macOS: `brew install uv typst go-task`; `uv` also via
+   missing, give the install (macOS: `brew install uv typst`; `uv` also via
    `curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
 1. **Build + tests are green (the coarse signal).**
-   - `task build` — compiles all three targets with no error.
-   - `task test` — `uv run pytest` passes.
+   - `demolab build` — compiles all three targets with no error.
+   - `demolab test` — `uv run pytest` passes.
    A red build or test is the first thing to fix; everything below is finer-grained.
 
 2. **Mechanical checks (run these — each hit is a violation).**

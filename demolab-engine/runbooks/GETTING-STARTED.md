@@ -15,9 +15,8 @@ touch, inside ten minutes.
 **No demo content.** The lab starts clean and the first thing in it is theirs. The finished,
 polished example they may want to see is the landing site — <https://demolab.eoinmurray.info>
 is the shipped demo, built straight from `demolab-engine/scaffold/demo/` — so point there
-rather than overlaying demo content into their repo. (`task add-demo-content` exists as an
-escape hatch if they explicitly ask to explore a worked example locally; `task
-clear-demo-content` removes it again. Don't offer it unprompted.)
+rather than overlaying demo content into their repo. (`demolab add-demo-content` exists as an
+escape hatch if they explicitly ask to explore a worked example locally; `demolab clear-demo-content` removes it again. Don't offer it unprompted.)
 
 Have handy before starting: a rough idea of a first thing to compute (or the repo/path/notebook
 /paper you're bringing in — starters are on offer if you have neither), and a GitHub account if
@@ -30,7 +29,7 @@ adapt.** Execute steps **0 → 6 in order**. Do **not** reorder, merge, or skip 
 **not** pull a later step forward — the most common mistake is raising **publishing or branding
 early; they are steps 4–5, after the first experiment, never before it.** Complete each step —
 *including waiting for the user's answer to its question* — before starting the next. Run
-**no** command (`clone`, `task install`, `task scaffold`, `run`, `dev`) before the step-0
+**no** command (`clone`, `demolab install`, `demolab scaffold`, `run`, `dev`) before the step-0
 orient and the user's "ready". If you catch yourself doing several things then reporting back,
 stop: you are freestyling, not following this runbook.
 
@@ -46,7 +45,7 @@ stop: you are freestyling, not following this runbook.
   && rm -rf .git .github/workflows/landing.yml && git init && git add -A && git commit -m
   "Start my lab from demolab"`. If the tree is **already here and scaffolded**, don't re-clone —
   resume at step 2.
-- **Toolchain:** drive everything through **`task`** (it wraps `uv` + `typst`). Never call `pip`
+- **Toolchain:** drive everything through **`demolab`** (it wraps `uv` + `typst`). Never call `pip`
   / `python` / `python3` directly.
 - **Paths are repo-root-relative.** Every path in this runbook (and the guides) starts at the
   repo root — `cd` into the clone before following one; if you started a directory above it,
@@ -69,22 +68,21 @@ stop: you are freestyling, not following this runbook.
 
 1. **Stand the lab up** (you drive; no questions except the install approval). *(Toolchain
    already present and tree already scaffolded? Acknowledge it and skip to the dev server.)*
-   - **Toolchain:** the repo needs `uv`, `typst`, `go-task`; if any are missing, **offer to
-     install them and, once approved, do it** — macOS: `brew install uv typst go-task`; Linux:
-     `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`, typst + task from the distro or
-     their release pages; Windows: `winget install astral-sh.uv Typst.Typst Task.Task`.
-     **No package manager** (locked-down or sandboxed machine)? Download the `typst` and `task`
-     release binaries into a repo-local `.tools/bin/` and put it on PATH — the build prefers
+   - **Toolchain:** the repo needs `uv` and `typst`; if either is missing, **offer to
+     install them and, once approved, do it** — macOS: `brew install uv typst`; Linux:
+     `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`, typst from the distro or
+     their release pages; Windows: `winget install astral-sh.uv Typst.Typst`.
+     **No package manager** (locked-down or sandboxed machine)? Download the `typst`
+     release binary into a repo-local `.tools/bin/` and put it on PATH — the build prefers
      `.tools/bin/` over PATH automatically. Confirm each tool resolves. **Windows note:** `winget`
-     edits PATH for *new* shells, so `typst`/`task` may not resolve in the session that ran the
+     edits PATH for *new* shells, so `uv`/`typst` may not resolve in the session that ran the
      install — restart PowerShell (or use the `.tools/bin/` fallback, which needs no PATH change).
-   - **Scaffold:** `task install`, then `task scaffold` — the bare structure (`writings/
-     experiments/ tools/ artifacts/` + `demolab.yaml`), nothing else. Verify quietly: `task
-     build` green (the friendly empty-state homepage) and `task test` passes — report the result
+   - **Scaffold:** `uv sync` (installs deps + the `demolab` command), then `demolab scaffold` — the bare structure (`writings/
+     experiments/ tools/ artifacts/` + `demolab.yaml`), nothing else. Verify quietly: `demolab build` green (the friendly empty-state homepage) and `demolab test` passes — report the result
      in one line, don't make a ceremony of it. If either fails, fix it before going on: nothing
      of theirs gets built on a broken scaffold.
    - **Dev server:** **don't run this yourself — hand it to them.** Ask them to open a *second
-     terminal* at the repo root and run `task dev`. A server you background from a tool call is a
+     terminal* at the repo root and run `demolab dev`. A server you background from a tool call is a
      weak pattern everywhere and an outright hazard under managed/detached shells (it can be killed
      when the tool call ends); a server in *their* terminal is session-lived by construction, shows
      them its own output and errors, and teaches the command they'll use every day. It prints
@@ -93,14 +91,14 @@ stop: you are freestyling, not following this runbook.
      then present the URL **prominently** and ask them to open it — they should see the empty-state
      homepage ("your lab is ready"). It stays up for the whole session, so their experiment and
      branding render live. **Headless run** (cloud/autonomous, no human at a terminal)? Skip the
-     dev server entirely — nobody's opening the URL — and rely on `task build` for rendering.
+     dev server entirely — nobody's opening the URL — and rely on `demolab build` for rendering.
    - **Editor:** offer once — `code .` / `cursor .` / their `$EDITOR` — unless they're already
      in one. Walk the tree in a sentence: `writings/` (prose), `experiments/` (runners),
      `tools/` (reusable science), `artifacts/` (the record). Don't gate on it.
    - **Sandboxed / locked-down environments:** if `uv` can't write its default cache (e.g.
      `AppData\Local\uv` on Windows), set `UV_CACHE_DIR=.uv-cache`; if pytest can't reach the
-     system temp dir, point `TMP`/`TEMP` at a repo-local folder. `task install` and the first
-     `task build` download packages (PyPI + Typst universe), so a network-restricted agent
+     system temp dir, point `TMP`/`TEMP` at a repo-local folder. `demolab install` and the first
+     `demolab build` download packages (PyPI + Typst universe), so a network-restricted agent
      needs those runs approved.
 
 2. **First experiment — theirs** (the heart of the flow; one open question, shaped so no one
@@ -145,9 +143,9 @@ stop: you are freestyling, not following this runbook.
        (HTML only).
      - **Only if reuse was confirmed**, add the tool first: `tools/<name>/tool.py` (model
        `scaffold/demo/tools/neuron/tool.py`) — `setup_run_dir`/`write_output`, the data + a
-       `manifest` of metrics, **data not plots**, plus `test_<tool>.py` (`task test` green). The
+       `manifest` of metrics, **data not plots**, plus `test_<tool>.py` (`demolab test` green). The
        runner then calls its CLI.
-   - `task run -- expNNN` — it rebuilds live in the dev server. Present the new page's URL
+   - `demolab run expNNN` — it rebuilds live in the dev server. Present the new page's URL
      **prominently**, have them open the page and its PDF. Their science, on a published page,
      minutes in.
 
@@ -165,16 +163,16 @@ stop: you are freestyling, not following this runbook.
    tagline, book/PDF title (defaults from the name), and **author + contact** (offer to pull
    from git config — they render as a byline under the homepage title and an
    `<meta name="author">`; contact, if given, links the byline). The engine defaults any key
-   you omit and updates never touch it; `task dev` hot-reloads, so they watch it change. Deeper
+   you omit and updates never touch it; `demolab dev` hot-reloads, so they watch it change. Deeper
    theming (`style.css`, `favicon.svg`) lives inside the black box `demolab-engine/build/` —
    leave it as advanced.
 
 5. **Publish to GitHub Pages?** *"Free, unless the repo is private."* Default yes; if no, skip —
-   it all works locally. If yes: create + push a GitHub repo (`gh`), run `task deploy-setup`
+   it all works locally. If yes: create + push a GitHub repo (`gh`), run `demolab deploy-setup`
    (drops the deploy workflows — one supported path, no options), **offer a custom domain**
    (default `*.github.io`; if custom, write `CNAME` and give the DNS records), then **tell the
    user to flip the Pages setting** (the one UI click you can't do — `deploy-setup` prints the
-   exact setting), and push. Run `task build` first to confirm it compiles; confirm the Action
+   exact setting), and push. Run `demolab build` first to confirm it compiles; confirm the Action
    succeeds and give them the live URL — their experiment, on the internet, citable.
 
 6. **Sign off** — short and warm. The dev server's running and their first result is on a page;
@@ -186,7 +184,7 @@ stop: you are freestyling, not following this runbook.
      from**: `experiments/expNNN.py` (the runner — its `CONFIG` block holds every parameter,
      and every metric on the page is computed here) and `writings/expNNN.typ` (the write-up —
      point at the `json("/artifacts/data/expNNN/numbers.json")` line, so they see the page
-     really is read from the run, not typed). Invite them to poke: edit either file, `task run
+     really is read from the run, not typed). Invite them to poke: edit either file, `demolab run
      -- expNNN`, and the page follows.
    - **Show the full menu** — close by running **HELP**: present *every* runbook and then every
      guide as a **numbered list, one per line with its one-line description**, drawn from the
@@ -210,8 +208,8 @@ the landing site's source — read it for file shapes, never overlay it during o
 - **Triggers** — `GETTING-STARTED`, "how do I get started", "help me set up", "onboard me",
   "walk me through this repo".
 - **Gates** — the step-0 orient + the user's "ready" must land before **any** command (`clone`,
-  `task install`, `task scaffold`, `run`, `dev`). Step 1's quiet verify is a hard gate:
-  **nothing of theirs gets built until `task build` and `task test` are green.** Never pull
+  `demolab install`, `demolab scaffold`, `run`, `dev`). Step 1's quiet verify is a hard gate:
+  **nothing of theirs gets built until `demolab build` and `demolab test` are green.** Never pull
   branding (step 4) or publishing (step 5) forward — the first experiment comes first.
 - **Report & apply** — **conversation-driven, not autonomous.** Orient first, ask the gated
   questions **in order**, wait for each answer before the next, and never scaffold/run/publish
@@ -225,7 +223,7 @@ the landing site's source — read it for file shapes, never overlay it during o
   there's something worth naming and shipping.
 - **Must-ask** (wait for an answer):
   - **Ready to start?** — after the orient. `[0]`
-  - **Install missing toolchain?** — `uv`/`typst`/`go-task`, default yes; skip entirely if all
+  - **Install missing toolchain?** — `uv`/`typst`, default yes; skip entirely if all
     three already resolve. `[1]`
   - **What should your first experiment be?** — open but shaped: their idea · field → three
     numbered starters · bring in code/notebook/paper (→ `MIGRATE-CODE` / `FROM-JUPYTER` /
@@ -249,8 +247,8 @@ the landing site's source — read it for file shapes, never overlay it during o
   — a first experiment computes **inline in the runner**. A `tools/` CLI is only worth it for
   science **reused across multiple experiments/writeups**. Say this to the user, and build a
   tool *only if they confirm reuse* — never manufacture one to satisfy the shape (RULES §4).
-- **Defer** (only if the user raises it): demo content (`task add-demo-content` — the worked
-  example, also viewable at <https://demolab.eoinmurray.info>; `task clear-demo-content`
+- **Defer** (only if the user raises it): demo content (`demolab add-demo-content` — the worked
+  example, also viewable at <https://demolab.eoinmurray.info>; `demolab clear-demo-content`
   undoes it), collections (§6.5), house style (`HOUSESTYLE.local.md`), license (ships MIT).
 - **Instruction, not a choice:** flipping the Pages setting is a GitHub-UI click you can't do —
   tell the user. And commits never record agent authorship (a rule, not a prompt).

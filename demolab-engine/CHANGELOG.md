@@ -9,10 +9,20 @@ Notable changes to the **demolab engine** (`demolab-engine/`). Format follows
 - **minor** — a new backward-compatible capability.
 - **patch** — fixes and tweaks.
 
-The current version lives in [`VERSION`](VERSION); `task version` prints it. On *"update demolab"*
+The current version lives in [`VERSION`](VERSION); `demolab version` prints it. On *"update demolab"*
 the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
+
+### Changed
+- **`demolab` CLI replaces the go-task `Taskfile` — one fewer prerequisite.** The command runner
+  is now a Python console script (root `demolab.py` → `demolab-engine/build/cli.py`), installed
+  into the venv by `uv sync` and invoked as `demolab <command>`. The toolchain drops to just `uv`
+  + `typst` — no more `go-task` (and no winget `Task.Task`, which removes the Windows
+  PATH-restart friction). The command surface is otherwise unchanged, except experiment args lose
+  the `--` (`task run -- expNNN` → `demolab run expNNN`) and `task dev:demo` becomes
+  `demolab dev --demo`. **Migration:** after updating, run `uv sync` once to install the `demolab`
+  command, then use `demolab <command>` wherever you used `task <command>`.
 
 ### Added
 - **Semi-autonomous research programs (AUTORESEARCH).** A new flow for steered-by-day,
@@ -25,7 +35,7 @@ the runbook shows the entries between your version and the latest.
   they cite. DOCTOR gains a one-plan-one-log / every-queued-entry-has-a-kill check; LINT exempts
   the `log` from the prose rules; NEXT reads the `log`'s decision arc. Opt-in and additive:
   nothing changes for a lab that doesn't create a `plan` article.
-- **Per-PR site previews (`deploy.yml` rewrite + new `preview.yml`).** `task deploy-setup` now
+- **Per-PR site previews (`deploy.yml` rewrite + new `preview.yml`).** `demolab deploy-setup` now
   installs two workflows. Production (`deploy.yml`) switched from the GitHub-Actions Pages flow
   to the **branch-based** flow (build main → commit `artifacts/site` to a `gh-pages` branch, via
   `JamesIves/github-pages-deploy-action`, `single-commit`, `clean-exclude: [pr-preview/, CNAME]`).

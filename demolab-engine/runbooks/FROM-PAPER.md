@@ -28,7 +28,7 @@ asserted. A paper is a spec you implement, not copy.
    closest substitute — with the caveat recorded in the writeup.
 
 3. **Build, run, compare.** Scaffold runner + writeup (model on an existing experiment). Stage the
-   reproduced metrics to `numbers.json`, `task run` + `task build`, then **compare against the
+   reproduced metrics to `numbers.json`, `demolab run` + `demolab build`, then **compare against the
    paper's reported value**: does your number / figure match? Report the delta **honestly** — a
    partial or failed reproduction is a *result*. The writeup says what matched, what didn't, and
    every assumption you had to make. **Never hand-type the paper's number as if it were yours** —

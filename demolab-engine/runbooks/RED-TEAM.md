@@ -17,7 +17,7 @@ nobody runs twice. Report *"your caption claims a 2× speedup but `numbers.json`
 
 ## What it does
 
-0. **Build is green.** `task build` must compile and `task test` must pass first — critiquing a
+0. **Build is green.** `demolab build` must compile and `demolab test` must pass first — critiquing a
    broken experiment is noise.
 
 1. **Claim ↔ data cross-check (the core).** Read the writeup's claims against
