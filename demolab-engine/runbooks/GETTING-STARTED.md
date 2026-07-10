@@ -66,17 +66,17 @@ stop: you are freestyling, not following this runbook.
      is already installed or you skip publishing.
    - Then **"Ready?"** — and wait.
 
-1. **Stand the lab up** (you drive; no questions except the install approval). *(Toolchain
+1. **Stand the lab up** (you drive; no questions unless a prerequisite is missing). *(Toolchain
    already present and tree already scaffolded? Acknowledge it and skip to the dev server.)*
-   - **Toolchain:** the repo needs `uv` and `typst`; if either is missing, **offer to
-     install them and, once approved, do it** — macOS: `brew install uv typst`; Linux:
-     `uv` via `curl -LsSf https://astral.sh/uv/install.sh | sh`, typst from the distro or
-     their release pages; Windows: `winget install astral-sh.uv Typst.Typst`.
-     **No package manager** (locked-down or sandboxed machine)? Download the `typst`
-     release binary into a repo-local `.tools/bin/` and put it on PATH — the build prefers
-     `.tools/bin/` over PATH automatically. Confirm each tool resolves. **Windows note:** `winget`
-     edits PATH for *new* shells, so `uv`/`typst` may not resolve in the session that ran the
-     install — restart PowerShell (or use the `.tools/bin/` fallback, which needs no PATH change).
+   - **Toolchain check — the user installs these, not you.** `uv` (Python + deps + the `demolab`
+     command) and `typst` (publishing) are the user's own prerequisites, like a compiler. Check
+     both resolve — `uv --version`, `typst --version`. **If either is missing, don't install it for
+     them:** give the command and **wait for them to run it**, then re-check — macOS
+     `brew install uv typst`; Windows `winget install astral-sh.uv Typst.Typst` (then restart the
+     shell — winget's PATH edit only applies to new shells); Linux/other, `uv` via
+     `curl -LsSf https://astral.sh/uv/install.sh | sh` and `typst` from its release page. A
+     locked-down machine with no package manager can drop the portable `typst` binary into a
+     repo-local `.tools/bin/` (the build prefers it over PATH). Don't proceed until both resolve.
    - **Scaffold:** `uv sync` (installs deps + the `demolab` command), then `demolab scaffold` — the bare structure (`writings/
      experiments/ tools/ artifacts/` + `demolab.yaml`), nothing else. Verify quietly: `demolab build` green (the friendly empty-state homepage) and `demolab test` passes — report the result
      in one line, don't make a ceremony of it. If either fails, fix it before going on: nothing
@@ -217,14 +217,14 @@ the landing site's source — read it for file shapes, never overlay it during o
   numbered list (1, 2, 3…) with the recommended default first and marked, so the user can
   answer with a single digit. Bracketed `[n]` below points at the step where each decision
   lands.
-- **Order of decisions** — ready → (install approval) → what to compute (which settles
+- **Order of decisions** — ready → (prerequisite check) → what to compute (which settles
   fresh-vs-migrate and stack as branches, not questions) → brand → publish. The
   user's own experiment is the spine; config and publishing hang off it afterwards, when
   there's something worth naming and shipping.
 - **Must-ask** (wait for an answer):
   - **Ready to start?** — after the orient. `[0]`
-  - **Install missing toolchain?** — `uv`/`typst`, default yes; skip entirely if all
-    three already resolve. `[1]`
+  - **Missing a prerequisite?** — if `uv` or `typst` doesn't resolve, ask them to install it
+    themselves and wait; skip entirely if both already resolve. `[1]`
   - **What should your first experiment be?** — open but shaped: their idea · field → three
     numbered starters · bring in code/notebook/paper (→ `MIGRATE-CODE` / `FROM-JUPYTER` /
     `FROM-PAPER`). No idea / no field? Fall back to the **Monte Carlo π** starter so no one
