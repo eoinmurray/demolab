@@ -194,7 +194,9 @@ ol.refs .doi:hover { color: var(--ink); }
 .welcome { margin: 0 0 2.25rem; max-width: 36rem; line-height: 1.65; }
 .welcome-body { margin: 0 0 1rem; }
 .welcome-links { margin: 0 0 1.5rem; font-size: var(--fs-small); }
-.welcome-links a { text-decoration: underline; }
+/* The homepage is a .listing page (links unadorned by default), so re-add the underline for
+   links in the landing hero — both the nav row and inline links in the body prose. */
+.welcome-links a, .welcome-body a { text-decoration: underline; }
 .welcome-kicker {
   font-family: var(--mono); font-size: .72rem; color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em; margin: 1.5rem 0 .35rem;
