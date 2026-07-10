@@ -26,8 +26,8 @@ the runbook shows the entries between your version and the latest.
 - **`uv` + `typst` are now the user's own prerequisites — GETTING-STARTED no longer installs
   them.** The onboarding flow *checks* they resolve (`uv --version`, `typst --version`) and, if
   either is missing, asks the user to install it themselves and waits — the agent doesn't run
-  `brew`/`winget` for them. The landing page grew a Prerequisites block with the per-OS install
-  commands so a newcomer sets the toolchain up before cloning.
+  `brew`/`winget` for them. The landing page grew a Prerequisites block linking uv's and typst's
+  install pages so a newcomer sets the toolchain up before cloning.
 
 ### Added
 - **Semi-autonomous research programs (AUTORESEARCH).** A new flow for steered-by-day,

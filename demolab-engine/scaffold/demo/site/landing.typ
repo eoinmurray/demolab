@@ -21,13 +21,10 @@
       link("documentation.html", "Documentation")
     })
     html.elem("p", attrs: (class: "welcome-kicker"), [Prerequisites — install these yourself first])
-    html.elem("div", attrs: (class: "welcome-cmd"), {
-      html.elem("div", attrs: (class: "welcome-os"), [macOS / Linux])
-      html.elem("pre", "brew install uv typst")
-    })
-    html.elem("div", attrs: (class: "welcome-cmd"), {
-      html.elem("div", attrs: (class: "welcome-os"), [Windows])
-      html.elem("pre", "winget install astral-sh.uv Typst.Typst")
+    html.elem("p", attrs: (class: "welcome-links"), {
+      link("https://docs.astral.sh/uv/getting-started/installation/", "uv")
+      [ · ]
+      link("https://github.com/typst/typst#installation", "typst")
     })
     html.elem("p", attrs: (class: "welcome-kicker"), [Then — paste into your coding agent])
     html.elem("div", attrs: (class: "welcome-cmd"), {
