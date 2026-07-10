@@ -46,6 +46,8 @@ jobs:
         run: |
           rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
           rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+          # Same landing-only config as production (landing.yml), so the preview matches.
+          cp demolab-engine/scaffold/demo/site/demolab.yaml ./demolab.yaml
           python3 demolab-engine/build/build.py
 
       # Deploy artifacts/site (the raw built demo — no CNAME/installers; those only belong at the

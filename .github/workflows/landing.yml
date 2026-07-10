@@ -50,6 +50,9 @@ jobs:
           # and the demo ships its rendered figures/videos, so no uv, runners, or deps are needed.
           rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
           rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+          # The landing-only config (demo + marketing welcome hero) — kept under site/ so the
+          # add-demo-content overlay never puts it in a user's lab.
+          cp demolab-engine/scaffold/demo/site/demolab.yaml ./demolab.yaml
           python3 demolab-engine/build/build.py
 
       - name: Assemble the Pages tree (demo at /, CNAME at root)

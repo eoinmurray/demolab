@@ -56,6 +56,16 @@ the runbook shows the entries between your version and the latest.
   `demolab-engine/scaffold/demo/site/` (served at the Pages root alongside the demo).
   `task add-demo-content` skips `site/` so it doesn't land in a user's lab root.
 
+### Fixed
+- **The upstream marketing homepage no longer leaks into user labs.** `task add-demo-content`
+  copied `scaffold/demo/demolab.yaml` — which carried the demolab.eoinmurray.info `welcome:`
+  hero and `hide-directory: true` — over the lab's root config, so a fresh lab's homepage was
+  the upstream landing page (own collections hidden), and `task clear-demo-content` didn't undo
+  it. The hero now lives in a landing-only `scaffold/demo/site/demolab.yaml` (site/ is excluded
+  from the overlay), applied only by the Pages deploy; the demo config a user receives is
+  branding + demo collections. Build tests now pin both: user fixture gets no hero and a
+  visible directory, landing fixture gets the hero.
+
 ### Removed
 - **The one-line install scripts are retired.** `install.sh` / `install.ps1` (and their
   end-to-end tests) are gone; the agent-based install is the one supported path — open a coding
