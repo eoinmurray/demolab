@@ -35,7 +35,7 @@ tasks:
   add-demo-content:
     desc: "🏗  Overlay the worked demo (experiments + writeups + artifacts) onto the scaffolded structure"
     silent: true
-    deps: [scaffold]  # idempotent, so this works on a bare clone and layers cleanly if already scaffolded
+    deps: [scaffold] # idempotent, so this works on a bare clone and layers cleanly if already scaffolded
     cmds:
       - |
         # Overlay the committed demo (the engine's own smoke-test fixture) on top of the skeleton.
@@ -98,7 +98,7 @@ tasks:
       # failed compile as a full-screen overlay in the browser instead of only the terminal.
       - uv run python demolab-engine/build/devserver.py {{.CLI_ARGS}}
 
-  dev:demo-site:
+  dev:demo:
     desc: "🔎 Serve the shipped demo (demolab-engine/scaffold/demo) via the live engine — no root pollution"
     cmds:
       - |

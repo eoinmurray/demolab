@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 # Content root. Normally the repo root (this file is demolab-engine/build/); override with
-# DEMOLAB_ROOT (e.g. demolab-engine/scaffold/demo for `task dev:demo-site`). When the root is the
+# DEMOLAB_ROOT (e.g. demolab-engine/scaffold/demo for `task dev:demo`). When the root is the
 # shipped demo, writings/data/config are read from there directly; Typst --root stays at the real
 # repo checkout so engine paths resolve, with content-prefix/build-root passed as --input.
 REPO = Path(__file__).resolve().parents[2]
