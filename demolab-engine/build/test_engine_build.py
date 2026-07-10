@@ -63,7 +63,7 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert "Your lab is ready" not in index, "demo has content, so no empty state"
     # The marketing hero is landing-only (site/landing.typ) — a user's lab must get a
     # normal homepage: no hero, collection directory visible.
-    assert "paste into your coding agent" not in index, "landing hero must NOT land in a user lab"
+    assert "paste this into your coding agent" not in index, "landing hero must NOT land in a user lab"
     assert '<div class="welcome"' not in index, "no landing hero markup in a user lab"
     assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
     entry = (site / "exp000.html").read_text()
@@ -80,7 +80,7 @@ def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
     _build(root)
 
     index = (root / "artifacts" / "site" / "index.html").read_text()
-    assert "paste into your coding agent" in index, "landing hero renders on the landing"
+    assert "paste this into your coding agent" in index, "landing hero renders on the landing"
     assert "Open source, MIT licensed" in index, "landing footer renders"
     assert '<ul class="coll-list"' not in index, "the landing replaces the collection directory"
 

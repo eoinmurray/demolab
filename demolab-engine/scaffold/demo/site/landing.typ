@@ -10,8 +10,8 @@
 #let body = {
   html.elem("div", attrs: (class: "welcome"), {
     html.elem("p", attrs: (class: "welcome-body"), [
-      A lab notebook for computational science — reproducible, provenance-stamped results,
-      published to web and PDF, run by a coding agent instead of a build system.
+      Reproducible, provenance-stamped results — published to web and PDF, run by a coding
+      agent instead of a build system.
     ])
     html.elem("p", attrs: (class: "welcome-links"), {
       link("https://github.com/eoinmurray/demolab", "GitHub")
@@ -20,13 +20,14 @@
       [ · ]
       link("documentation.html", "Documentation")
     })
-    html.elem("p", attrs: (class: "welcome-kicker"), [Prerequisites — install these yourself first])
-    html.elem("p", attrs: (class: "welcome-links"), {
+    html.elem("p", attrs: (class: "welcome-kicker"), [Get started])
+    html.elem("p", attrs: (class: "welcome-body"), {
+      [Install ]
       link("https://docs.astral.sh/uv/getting-started/installation/", "uv")
-      [ · ]
+      [ and ]
       link("https://github.com/typst/typst#installation", "typst")
+      [, then paste this into your coding agent:]
     })
-    html.elem("p", attrs: (class: "welcome-kicker"), [Then — paste into your coding agent])
     html.elem("div", attrs: (class: "welcome-cmd"), {
       html.elem("pre", "Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.")
     })
