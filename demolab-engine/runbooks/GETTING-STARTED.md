@@ -35,6 +35,11 @@ orient and the user's "ready". If you catch yourself doing several things then r
 stop: you are freestyling, not following this runbook.
 
 **Ground rules (self-contained — you need nothing else to run this):**
+- **Signpost every step.** As you start each step, tell the user where they are and what's next
+  in a short clause, so a ten-minute flow never feels open-ended — e.g. *"Lab's up (1/6) — next
+  we build your first experiment."* The six steps are: **1** stand the lab up · **2** first
+  experiment · **3** make it permanent · **4** brand · **5** publish · **6** sign off. Don't
+  turn it into ceremony; one clause at each transition is enough.
 - **The repo must be the user's own copy.** If you arrived with just a URL and an empty folder,
   clone + *degit* it first, so there's **no `origin` remote** pointing at upstream and the
   upstream Pages workflow is gone: `git clone --depth 1 https://github.com/eoinmurray/demolab .
@@ -54,7 +59,8 @@ stop: you are freestyling, not following this runbook.
 0. **Orient, then get the go-ahead.** Before touching anything, in a few sentences:
    - **The arc** — "I'll stand your lab up, then we build your first experiment together and you
      watch it become a page — figures, numbers, PDF, all computed from the run. Then a quick
-     brand, and publishing if you want it. Mostly me working; you answer three questions."
+     brand, and publishing if you want it. Mostly me working — you make three real calls (ready,
+     what to compute, whether to publish); everything else I default and tell you what I picked."
    - **What to have handy** — a first thing to compute (or code/a notebook/a paper to bring in —
      and if you have neither, I'll suggest starters); a GitHub account if you'd like it online.
    - **How long** — about ten minutes to your first result on a live page; less if the toolchain
@@ -92,14 +98,20 @@ stop: you are freestyling, not following this runbook.
    freezes on it). Ask what they want to compute, and offer the three doors in one breath:
    *"What should your first experiment be? Name anything small, or tell me your field and I'll
    suggest a few starters — or point me at existing code, a notebook, or a paper and we'll bring
-   that in instead."*
+   that in instead. No idea? I've got a safe default ready."*
    - **Starters** (if they want suggestions): ask their field, then offer **three numbered
      one-liners, smallest first** — each an afternoon-small classic with one obvious parameter
-     to vary later in step 3. Calibrate to the field; canonical examples: a damped pendulum's
-     amplitude decay (physics), a logistic-map bifurcation sweep (dynamics), an
+     they can vary on their own later. Calibrate to the field; canonical examples: a damped
+     pendulum's amplitude decay (physics), a logistic-map bifurcation sweep (dynamics), an
      integrate-and-fire neuron's f–I curve (neuro), an SIR epidemic peak vs `R₀` (epi/bio), a
      random walk's mean-squared displacement (stats/CS). Whichever they pick is built as **their
      experiment, in their repo** — a starter is a first experiment, not a demo.
+   - **Universal backup** (no field, "not sure", or nothing above lands): offer a **Monte Carlo
+     estimate of π** — throw `N` random points at the unit square, count how many fall inside the
+     quarter-circle, `π ≈ 4 · inside / N`. It's field-agnostic, genuinely small, has one obvious
+     knob (`N` → a tighter estimate), and shows off the seed + provenance machinery cleanly.
+     Always keep it in your back pocket as the fourth, numbered option so no one leaves step 2
+     empty-handed.
    - **Bringing something in?** Existing codebase → [`MIGRATE-CODE.md`](MIGRATE-CODE.md); a
      notebook → [`FROM-JUPYTER.md`](FROM-JUPYTER.md); a paper → [`FROM-PAPER.md`](FROM-PAPER.md).
      Land the **first** experiment via that runbook (same live-page payoff as below), and set
@@ -130,14 +142,14 @@ stop: you are freestyling, not following this runbook.
      **prominently**, have them open the page and its PDF. Their science, on a published page,
      minutes in.
 
-3. **Touch it** (this is the moment the whole flow exists for — do not skip it). Pick the
-   experiment's most meaningful parameter and invite them: *"change the damping / the input
-   current / `R₀` — or tell me a value and I'll set it."* Then `task run -- expNNN` again and
-   have them watch the page: **the figure redraws and the numbers change, and no prose was
-   touched.** Say the rule out loud, once: *nothing on the page is typed by hand — write-ups
-   read the run, so results can't drift from the code.* Then make it permanent: commit (as
-   them), and run once more so the provenance footer on the page reads **clean** — point it
-   out: every result carries the exact commit that produced it.
+3. **Make it permanent** (don't skip it — this is where the core contract lands). Their page is
+   already on screen from step 2. Say the rule out loud, once: *nothing on that page is typed by
+   hand — the write-up reads the run's `numbers.json`, so the prose, tables, and captions can't
+   drift from what the code computed.* **Don't ask them to change a parameter and rerun** —
+   building the experiment already earned the payoff, and an interactive tweak is friction, not
+   teaching; they'll vary parameters on their own once it's theirs. Then make it permanent:
+   commit (as them), and run once more so the provenance footer on the page reads **clean** —
+   point it out: every result carries the exact commit that produced it.
 
 4. **Brand it** (one pass, offer-with-defaults — their result is on screen; now put their name
    on it). Gather, then write the optional root `demolab.yaml`: site name (default "Demolab"),
@@ -162,22 +174,25 @@ stop: you are freestyling, not following this runbook.
      the dev server's up for live preview.
    - **Open the files behind it** — get them into their editor (`code .` / `cursor .` / their
      `$EDITOR`, unless they're already in one) and **link the exact pair their result came
-     from**: `experiments/expNNN.py` (the runner — the parameter they changed in step 3 is
-     right there) and `writings/expNNN.typ` (the write-up — point at the
-     `json("/artifacts/data/expNNN/numbers.json")` line, so they see the page really is read
-     from the run, not typed). Invite them to poke: edit either file, `task run -- expNNN`,
-     and the page follows.
-   - **Guides** (`demolab-engine/guides/`) are the reference: RULES · GLOSSARY · HOUSESTYLE ·
-     STRUCTURE.
-   - **Runbooks** (`demolab-engine/runbooks/`) do the common jobs — trigger any by just its name
-     (**NEXT** suggests what to run next, **LINT**, **DOCTOR**, **RED-TEAM**, **TOUR**,
-     **FROM-PAPER**, …). Say **HELP** anytime to see the full menu.
+     from**: `experiments/expNNN.py` (the runner — its `CONFIG` block holds every parameter,
+     and every metric on the page is computed here) and `writings/expNNN.typ` (the write-up —
+     point at the `json("/artifacts/data/expNNN/numbers.json")` line, so they see the page
+     really is read from the run, not typed). Invite them to poke: edit either file, `task run
+     -- expNNN`, and the page follows.
+   - **Show the full menu** — close by running **HELP**: present *every* runbook and then every
+     guide as a **numbered list, one per line with its one-line description**, drawn from the
+     tables in [`../../AGENTS.md`](../../AGENTS.md) (don't hand-summarise from memory or trim to
+     a favourite few — the whole point is they see everything demolab can do next). Runbooks
+     first (**NEXT** to pick the next experiment, **TOUR**, **MIGRATE-CODE**, **FROM-JUPYTER**,
+     **FROM-PAPER**, **LINT**, **DOCTOR**, **RED-TEAM**, **UPDATE**, …), then the guides
+     (**RULES**, **HOUSESTYLE**, **STRUCTURE**, **GLOSSARY**, …). Tell them: **HELP** re-shows
+     this menu anytime, and typing any name in it starts that job.
    - **Ask me anything about the repo** — how it works, where something lives, why a convention
      is the way it is.
 
 Notes: provenance is automatic — each run stamps its git commit into `numbers.json` and the
-page/PDF footer (an uncommitted run stamps *dirty*; step 3 turns that into a teaching moment,
-not a surprise). The demo under `demolab-engine/scaffold/demo/` is engine reference data and
+page/PDF footer (an uncommitted run stamps *dirty*; step 3's commit + clean-provenance rerun
+turns that from a surprise into the point). The demo under `demolab-engine/scaffold/demo/` is engine reference data and
 the landing site's source — read it for file shapes, never overlay it during onboarding.
 
 ---
@@ -196,7 +211,7 @@ the landing site's source — read it for file shapes, never overlay it during o
   answer with a single digit. Bracketed `[n]` below points at the step where each decision
   lands.
 - **Order of decisions** — ready → (install approval) → what to compute (which settles
-  fresh-vs-migrate and stack as branches, not questions) → touch it → brand → publish. The
+  fresh-vs-migrate and stack as branches, not questions) → brand → publish. The
   user's own experiment is the spine; config and publishing hang off it afterwards, when
   there's something worth naming and shipping.
 - **Must-ask** (wait for an answer):
@@ -205,15 +220,14 @@ the landing site's source — read it for file shapes, never overlay it during o
     three already resolve. `[1]`
   - **What should your first experiment be?** — open but shaped: their idea · field → three
     numbered starters · bring in code/notebook/paper (→ `MIGRATE-CODE` / `FROM-JUPYTER` /
-    `FROM-PAPER`). Required, no default. `[2]`
+    `FROM-PAPER`). No idea / no field? Fall back to the **Monte Carlo π** starter so no one
+    freezes here — this is the one question with a safety net, not a hard no-default. `[2]`
   - **Publish to GitHub Pages?** — free unless the repo is private; default yes, if no skip (it
     works locally). `[5]`
 - **Offer-with-a-default** (state it, move on):
   - **Editor** — offer once at step 1 (`code .` / `cursor .`), unless they're already in one;
     at sign-off, prompt again with the concrete pair to explore (`experiments/expNNN.py` +
     `writings/expNNN.typ`). `[1][6]`
-  - **Parameter to vary** — suggest the experiment's most meaningful knob; take theirs if they
-    name one. `[3]`
   - **Branding** (`demolab.yaml`, one pass): site name (default "Demolab") · tagline · book/PDF
     title (from the name) · author + contact (offer git config). `[4]`
   - **Custom domain, or `*.github.io`?** — default github.io; if custom, write `CNAME` and give
@@ -232,8 +246,9 @@ the landing site's source — read it for file shapes, never overlay it during o
 - **Instruction, not a choice:** flipping the Pages setting is a GitHub-UI click you can't do —
   tell the user. And commits never record agent authorship (a rule, not a prompt).
 - **Two things you drive, not ask:** the **dev server** (start it at step 1 and leave it up, so
-  the experiment and branding render live) and the **touch-it moment** (step 3 — never skip it;
-  it's the one minute that teaches the whole contract).
+  the experiment and branding render live) and the **clean-provenance commit** (step 3 — commit
+  as them, rerun so the footer reads clean, and state the no-hand-typing contract; **don't** ask
+  them to vary a parameter and rerun).
 - **Meet the tree where it is.** If the toolchain is already present and the tree already
   scaffolded, **resume at step 2**, acknowledging it ("your lab's already standing — let's get
   your first experiment in") rather than re-running install.
