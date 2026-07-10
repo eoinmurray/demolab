@@ -160,6 +160,13 @@ stop: you are freestyling, not following this runbook.
    tell them in your own words:
    - **It works** — their first experiment is built (and live at `<url>` if they published);
      the dev server's up for live preview.
+   - **Open the files behind it** — get them into their editor (`code .` / `cursor .` / their
+     `$EDITOR`, unless they're already in one) and **link the exact pair their result came
+     from**: `experiments/expNNN.py` (the runner — the parameter they changed in step 3 is
+     right there) and `writings/expNNN.typ` (the write-up — point at the
+     `json("/artifacts/data/expNNN/numbers.json")` line, so they see the page really is read
+     from the run, not typed). Invite them to poke: edit either file, `task run -- expNNN`,
+     and the page follows.
    - **Guides** (`demolab-engine/guides/`) are the reference: RULES · GLOSSARY · HOUSESTYLE ·
      STRUCTURE.
    - **Runbooks** (`demolab-engine/runbooks/`) do the common jobs — trigger any by just its name
@@ -202,7 +209,9 @@ the landing site's source — read it for file shapes, never overlay it during o
   - **Publish to GitHub Pages?** — free unless the repo is private; default yes, if no skip (it
     works locally). `[5]`
 - **Offer-with-a-default** (state it, move on):
-  - **Editor** — offer once at step 1 (`code .` / `cursor .`), unless they're already in one. `[1]`
+  - **Editor** — offer once at step 1 (`code .` / `cursor .`), unless they're already in one;
+    at sign-off, prompt again with the concrete pair to explore (`experiments/expNNN.py` +
+    `writings/expNNN.typ`). `[1][6]`
   - **Parameter to vary** — suggest the experiment's most meaningful knob; take theirs if they
     name one. `[3]`
   - **Branding** (`demolab.yaml`, one pass): site name (default "Demolab") · tagline · book/PDF
