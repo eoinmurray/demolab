@@ -5,7 +5,7 @@ we assemble a throwaway repo (skeleton + demo) in a tmp dir, point `build.py` at
 `DEMOLAB_ROOT`, and assert the compiler emits a real site. The empty case (skeleton only)
 proves a freshly-scaffolded repo builds a friendly empty-state homepage rather than erroring.
 
-Needs the `typst` CLI on PATH (same as `task build`); skipped if it's missing.
+Needs the `typst` CLI on PATH (same as `demolab build`); skipped if it's missing.
 """
 import os
 import shutil
@@ -61,28 +61,28 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     index = (site / "index.html").read_text()
     # ".empty-state" also appears in the inlined stylesheet, so key on the rendered copy.
     assert "Your lab is ready" not in index, "demo has content, so no empty state"
-    # The marketing welcome hero is landing-only (site/demolab.yaml) — a user's lab must get a
+    # The marketing hero is landing-only (site/landing.typ) — a user's lab must get a
     # normal homepage: no hero, collection directory visible.
     assert "paste into your coding agent" not in index, "landing hero must NOT land in a user lab"
-    assert '<div class="welcome"' not in index, "no welcome block in a user lab"
+    assert '<div class="welcome"' not in index, "no landing hero markup in a user lab"
     assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
     entry = (site / "exp000.html").read_text()
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
 
 
 def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
-    """The upstream landing (Pages deploy) applies site/demolab.yaml over the root config —
-    the welcome hero renders and the collection directory is hidden. Mirrors landing.yml."""
+    """The upstream landing (Pages deploy) copies site/landing.typ to the repo root — its
+    body renders as the homepage and the collection directory is replaced. Mirrors landing.yml."""
     root = tmp_path / "repo"
     root.mkdir()
     _assemble(root, demo=True)
-    shutil.copy(SCAFFOLD / "demo" / "site" / "demolab.yaml", root / "demolab.yaml")
+    shutil.copy(SCAFFOLD / "demo" / "site" / "landing.typ", root / "landing.typ")
     _build(root)
 
     index = (root / "artifacts" / "site" / "index.html").read_text()
-    assert "paste into your coding agent" in index, "welcome hero renders on the landing"
-    assert "Open source, MIT licensed" in index, "welcome footer renders"
-    assert '<ul class="coll-list"' not in index, "landing hides the collection directory"
+    assert "paste into your coding agent" in index, "landing hero renders on the landing"
+    assert "Open source, MIT licensed" in index, "landing footer renders"
+    assert '<ul class="coll-list"' not in index, "the landing replaces the collection directory"
 
 
 def test_emitted_html_has_no_root_absolute_urls(tmp_path: Path) -> None:

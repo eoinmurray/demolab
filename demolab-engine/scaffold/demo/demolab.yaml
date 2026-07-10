@@ -1,7 +1,7 @@
-# Shipped demo config — overlays skeleton/demolab.yaml when `task add-demo-content`
+# Shipped demo config — overlays skeleton/demolab.yaml when `demolab add-demo-content`
 # materialises the demo. Lab-facing only: branding + the demo collections. The upstream
-# landing page's welcome hero lives in site/demolab.yaml (excluded from the overlay, applied
-# only by the Pages deploy), so it never lands in a user's lab.
+# landing page's hero lives in site/landing.typ (excluded from the overlay, copied to the
+# root only by the Pages deploy), so it never lands in a user's lab.
 name: Demolab
 book-title: Demolab — the book
 contents-title: Demolab — contents

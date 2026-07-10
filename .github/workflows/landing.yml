@@ -5,7 +5,7 @@ name: Deploy the site (demo at root)
 #   `gh-pages` branch. Branch-based (not the GitHub-Actions Pages flow) so per-PR previews
 #   (landing-preview.yml) can live in the same branch under pr-preview/. Requires the Pages source
 #   set to "Deploy from a branch → gh-pages / (root)". A user's own lab deploy is separate and
-#   opt-in (demolab-engine/deploy/deploy.yml, added by `task deploy-setup`).
+#   opt-in (demolab-engine/deploy/deploy.yml, added by `demolab deploy-setup`).
 on:
   push:
     branches: [main]
@@ -46,13 +46,13 @@ jobs:
       - name: Build the demo with the core engine
         run: |
           # Materialise the shipped demo at the repo root (skeleton + demo overlay), exactly as
-          # `task add-demo-content` does, then compile it with the engine. build.py is stdlib-only
+          # `demolab add-demo-content` does, then compile it with the engine. build.py is stdlib-only
           # and the demo ships its rendered figures/videos, so no uv, runners, or deps are needed.
           rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
           rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
-          # The landing-only config (demo + marketing welcome hero) — kept under site/ so the
-          # add-demo-content overlay never puts it in a user's lab.
-          cp demolab-engine/scaffold/demo/site/demolab.yaml ./demolab.yaml
+          # The landing-only homepage (the marketing hero, a custom landing.typ) — kept under
+          # site/ so the add-demo-content overlay never puts it in a user's lab.
+          cp demolab-engine/scaffold/demo/site/landing.typ ./landing.typ
           python3 demolab-engine/build/build.py
 
       - name: Assemble the Pages tree (demo at /, CNAME at root)

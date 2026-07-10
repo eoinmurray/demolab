@@ -47,7 +47,7 @@ if build.DEMO:
         (ENGINE, "*.py"),
         (build.CONTENT / "artifacts" / "data", "**/*"),
     ]
-    WATCH_FILES = [build.CONTENT / "demolab.yaml"]
+    WATCH_FILES = [build.CONTENT / "demolab.yaml", build.CONTENT / "landing.typ"]
 else:
     WATCH_DIRS = [
         (ROOT / "writings", "*.typ"),                 # entries + decks (content + add/remove)
@@ -57,7 +57,8 @@ else:
         (ENGINE, "*.py"),                             # build.py / devserver.py themselves
         (ROOT / "artifacts" / "data", "**/*"),        # runner outputs (figures, videos, numbers)
     ]
-    WATCH_FILES = [ROOT / "demolab.yaml"]             # optional brand config (may not exist)
+    WATCH_FILES = [ROOT / "demolab.yaml",             # optional brand config (may not exist)
+                   ROOT / "landing.typ"]              # optional custom landing page (ditto)
 POLL_SECONDS = 0.4
 DEBOUNCE_SECONDS = 0.15
 BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow — surface it, don't hang

@@ -26,7 +26,15 @@
 #let brand = default-brand + config
 #let collection-order = config.at("collection-order", default: ())
 #let collection-meta = config.at("collections", default: (:))
-#let welcome = config.at("welcome", default: none)
+
+// The optional custom landing page: a landing.typ at the content root (exporting `#let body`)
+// replaces the homepage's collection directory with its own content. build.py sets has_landing
+// (Typst can't stat). Absent on a normal lab; the upstream Pages deploy copies
+// scaffold/demo/site/landing.typ to the root before building.
+#let landing = if manifest.at("has_landing", default: false) {
+  import content-prefix + "/landing.typ": body
+  body
+} else { none }
 
 // Import each *good* writing dynamically (import paths may be computed — no literal codegen).
 // An entry contributes meta + body; a deck contributes only meta (touying is paged-only, so decks
@@ -62,7 +70,7 @@
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a
 // friendly empty state. Everything else is emitted only when there's content.
 #let all-items = collect-items(entries, decks)
-#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, welcome: welcome)]
+#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, landing: landing)]
 #if all-items.len() > 0 {
   [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta)]]
   // one page per collection (web only — the book/PDFs don't have collection pages)

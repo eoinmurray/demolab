@@ -58,6 +58,16 @@ the runbook shows the entries between your version and the latest.
   > never opted into Pages is unaffected until it runs `task deploy-setup`.
 
 ### Changed
+- **Custom landing page: `landing.typ` replaces the `welcome:` config block.** A `landing.typ`
+  at the repo root exporting `#let body = [...]` now renders as the homepage (web only) in
+  place of the collection directory, below the brand header — full Typst instead of a fixed
+  YAML schema. The `demolab.yaml` `welcome:` key (added in 0.5.2) is gone: `welcome-block` is
+  removed from `lib.typ`, and the landing-only `scaffold/demo/site/demolab.yaml` is deleted
+  (without `welcome:` it duplicated the demo config) — the upstream hero is now
+  `scaffold/demo/site/landing.typ`, copied to the root by the Pages deploy only, so it still
+  never lands in a user's lab. The `.welcome-*` CSS classes remain as building blocks for
+  landing pages. Migration: a lab that set `welcome:` (none are known to) moves the same
+  content into a root `landing.typ`; the key is now silently ignored.
 - **GETTING-STARTED rebuilt around the user's own first experiment.** Onboarding no longer
   overlays the demo into a fresh lab — the lab starts clean, and the finished example is the
   landing site (built from `scaffold/demo/`, which stays as the agent's file-shape reference

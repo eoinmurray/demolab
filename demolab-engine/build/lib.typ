@@ -418,72 +418,11 @@
 // The homepage: a directory of collections (decks fall under `slides` by default), each a link to its
 // own page. Order follows demolab.yaml's `collection-order`; unlisted collections sort
 // after, by first appearance. Entry rows live on the per-collection pages.
-// An optional `welcome` block in demolab.yaml renders a hero above the directory (pitch,
-// install commands, links) — used by the upstream demo site; absent on a normal lab.
-// `welcome.hide-directory: true` stops the homepage after the welcome block (no collection
-// index or page foot) — an upstream-only landing-page mode, not documented in the skeleton.
-#let welcome-block(welcome) = {
-  if welcome == none { return }
-  html.elem("div", attrs: (class: "welcome"), {
-    if welcome.at("body", default: none) != none {
-      for para in welcome.body.trim().split("\n\n") {
-        let t = para.trim()
-        if t.len() > 0 {
-          html.elem("p", attrs: (class: "welcome-body"), t)
-        }
-      }
-    }
-    if welcome.at("links", default: none) != none {
-      html.elem("p", attrs: (class: "welcome-links"), {
-        for (i, l) in welcome.links.enumerate() {
-          if i > 0 { [ · ] }
-          link(l.at("href", default: ""), l.at("label", default: ""))
-        }
-      })
-    }
-    let inst = welcome.at("install", default: none)
-    if inst != none {
-      if inst.at("label", default: none) != none {
-        html.elem("p", attrs: (class: "welcome-kicker"), inst.label)
-      }
-      if inst.at("unix", default: none) != none {
-        html.elem("div", attrs: (class: "welcome-cmd"), {
-          html.elem("div", attrs: (class: "welcome-os"), [macOS / Linux])
-          html.elem("pre", inst.unix)
-        })
-      }
-      if inst.at("windows", default: none) != none {
-        html.elem("div", attrs: (class: "welcome-cmd"), {
-          html.elem("div", attrs: (class: "welcome-os"), [Windows])
-          html.elem("pre", inst.windows)
-        })
-      }
-    }
-    let prompt = welcome.at("prompt", default: none)
-    if prompt != none {
-      if prompt.at("label", default: none) != none {
-        html.elem("p", attrs: (class: "welcome-kicker"), prompt.label)
-      }
-      if prompt.at("text", default: none) != none {
-        html.elem("div", attrs: (class: "welcome-cmd"), {
-          html.elem("pre", prompt.text)
-        })
-      }
-    }
-    let foot = welcome.at("footer", default: none)
-    if foot != none {
-      html.elem("p", attrs: (class: "welcome-foot"), {
-        if type(foot) == dictionary and foot.at("href", default: none) != none {
-          link(foot.href, foot.at("text", default: foot.href))
-        } else {
-          foot
-        }
-      })
-    }
-  })
-}
-
-#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), welcome: none) = {
+// An optional landing.typ at the content root (see main.typ) passes its `body` in as
+// `landing`; it replaces the collection directory below the brand header — a full custom
+// landing page. Used by the upstream demo site; absent on a normal lab. The landing body
+// owns its markup (html.elem); the .welcome-* classes in style.css are there to reuse.
+#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), landing: none) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
@@ -510,7 +449,7 @@
     if items.len() == 0 {
       // Freshly-scaffolded repo — no writings yet. This is the first thing a (often non-technical)
       // user sees, so keep it warm and jargon-free: point them at their coding agent, not at file
-      // paths and task commands (those live in the README for anyone doing it by hand).
+      // paths and demolab commands (those live in the README for anyone doing it by hand).
       html.elem("div", attrs: (class: "empty-state"), {
         html.elem("p", attrs: (class: "empty-lead"), [Your lab is ready.])
         html.elem("p", [
@@ -519,18 +458,16 @@
           you can see how it all fits together.
         ])
       })
+    } else if landing != none {
+      landing
     } else {
-      welcome-block(welcome)
-      let hide-dir = welcome != none and welcome.at("hide-directory", default: false)
-      if not hide-dir {
-        collection-index(colls, collection-meta)
-        html.elem("p", attrs: (class: "page-foot"), {
-          link("all.html", "Browse all entries")
-          [ · also available as a ]
-          link("pdfs/book.pdf", "single pdf")
-          [.]
-        })
-      }
+      collection-index(colls, collection-meta)
+      html.elem("p", attrs: (class: "page-foot"), {
+        link("all.html", "Browse all entries")
+        [ · also available as a ]
+        link("pdfs/book.pdf", "single pdf")
+        [.]
+      })
     }
   })
 }

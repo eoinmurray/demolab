@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 # Content root. Normally the repo root (this file is demolab-engine/build/); override with
-# DEMOLAB_ROOT (e.g. demolab-engine/scaffold/demo for `task dev:demo`). When the root is the
+# DEMOLAB_ROOT (e.g. demolab-engine/scaffold/demo for `demolab dev --demo`). When the root is the
 # shipped demo, writings/data/config are read from there directly; Typst --root stays at the real
 # repo checkout so engine paths resolve, with content-prefix/build-root passed as --input.
 REPO = Path(__file__).resolve().parents[2]
@@ -128,12 +128,14 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
         if i in broken:
             entry["error"] = broken[i]
         entries.append(entry)
-    # Signal whether the optional root demolab.yaml exists — Typst can't stat files, so
-    # main.typ only reads it (for branding) when this flag says it's there.
+    # Signal whether the optional root demolab.yaml / landing.typ exist — Typst can't stat
+    # files, so main.typ only reads them (branding / the custom landing page) when these
+    # flags say they're there.
     manifest = {
         "entries": entries,
         "decks": [{"id": d} for d in deck_ids],
         "has_brand_config": (CONTENT / "demolab.yaml").exists(),
+        "has_landing": (CONTENT / "landing.typ").exists(),
         "content_prefix": content_prefix(),
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
@@ -252,12 +254,12 @@ def main() -> None:
     # --skip-decks reuses the deck PDFs already in temp/bundle/decks/ instead of recompiling
     # them. The dev server passes it when a change touched no deck source or data asset, so a
     # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
-    # those PDFs exist (a full build ran first); a bare `task build` never skips.
+    # those PDFs exist (a full build ran first); a bare `demolab build` never skips.
     skip_decks = "--skip-decks" in sys.argv
     ids = discover()
     _warn_if_content_misplaced(ids)
     deck_ids = discover_decks()
-    # Zero writings is a valid state (a freshly `task scaffold`-ed repo): main.typ renders
+    # Zero writings is a valid state (a freshly `demolab scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
     BUILD.mkdir(parents=True, exist_ok=True)
     # Compile decks first so their PDFs exist for the asset embeds in main.typ (skip reuses the
@@ -282,8 +284,8 @@ def main() -> None:
         shutil.copy(pdf, PDFS / pdf.name)
     # The verbose detail (which ids built / stubbed, where the PDFs mirror) goes on its own line;
     # the CONCISE summary is printed LAST, because the dev-server watch loop echoes only build.py's
-    # final stdout line on each rebuild. So a `task dev` session shows a terse one-liner, while a
-    # one-shot `task build` still prints the full id list above it.
+    # final stdout line on each rebuild. So a `demolab dev` session shows a terse one-liner, while a
+    # one-shot `demolab build` still prints the full id list above it.
     print(f"  entries: {', '.join(good)}"
           + (f"  ·  decks: {', '.join(good_decks)}" if good_decks else "")
           + (f"  ·  ⚠ stubbed: {', '.join(sorted(broken))}" if broken else "")

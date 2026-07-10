@@ -13,15 +13,10 @@ description: A lab notebook for computational science — reproducible results, 
 # author: Your Name
 # contact: you@example.com
 
-# Optional homepage welcome — a hero above the collection directory (web only). Absent ⇒ the
-# homepage is title + tagline + collections, as today. Keys: `body` (multi-paragraph prose),
-# `links` ([{label, href}, …]), `install` ({label?, unix?, windows?}), `prompt` ({label?, text?}),
-# `footer` (plain string or {text, href}). See scaffold/demo/demolab.yaml for a worked example.
-# welcome:
-#   body: |
-#     Your pitch here.
-#   install:
-#     unix: curl -LsSf https://example.com/install.sh | sh
+# Optional custom landing page — not a config key: create a `landing.typ` at the repo root
+# exporting `#let body = [...]` and the homepage renders it (web only) instead of the collection
+# directory, below the title/tagline/byline above. Delete the file to get the directory back.
+# See demolab-engine/scaffold/demo/site/landing.typ for a worked example.
 
 # Homepage collections. Entries are grouped by their `collection:` meta field; this
 # registry gives each collection a display label + description and sets the order. A
