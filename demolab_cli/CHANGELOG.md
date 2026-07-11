@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.4] — 2026-07-11
+
+### Changed
+- **`demolab init`'s sign-off is two lines, not a checklist**: preview (`uv run demolab
+  dev` — uv installs on first run, so the separate `uv sync` step is gone) or a ready-made
+  prompt to paste into a coding agent, which drives GETTING-STARTED conversationally.
+
 ## [1.1.3] — 2026-07-11
 
 ### Changed
