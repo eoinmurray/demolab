@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.5] — 2026-07-11
+
+### Changed
+- **`demolab init` signs off with the two-tab picture**: dev server in one terminal tab,
+  coding agent in the other with a one-line paste-ready prompt. (Refines 1.1.4's wording.)
+
 ## [1.1.4] — 2026-07-11
 
 ### Changed
