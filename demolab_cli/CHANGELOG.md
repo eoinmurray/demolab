@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.2] — 2026-07-11
+
+### Fixed
+- **`demolab init` refuses any non-empty directory**, not just ones where a template file
+  collides — running it in `$HOME` previously only failed by the luck of a `.gitignore`
+  collision. `.git`/`.DS_Store` don't count as content; `--force` remains the explicit
+  override for laying a lab over an existing directory.
+
 ## [1.1.1] — 2026-07-11
 
 ### Changed

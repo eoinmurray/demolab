@@ -74,6 +74,20 @@ def test_init_refuses_inside_existing_lab(fresh_dir, capsys):
         cli.main(["init"])
 
 
+def test_init_refuses_any_nonempty_dir(fresh_dir):
+    (fresh_dir / "unrelated.txt").write_text("stuff")  # no template collision — still refused
+    with pytest.raises(SystemExit):
+        cli.main(["init"])
+    assert not (fresh_dir / "demolab.yaml").exists(), "nothing was laid down"
+
+
+def test_init_tolerates_git_droppings(fresh_dir):
+    (fresh_dir / ".git").mkdir()
+    (fresh_dir / ".DS_Store").write_text("")
+    assert cli.main(["init"]) == 0
+    assert (fresh_dir / "demolab.yaml").is_file()
+
+
 def test_init_refuses_collisions_without_force(fresh_dir):
     (fresh_dir / "README.md").write_text("mine")
     with pytest.raises(SystemExit):

@@ -105,11 +105,15 @@ def cmd_init(args: argparse.Namespace) -> int:
     if existing is not None and not args.force:
         sys.exit(f"demolab init: already inside a lab ({existing}) — use `demolab scaffold` to repair "
                  "its structure, or --force to lay a new lab over this directory anyway.")
+    # A lab is born in an EMPTY directory — never sprayed over existing content (imagine
+    # running this in $HOME). Version-control droppings don't count as content.
+    stray = sorted(p.name for p in target.iterdir() if p.name not in (".git", ".DS_Store"))
+    if stray and not args.force:
+        shown = ", ".join(stray[:5]) + (f", … ({len(stray)} entries)" if len(stray) > 5 else "")
+        sys.exit(f"demolab init: this directory isn't empty ({shown}).\n"
+                 "  Start your lab in a fresh directory (mkdir my-lab && cd my-lab), or rerun "
+                 "with --force to lay the lab over what's here.")
     root_src = _paths.SCAFFOLD / "root"
-    collisions = [n for n in (*_ROOT_TEMPLATES, ".gitignore") if (target / n).exists()]
-    if collisions and not args.force:
-        sys.exit("demolab init: refusing to overwrite " + ", ".join(collisions)
-                 + " — rerun with --force to replace them.")
     # Root framework files. The pyproject template's project name becomes the directory's.
     for name in _ROOT_TEMPLATES:
         text = (root_src / name).read_text(encoding="utf-8")
@@ -389,7 +393,7 @@ def _build_parser() -> argparse.ArgumentParser:
         sp = sub.add_parser(name, help=help_by_name[name])
         if name == "init":
             sp.add_argument("--force", action="store_true",
-                            help="overwrite root files that already exist / init inside an existing lab")
+                            help="init into a non-empty directory / inside an existing lab (overwrites colliding root files)")
         elif name == "docs":
             sp.add_argument("name", nargs="?", help="runbook or guide name, e.g. GETTING-STARTED, RULES, CHANGELOG")
             sp.add_argument("--print", action="store_true", help="print the document instead of its path")
