@@ -38,18 +38,18 @@ def test_stage_materialises_and_stamps(tmp_path):
     dot = _paths.stage(tmp_path)
     assert (dot / "lib.typ").is_file()
     assert (dot / "style.css").is_file()
-    assert (dot / "VERSION").read_text().strip() == _paths.VERSION
+    assert (dot / "VERSION").read_text(encoding="utf-8").strip() == _paths.VERSION
 
 
 def test_stage_is_idempotent_and_refreshes_on_version_change(tmp_path):
     dot = _paths.stage(tmp_path)
     (dot / "lib.typ").write_text("clobbered")
     _paths.stage(tmp_path)  # same stamp -> no-op, clobber survives
-    assert (dot / "lib.typ").read_text() == "clobbered"
+    assert (dot / "lib.typ").read_text(encoding="utf-8") == "clobbered"
     (dot / "VERSION").write_text("0.0.1\n")  # stale stamp -> full refresh
     _paths.stage(tmp_path)
-    assert (dot / "lib.typ").read_text() != "clobbered"
-    assert (dot / "VERSION").read_text().strip() == _paths.VERSION
+    assert (dot / "lib.typ").read_text(encoding="utf-8") != "clobbered"
+    assert (dot / "VERSION").read_text(encoding="utf-8").strip() == _paths.VERSION
 
 
 # ── init ────────────────────────────────────────────────────────────────────
@@ -63,9 +63,9 @@ def test_init_lays_down_a_lab(fresh_dir):
     for d in ("writings", "experiments", "tools", "artifacts"):
         assert (fresh_dir / d).is_dir(), d
     # project name derives from the directory
-    assert 'name = "lab"' in (fresh_dir / "pyproject.toml").read_text()
+    assert 'name = "lab"' in (fresh_dir / "pyproject.toml").read_text(encoding="utf-8")
     # no stale references to the vendored-engine world
-    assert "demolab-engine" not in (fresh_dir / "AGENTS.md").read_text()
+    assert "demolab-engine" not in (fresh_dir / "AGENTS.md").read_text(encoding="utf-8")
 
 
 def test_init_refuses_inside_existing_lab(fresh_dir, capsys):
@@ -78,13 +78,13 @@ def test_init_refuses_collisions_without_force(fresh_dir):
     (fresh_dir / "README.md").write_text("mine")
     with pytest.raises(SystemExit):
         cli.main(["init"])
-    assert (fresh_dir / "README.md").read_text() == "mine"
+    assert (fresh_dir / "README.md").read_text(encoding="utf-8") == "mine"
 
 
 def test_init_force_overwrites(fresh_dir):
     (fresh_dir / "README.md").write_text("mine")
     assert cli.main(["init", "--force"]) == 0
-    assert (fresh_dir / "README.md").read_text() != "mine"
+    assert (fresh_dir / "README.md").read_text(encoding="utf-8") != "mine"
 
 
 def test_init_refuses_in_source_repo(tmp_path, monkeypatch):
@@ -99,7 +99,7 @@ def test_init_refuses_in_source_repo(tmp_path, monkeypatch):
 def test_demo_manifest_covers_demo_content():
     """Every content file the demo overlay lays into a lab must be removable again:
     covered by a demo-manifest.json path (exactly, or via a listed parent dir)."""
-    manifest = json.loads((_paths.SCAFFOLD / "demo-manifest.json").read_text())
+    manifest = json.loads((_paths.SCAFFOLD / "demo-manifest.json").read_text(encoding="utf-8"))
     covered = set(manifest["paths"])
     demo = _paths.SCAFFOLD / "demo"
     missing = []
@@ -127,7 +127,7 @@ def test_demo_manifest_covers_demo_content():
 def test_root_templates_reference_package_world():
     root = _paths.SCAFFOLD / "root"
     for name in ("AGENTS.md", "CLAUDE.md", "README.md", "pyproject.toml", "gitignore"):
-        text = (root / name).read_text()
+        text = (root / name).read_text(encoding="utf-8")
         assert "demolab-engine" not in text, f"{name} references the dead vendored-engine layout"
-    assert "demolab-cli" in (root / "pyproject.toml").read_text()
-    assert ".demolab/" in (root / "gitignore").read_text()
+    assert "demolab-cli" in (root / "pyproject.toml").read_text(encoding="utf-8")
+    assert ".demolab/" in (root / "gitignore").read_text(encoding="utf-8")
