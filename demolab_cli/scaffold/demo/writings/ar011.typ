@@ -4,6 +4,7 @@
   description: "Where to get help with demolab, how to report a bug, and what to include so it's answerable fast.",
   collection: "documentation",
   status: "final",
+  order: 16,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/SUPPORT.md"

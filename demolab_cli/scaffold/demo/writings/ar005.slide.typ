@@ -33,8 +33,8 @@
 // balanced block, while a nearly-full slide keeps its title near the top (no room to float).
 #set align(horizon)
 
-// Real run data for the table / figure / big-number slides — read from the record, never typed.
-#let run = json(data-file("exp000/numbers.json"))
+// In a real entry, the table / figure / big-number slides read their numbers from the run record
+// (never typed). This gallery has no run attached, so it uses fixed sample values inline.
 #let cap(body) = text(size: 14pt, fill: muted)[#body]
 
 // layout: title — opens the deck; mirror the closer so it bookends
@@ -163,19 +163,19 @@ where:
 
 #v(0.5em)
 #align(center)[
-  #image(data-file("exp000/lif.svg"), height: 250pt)
-  #cap[Membrane potential of a single LIF neuron under tonic input; it charges and resets at threshold, firing at #calc.round(run.lif.firing_rate_hz) Hz.]
+  #image(data-file("ar018/swe-bench.svg"), height: 250pt)
+  #cap[Share of SWE-bench Verified issues the coding agent resolves, climbing from 33% in 2024 to 77% in late 2025.]
 ]
 
 // layout: figure-bullets — figure left (~55%), three reading notes right, so-what last
 == Figure + bullets
 
 #grid(columns: (55%, 1fr), gutter: 22pt, align: horizon,
-  image(data-file("exp000/lif.svg"), height: 200pt),
+  image(data-file("ar018/swe-bench.svg"), height: 200pt),
   [
-    - Each sweep is the membrane charging through its RC constant.
-    - Every vertical drop is a *reset* after a spike.
-    - *So what:* constant drive gives a fixed rate, #calc.round(run.lif.firing_rate_hz) Hz.
+    - Each point is one benchmark run against SWE-bench Verified.
+    - The curve *steepens* through 2025 as tool use matures.
+    - *So what:* resolved share reaches *77%*, up from 33%.
   ],
 )
 
@@ -185,27 +185,27 @@ where:
 #grid(columns: (1fr, 1fr), gutter: 20pt,
   [
     #align(center)[
-      #image(data-file("exp000/lif.svg"), height: 160pt)
-      #cap[(a) LIF: linear integrate-and-fire.]
+      #image(data-file("ar018/swe-bench.svg"), height: 160pt)
+      #cap[(a) Resolved share over time.]
     ]
   ],
   [
     #align(center)[
-      #image(data-file("exp001/eif.svg"), height: 160pt)
-      #cap[(b) EIF: exponential spike onset.]
+      #image(data-file("ar018/swe-bench.svg"), height: 160pt)
+      #cap[(b) The same curve, for comparison.]
     ]
   ],
 )
-#align(center)[*Same drive, sharper threshold: the EIF spike initiates faster.*]
+#align(center)[*Two panels side by side — the arrangement, not the data, is the point.*]
 
 // layout: figure-grid — 2×2, four panels max, per-row heights (D7)
 == Figure grid (2×2)
 
 #grid(columns: (1fr, 1fr), rows: (auto, auto), column-gutter: 18pt, row-gutter: 10pt, align: center,
-  image(data-file("exp000/lif.svg"), height: 120pt),
-  image(data-file("exp001/eif.svg"), height: 120pt),
-  image(data-file("exp000/net.png"), height: 150pt),
-  image(data-file("exp001/enet.png"), height: 150pt),
+  image(data-file("ar018/swe-bench.svg"), height: 120pt),
+  image(data-file("ar018/swe-bench.svg"), height: 120pt),
+  image(data-file("ar018/swe-bench.svg"), height: 120pt),
+  image(data-file("ar018/swe-bench.svg"), height: 120pt),
 )
 
 // layout: hero-stack — the result large on the left, evidence stacked right
@@ -214,16 +214,16 @@ where:
 #grid(columns: (60%, 1fr), gutter: 20pt, align: horizon,
   [
     #align(center)[
-      #image(data-file("exp000/net.png"), height: 255pt)
-      #cap[The network sustains irregular firing — the result being argued.]
+      #image(data-file("ar018/swe-bench.svg"), height: 255pt)
+      #cap[Resolved share reaches 77% — the result being argued.]
     ]
   ],
   [
     #stack(spacing: 12pt,
-      image(data-file("exp000/lif.svg"), height: 105pt),
-      image(data-file("exp001/eif.svg"), height: 105pt),
+      image(data-file("ar018/swe-bench.svg"), height: 105pt),
+      image(data-file("ar018/swe-bench.svg"), height: 105pt),
     )
-    #cap[Single-cell traces as supporting evidence.]
+    #cap[The same curve, stacked as supporting evidence.]
   ],
 )
 
@@ -248,24 +248,24 @@ where:
 #align(center)[
   #table(
     columns: (auto, auto), stroke: none, align: (left, right), inset: 8pt,
-    table.header([*Parameter*], [*Value*]),
+    table.header([*Metric*], [*Value*]),
     table.hline(),
-    [Input current], [#run.lif.config.current nA],
-    [Membrane time constant $tau_m$], [#run.lif.config.tau_m ms],
-    [Threshold $V_"th"$], [#run.lif.config.v_thresh mV],
-    [Firing rate], [#calc.round(run.lif.firing_rate_hz) Hz],
+    [Benchmark], [SWE-bench Verified],
+    [Resolved share, 2024], [33%],
+    [Resolved share, late 2025], [77%],
+    [Issues in the suite], [500],
   )
 ]
 #v(0.4em)
-#align(center)[#cap[Every value read from `numbers.json`, so the slide can't drift from the run.]]
+#align(center)[#cap[In a real entry these cells read from `numbers.json`, so the slide can't drift from the run; this gallery uses fixed sample values.]]
 
 // layout: big-number — one headline metric huge + a muted one-line gloss
 == Big number
 
 #align(center + horizon)[
-  #text(size: 120pt, weight: "bold", fill: ink)[#calc.round(run.lif.firing_rate_hz) Hz]
+  #text(size: 120pt, weight: "bold", fill: ink)[77%]
   #v(0.2em)
-  #text(size: 20pt, fill: muted)[single-neuron firing rate under tonic input — read from the run]
+  #text(size: 20pt, fill: muted)[share of SWE-bench Verified issues resolved in late 2025 — read from the run]
 ]
 
 // layout: big-statement — focus-slide(background: ink); don't bold on it (accent == background)

@@ -1,5 +1,5 @@
-"""Tests for overlay.py — the portable rsync replacement behind `task scaffold` and
-`task add-demo-content`. Pure filesystem, so the Windows CI leg exercises it for real."""
+"""Tests for overlay.py — the portable rsync replacement behind `demolab scaffold`.
+Pure filesystem, so the Windows CI leg exercises it for real."""
 from pathlib import Path
 
 from demolab_cli import overlay
@@ -22,13 +22,13 @@ def test_overlay_copies_nested_tree(tmp_path):
 
 
 def test_keep_existing_never_clobbers(tmp_path):
-    # A re-run of `task scaffold` must not overwrite user files (rsync --ignore-existing).
+    # A re-run of `demolab scaffold` must not overwrite user files (rsync --ignore-existing).
     src, dst = tmp_path / "src", tmp_path / "dst"
     _tree(src, {"a.txt": "scaffold"})
     _tree(dst, {"a.txt": "mine"})
     overlay.overlay(src, dst, keep_existing=True)
     assert (dst / "a.txt").read_text() == "mine"
-    # Without the flag the overlay wins (`task add-demo-content` refreshes demo files).
+    # Without the flag the overlay wins (a plain copy refreshes files).
     overlay.overlay(src, dst)
     assert (dst / "a.txt").read_text() == "scaffold"
 

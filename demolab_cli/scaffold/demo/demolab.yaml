@@ -7,20 +7,11 @@ book-title: Demolab — the book
 contents-title: Demolab — contents
 description: A lab notebook for computational science — reproducible results, published and citable.
 
-collection-order: [documentation, neuron-models, mujoco, streamlit, slides]
+collection-order: [documentation, slides]
 collections:
   documentation:
     label: Documentation
-    description: "How demolab works: getting started, the always-on guides that set the conventions, and the on-demand runbooks the agent runs."
-  neuron-models:
-    label: Neuron models
-    description: Integrate-and-fire neurons and the membrane biophysics behind them.
-  mujoco:
-    label: MuJoCo physics
-    description: Rigid-body simulations rendered to video.
-  streamlit:
-    label: Interactive
-    description: Live, slider-driven demos.
+    description: "How demolab works, in reading order: what it is and why, setting up, the contract, the mechanics of experiments and writeups, and running the lab day to day."
   slides:
     label: Talks & slides
     description: Deck PDFs from talks — paged-only, linked as PDF.

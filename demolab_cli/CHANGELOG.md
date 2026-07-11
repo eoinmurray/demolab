@@ -13,6 +13,31 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.6] — 2026-07-11
+
+### Removed
+- **`demolab add-demo-content` / `demolab clear-demo-content` are gone**, along with
+  `demo-manifest.json`. There's no bulk demo to install into a lab: a user's first experiment
+  is always their own. Model it on a starter instead — `demolab docs STARTERS` prints the
+  reference dir, and `monte-carlo-pi` is the canonical one.
+- Dropped the demo-only dev dependencies `mujoco`, `imageio`, and `streamlit`.
+
+### Changed
+- **The shipped demo (demolab.eoinmurray.info) is now a documentation set + slide decks**,
+  not a science showcase. The neuron-models, MuJoCo, and Streamlit example experiments and
+  articles were removed; the demo dir is purely the source of the published docs site.
+- Reworked the landing page and added a full documentation collection, in a curated reading
+  order: Introduction, Why demolab, Getting started, The vocabulary, The folder structure,
+  The contract, Anatomy of an experiment, Writing a writeup, Writing style, Authoring slides,
+  Runbooks, The command line, Configuring your lab, Publishing your lab, Updating the engine,
+  Getting help.
+
+### Added
+- **`order:` — an optional integer in a writing's `meta`** (RULES §6.5a). Any entry that
+  carries it makes its collection list in that curated order (ascending; unranked entries
+  trail) instead of the default status-then-newest sort — so a documentation arc reads in
+  sequence. The default sort is unchanged for collections that don't use it.
+
 ## [1.1.5] — 2026-07-11
 
 ### Changed

@@ -1,13 +1,13 @@
 """Copy a scaffold tree into the current directory — the portable engine behind
-`task scaffold` and `task add-demo-content`.
+`demolab scaffold`.
 
-Those tasks used rsync, which Windows doesn't have (and go-task's built-in shell can't
-supply). This is the same copy in stdlib Python:
+`scaffold` once used rsync, which Windows doesn't have. This is the same copy in stdlib
+Python:
 
     python -m demolab_cli.overlay SRC [--keep-existing] [--exclude NAME ...]
 
 --keep-existing never clobbers a file already present (rsync --ignore-existing: safe
-re-scaffold); --exclude skips top-level directories of SRC (the demo's prebuilt site/).
+re-scaffold); --exclude skips top-level directories of SRC.
 """
 import argparse
 import shutil

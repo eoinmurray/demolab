@@ -48,14 +48,13 @@ jobs:
 
       - name: Build the demo with the core engine
         run: |
-          # Materialise the shipped demo at the repo root (skeleton + demo overlay), exactly as
-          # `demolab add-demo-content` does, then compile it with the engine. The engine has zero
-          # runtime deps and the demo ships its rendered figures/videos, so --no-dev skips the
-          # heavy science deps (they're only for *running* experiments and the test suite).
+          # Materialise the docs site at the repo root (skeleton + demo overlay), then compile it
+          # with the engine. The engine has zero runtime deps and the demo ships its rendered
+          # figures, so --no-dev skips the heavy science deps (they're only for the test suite).
           rsync -a --exclude 'site/' demolab_cli/scaffold/skeleton/ ./
           rsync -a --exclude 'site/' demolab_cli/scaffold/demo/ ./
           # The landing-only homepage (the marketing hero, a custom landing.typ) — kept under
-          # site/ so the add-demo-content overlay never puts it in a user's lab.
+          # site/, separate from the writeups the rest of the demo dir holds.
           cp demolab_cli/scaffold/demo/site/landing.typ ./landing.typ
           uv run --no-dev demolab build
 

@@ -12,12 +12,12 @@ made. And it is a *short* conversation: three questions (ready? · what to compu
 with everything else offered-with-a-default. The goal is their own result on a page they can
 touch, inside ten minutes.
 
-**No demo content.** The lab starts clean and the first thing in it is theirs. The finished,
-polished example they may want to see is the landing site — <https://demolab.eoinmurray.info>
-is the shipped demo, built straight from the demo source inside the demolab-cli package
-(`demolab docs DEMO` prints its path) — so point there rather than overlaying demo content
-into their repo. (`demolab add-demo-content` exists as an
-escape hatch if they explicitly ask to explore a worked example locally; `demolab clear-demo-content` removes it again. Don't offer it unprompted.)
+**No demo content.** The lab starts clean and the first thing in it is theirs — there is no
+bulk demo to install. The finished, polished example they may want to see is the landing site,
+<https://demolab.eoinmurray.info> (the shipped docs, built straight from the demo source inside
+the demolab-cli package; `demolab docs DEMO` prints its path) — point there. When they need a
+worked *experiment* to model on, that's a starter, built as their own (step 2): `demolab docs
+STARTERS` prints the dir, and `monte-carlo-pi/` is the canonical one.
 
 Have handy before starting: a rough idea of a first thing to compute (or the repo/path/notebook
 /paper you're bringing in — starters are on offer if you have neither), and a GitHub account if
@@ -265,11 +265,11 @@ data and the landing site's source — read it for file shapes, never overlay it
   — a first experiment computes **inline in the runner**. A `tools/` CLI is only worth it for
   science **reused across multiple experiments/writeups**. Say this to the user, and build a
   tool *only if they confirm reuse* — never manufacture one to satisfy the shape (RULES §4).
-- **Defer** (only if the user raises it): demo content (`demolab add-demo-content` — the worked
-  example, also viewable at <https://demolab.eoinmurray.info>; `demolab clear-demo-content`
-  undoes it), collection *curation and reordering* (§6.5), house style (`HOUSESTYLE.local.md`),
-  license (ships MIT). **Not deferred:** *registering* the collection a new experiment
-  introduces (label + description) — do that as part of building it, don't wait to be asked.
+- **Defer** (only if the user raises it): the polished reference site
+  (<https://demolab.eoinmurray.info>, viewable but not installed into their repo), collection
+  *curation and reordering* (§6.5), house style (`HOUSESTYLE.local.md`), license (ships MIT).
+  **Not deferred:** *registering* the collection a new experiment introduces (label +
+  description) — do that as part of building it, don't wait to be asked.
 - **Instruction, not a choice:** flipping the Pages setting is a GitHub-UI click you can't do —
   tell the user. And commits never record agent authorship (a rule, not a prompt).
 - **Two things you drive, not ask:** the **dev server** (start it at step 1 and leave it up, so

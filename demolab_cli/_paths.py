@@ -51,7 +51,14 @@ def stage(root: Path) -> Path:
     dot = root / ".demolab"
     stamp = dot / "VERSION"
     prev = stamp.read_text().strip() if stamp.is_file() else None
-    if prev == VERSION and all((dot / n).is_file() for n in _STAGED):
+    # Freshness is mtime equality, not just the version stamp: with an editable install the
+    # source files change without a version bump (copy2 preserves mtimes, so unchanged files
+    # compare equal). Without this, `demolab dev` rebuilds on an engine asset edit but keeps
+    # serving the stale staged copy.
+    def _fresh(name: str) -> bool:
+        staged = dot / name
+        return staged.is_file() and staged.stat().st_mtime_ns == (TYP / name).stat().st_mtime_ns
+    if prev == VERSION and all(_fresh(n) for n in _STAGED):
         return dot
     dot.mkdir(exist_ok=True)
     for name in _STAGED:

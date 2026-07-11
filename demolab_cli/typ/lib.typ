@@ -222,6 +222,7 @@
     date: e.meta.date,
     status: e.meta.at("status", default: "final"),
     coll: e.meta.at("collection", default: "uncategorized"),
+    order: e.meta.at("order", default: none), // optional curated rank within the collection
     href: e.id + ".html",
     pdf: "pdfs/" + e.id + ".pdf",
     deck: false,
@@ -232,11 +233,25 @@
     date: d.meta.date,
     status: d.meta.at("status", default: "final"),
     coll: d.meta.at("collection", default: "slides"),
+    order: d.meta.at("order", default: none),
     href: "pdfs/" + d.id + ".pdf",
     pdf: "pdfs/" + d.id + ".pdf",
     deck: true,
   ))
 }
+
+// Curated reading order for a collection's items: entries with an `order:` in their meta rank
+// by it (ascending), unranked ones trail in id order. Used by the collection page when any of
+// its items is ranked (see is-curated), so a documentation arc reads top to bottom.
+// Body wrapped in a code block: at markup top level a `#let f(x) = items` binding ends at
+// the line break, so a leading-dot method chain on the next line would be parsed as markup,
+// not a continuation — silently returning `items` unsorted. The block keeps the chain in code.
+#let reading-order(items) = {
+  items
+    .sorted(key: x => x.id)
+    .sorted(key: x => if x.order == none { 1000000 } else { x.order })
+}
+#let is-curated(items) = items.any(x => x.order != none)
 
 // A list of link rows, shared by the homepage and the all-entries index. On the web each row
 // stacks: mono entry-id + title on top, then a quiet meta sub-line (date · collection? · status? ·
@@ -274,18 +289,24 @@
 // Group order: Articles, then Experiments, then Slides. Within a group, rows sort by **status**
 // (lifecycle: final first, draft last — settled work leads) then by **id** descending
 // (newest first). A stable two-pass gives the id-desc tiebreak within each status.
+// A collection where any item carries `order:` is *curated*: it lists in reading order
+// (by that rank) instead of the status/newest sort, so a documentation arc reads in sequence.
 #let grouped-entry-lists(items, show-collection: false, collection-meta: (:)) = {
   let groups = (("article", "Articles"), ("experiment", "Experiments"), ("deck", "Slides"))
+  let curated = is-curated(items)
   for (k, title) in groups {
     let g = items.filter(x => x.kind == k)
-      .sorted(key: x => x.id).rev()               // id descending
-      .sorted(key: x => status-rank(x.status))     // status ascending, stable → id-desc kept within a status
+    g = if curated { reading-order(g) } else {
+      g.sorted(key: x => x.id).rev()               // id descending
+        .sorted(key: x => status-rank(x.status))    // status ascending, stable → id-desc kept within a status
+    }
     if g.len() > 0 {
       heading(level: 2, title)
       entry-list(g, show-collection: show-collection, collection-meta: collection-meta)
     }
   }
 }
+
 
 // The homepage directory: one row per collection — label (links to its page) · entry
 // count · description underneath. The entries themselves live on the per-collection

@@ -57,13 +57,11 @@ pythonpath = ["."]
 testpaths = ["demolab_cli", "tools", "experiments"]
 norecursedirs = [".*", "build", "dist", "*.egg", "venv", "scaffold"]
 
-# Demo + test deps only — the package itself is pure stdlib.
+# Test + starter/skeleton deps only — the package itself is pure stdlib. numpy/matplotlib
+# back the skeleton's plotting helper and the monte-carlo-pi starter; pytest runs the suite.
 [dependency-groups]
 dev = [
     "numpy>=1.26",
     "matplotlib>=3.8",
-    "mujoco>=3.2",
-    "imageio[ffmpeg]>=2.34",
-    "streamlit>=1.36",
     "pytest>=9.1.1",
 ]

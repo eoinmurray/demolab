@@ -25,7 +25,7 @@ uvx demolab-cli init   # lab structure + git init — yours from the first commi
 uv sync                # installs the deps and the `demolab` command
 ```
 
-Then `demolab add-demo-content && demolab run exp000 && demolab dev` to see the loop. `demolab clear-demo-content` wipes the demo again. The engine lives in the `demolab-cli` package — updating it is `uv lock --upgrade-package demolab-cli && uv sync`.
+Then write your first experiment — ask your agent to follow GETTING-STARTED, or model one on a shipped reference (`demolab docs STARTERS` prints the dir; `monte-carlo-pi` is the canonical starter). `demolab dev` serves the site as you go. The engine lives in the `demolab-cli` package — updating it is `uv lock --upgrade-package demolab-cli && uv sync`.
 
 </details>
 
@@ -63,7 +63,7 @@ The detail lives in the guides (in a lab: `demolab docs <NAME>`; in this repo, t
 
 ## Commands
 
-`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold` · `add-demo-content` · `clear-demo-content`, `run expNNN`, `dev`, `build`, `test`.
+`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold`, `run expNNN`, `dev`, `build`, `test`.
 
 ## License
 

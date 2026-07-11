@@ -3,7 +3,6 @@
 These run against the source tree (the package dir IS the working tree in an editable
 install), so no wheel build is needed.
 """
-import json
 import shutil
 from pathlib import Path
 
@@ -43,13 +42,22 @@ def test_stage_materialises_and_stamps(tmp_path):
 
 def test_stage_is_idempotent_and_refreshes_on_version_change(tmp_path):
     dot = _paths.stage(tmp_path)
-    (dot / "lib.typ").write_text("clobbered")
-    _paths.stage(tmp_path)  # same stamp -> no-op, clobber survives
-    assert (dot / "lib.typ").read_text(encoding="utf-8") == "clobbered"
+    before = (dot / "lib.typ").stat().st_mtime_ns
+    _paths.stage(tmp_path)  # fresh copies (mtimes match) -> no-op
+    assert (dot / "lib.typ").stat().st_mtime_ns == before
     (dot / "VERSION").write_text("0.0.1\n")  # stale stamp -> full refresh
     _paths.stage(tmp_path)
-    assert (dot / "lib.typ").read_text(encoding="utf-8") != "clobbered"
     assert (dot / "VERSION").read_text(encoding="utf-8").strip() == _paths.VERSION
+
+
+def test_stage_refreshes_a_stale_staged_copy(tmp_path):
+    # An editable install edits the engine's typ assets without a version bump; a staged
+    # copy whose mtime no longer matches the source must be re-copied (`demolab dev`
+    # rebuilds read the staged copy, so a stale one would defeat engine hot-reload).
+    dot = _paths.stage(tmp_path)
+    (dot / "lib.typ").write_text("clobbered")
+    _paths.stage(tmp_path)
+    assert (dot / "lib.typ").read_text(encoding="utf-8") != "clobbered"
 
 
 # ── init ────────────────────────────────────────────────────────────────────
@@ -107,34 +115,6 @@ def test_init_refuses_in_source_repo(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     with pytest.raises(SystemExit):
         cli.main(["init"])
-
-
-# ── demo manifest coverage ──────────────────────────────────────────────────
-def test_demo_manifest_covers_demo_content():
-    """Every content file the demo overlay lays into a lab must be removable again:
-    covered by a demo-manifest.json path (exactly, or via a listed parent dir)."""
-    manifest = json.loads((_paths.SCAFFOLD / "demo-manifest.json").read_text(encoding="utf-8"))
-    covered = set(manifest["paths"])
-    demo = _paths.SCAFFOLD / "demo"
-    missing = []
-    for p in demo.rglob("*"):
-        if not p.is_file():
-            continue
-        rel = p.relative_to(demo).as_posix()
-        # not part of the user-facing overlay: the upstream landing (site/), local build
-        # noise, and the transient --landing copy
-        if rel.startswith(("site/", "temp/", "artifacts/site/")) or rel == "landing.typ":
-            continue
-        if "__pycache__" in rel or rel.endswith(".DS_Store"):
-            continue
-        # demolab.yaml is shared lab config the demo overlays with its own branding —
-        # clearing must NOT delete it (it's the lab marker), so it's rightly unlisted.
-        if rel == "demolab.yaml":
-            continue
-        if rel in covered or any(rel.startswith(c + "/") for c in covered):
-            continue
-        missing.append(rel)
-    assert not missing, "demo files clear-demo-content would leave behind:\n  " + "\n  ".join(missing)
 
 
 # ── root templates ──────────────────────────────────────────────────────────

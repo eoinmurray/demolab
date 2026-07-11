@@ -199,7 +199,7 @@ ol.refs .doi:hover { color: var(--ink); }
 .welcome-links a, .welcome-body a { text-decoration: underline; }
 .welcome-kicker {
   font-family: var(--mono); font-size: .72rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: .08em; margin: 1.5rem 0 .35rem;
+  text-transform: uppercase; letter-spacing: .08em; margin: 3.25rem 0 .6rem;
 }
 .welcome-cmd { margin: 0 0 .75rem; }
 .welcome-os {
@@ -211,6 +211,38 @@ ol.refs .doi:hover { color: var(--ink); }
   font-family: var(--mono); font-size: .82rem; line-height: 1.5;
   background: var(--paper-tint); border: 1px solid var(--rule); border-radius: 6px;
 }
+/* A quiet aside under a section (the "prefer to do it by hand?" line) — smaller and muted,
+   so it reads as a footnote to the block above, not the next paragraph. */
+.welcome-note { margin: 0 0 1rem; font-size: var(--fs-small); color: var(--muted); }
+.welcome-note a { color: var(--muted); text-decoration: underline; }
+.welcome-note a:hover { color: var(--ink); }
+/* The paste-into-your-agent command is a sentence, not shell — let it wrap rather than
+   clip/scroll at the .welcome column width. */
+.welcome-cmd pre { white-space: pre-wrap; }
+/* Runbook menu: NAME → what saying it does. A dl of hairline-separated rows; the name column
+   is mono (runbook names are commands) and fixed-width so descriptions align. */
+.welcome-runbooks { margin: 0 0 .75rem; }
+.welcome-runbook {
+  display: flex; gap: .75rem; padding: .45rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.welcome-runbook:last-child { border-bottom: none; }
+.welcome-runbook dt {
+  flex: 0 0 8.5rem; font-family: var(--mono); font-size: .78rem;
+  padding-top: .1rem;
+}
+.welcome-runbook dd { margin: 0; font-size: var(--fs-small); color: var(--muted); }
+/* Documentation tiers: label + link list per column, wrapping to fit. */
+/* Four tiers fit the 36rem .welcome column: 4 × 8rem + 3 × 1rem gaps = 35rem. */
+.welcome-docs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1rem; margin: 0 0 1rem;
+}
+.welcome-docs-label { margin: 0 0 .25rem; font-size: var(--fs-small); }
+.welcome-docs-tier ul { list-style: none; padding-left: 0; margin: 0; }
+.welcome-docs-tier li { padding: .12rem 0; font-size: var(--fs-small); }
+.welcome-docs-tier a { text-decoration: underline; color: var(--muted); }
+.welcome-docs-tier a:hover { color: var(--ink); }
 .welcome-foot { margin: 1.25rem 0 0; font-size: var(--fs-small); color: var(--muted); }
 .welcome-foot a { color: var(--muted); }
 .welcome-foot a:hover { color: var(--ink); }

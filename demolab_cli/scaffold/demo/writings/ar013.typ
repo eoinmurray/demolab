@@ -4,6 +4,7 @@
   description: "A map of a demolab repo: where your content lives, where the engine lives, and what the build reconciles.",
   collection: "documentation",
   status: "final",
+  order: 5,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/STRUCTURE.md"

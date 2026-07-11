@@ -3,7 +3,7 @@ name: Tests
 # Runs the Python test suite on Linux AND Windows. The Windows leg guards the portability
 # fixes a real Windows user's field report drove: the dev server's dual-stack bind (Windows
 # resolves `localhost` to ::1, so an IPv4-only bind makes the printed URL dead there), the
-# overlay.py copy behind demolab scaffold / add-demo-content (rsync doesn't exist on
+# overlay.py copy behind demolab scaffold (rsync doesn't exist on
 # Windows), and slides.py's deck detection (grep/basename didn't either). macOS/Linux pass
 # these trivially — only a real Windows runner is an honest check.
 #

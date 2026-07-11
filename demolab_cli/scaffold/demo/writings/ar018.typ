@@ -6,6 +6,7 @@
   description: "An opinionated introduction to demolab: why coding agents changed what a lab notebook can be, what demolab does with them, and where it's going.",
   collection: "documentation",
   status: "final",
+  order: 1,
 )
 
 #let body = [

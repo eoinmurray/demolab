@@ -4,6 +4,7 @@
   description: "What demolab is, how to install it, and the loop that turns a run into a published page: the five-minute version.",
   collection: "documentation",
   status: "final",
+  order: 3,
 )
 
 #let runbooks = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/runbooks"
@@ -43,8 +44,8 @@
 
   Change a parameter, `demolab run` again, and watch the page update — figures and numbers, no
   prose touched. That's the whole point. `demolab build` compiles everything once; `demolab test`
-  runs the suite. (Want a worked example in your tree? `demolab add-demo-content` overlays the
-  same demo this site is built from; `demolab clear-demo-content` removes it.)
+  runs the suite. (Want a worked example to model your first experiment on? `demolab docs STARTERS`
+  prints the reference dir — `monte-carlo-pi` is the canonical starter; build it as your own.)
 
   == How a lab is laid out
 

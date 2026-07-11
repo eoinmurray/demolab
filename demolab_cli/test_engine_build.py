@@ -10,6 +10,7 @@ empty-state homepage rather than erroring.
 Needs the `typst` CLI on PATH (same as `demolab build`); skipped if it's missing.
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -57,8 +58,8 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert (site / "index.html").exists()
     assert (site / "all.html").exists()
     assert (site / "pdfs" / "book.pdf").exists()
-    assert (site / "exp000.html").exists(), "per-entry page emitted"
-    assert (site / "pdfs" / "exp000.pdf").exists(), "per-entry PDF emitted"
+    assert (site / "ar018.html").exists(), "per-entry page emitted"
+    assert (site / "pdfs" / "ar018.pdf").exists(), "per-entry PDF emitted"
 
     index = (site / "index.html").read_text()
     # ".empty-state" also appears in the inlined stylesheet, so key on the rendered copy.
@@ -68,8 +69,27 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert "paste this into your coding agent" not in index, "landing hero must NOT land in a user lab"
     assert '<div class="welcome"' not in index, "no landing hero markup in a user lab"
     assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
-    entry = (site / "exp000.html").read_text()
+    entry = (site / "ar018.html").read_text()
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
+
+
+def test_curated_collection_lists_in_reading_order(tmp_path: Path) -> None:
+    """A collection whose entries carry `order:` in their meta must list in that curated
+    order, not newest-first. Guards a subtle markup-mode trap: a top-level `#let f(x) = items`
+    followed by a leading-dot method chain silently returns `items` unsorted, so the ordering
+    would compile clean but ignore `order:`. The demo's documentation collection is curated;
+    assert its first entries land in the intended sequence, ahead of higher-id entries."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    _build(root)
+
+    page = (root / "artifacts" / "site" / "documentation.html").read_text()
+    ids = re.findall(r'class="row-id">([a-z0-9]+)', page)
+    articles = [i for i in ids if i.startswith("ar")]
+    # ar018 (order 1) and ar019 (order 2) are the highest-id docs but must lead the list;
+    # a broken curated sort would put them last (id-ascending) or first-descending (ar025…).
+    assert articles[:3] == ["ar018", "ar019", "ar017"], f"curated order not applied: {articles}"
 
 
 def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
@@ -82,7 +102,8 @@ def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
     _build(root)
 
     index = (root / "artifacts" / "site" / "index.html").read_text()
-    assert "paste this into your coding agent" in index, "landing hero renders on the landing"
+    assert "open your coding agent in an empty folder" in index, "landing hero renders on the landing"
+    assert 'class="welcome-runbooks"' in index, "the runbook menu renders on the landing"
     assert "Open source, MIT licensed" in index, "landing footer renders"
     assert '<ul class="coll-list"' not in index, "the landing replaces the collection directory"
 
@@ -123,13 +144,13 @@ def test_broken_entry_is_stubbed_not_fatal(tmp_path: Path) -> None:
     root.mkdir()
     _assemble(root, demo=True)
     (root / "writings" / "exp099.typ").write_text(
-        '#let meta = (title: "Broken on purpose", date: "2026-07-06", collection: "neuron-models")\n'
+        '#let meta = (title: "Broken on purpose", date: "2026-07-06", collection: "documentation")\n'
         '#let body = [#image("/artifacts/data/exp099/missing.svg")]\n'
     )
     _build(root)  # check=True — the build must still succeed
 
     site = root / "artifacts" / "site"
-    assert (site / "exp000.html").exists(), "good entries still built"
+    assert (site / "ar018.html").exists(), "good entries still built"
     assert (site / "index.html").exists(), "homepage still built"
     stub = site / "exp099.html"
     assert stub.exists(), "the broken entry got a stub page at its URL"

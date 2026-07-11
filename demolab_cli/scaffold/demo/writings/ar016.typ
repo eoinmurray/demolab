@@ -4,6 +4,7 @@
   description: "The conventions that govern a demolab repo: its toolchain, the engine/content firewall, and the tool-to-experiment contract.",
   collection: "documentation",
   status: "final",
+  order: 6,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/RULES.md"

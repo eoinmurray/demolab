@@ -4,6 +4,7 @@
   description: "How to build a slide deck in demolab: a Touying PDF sized against a fixed canvas, verified for overflow, laid out from a catalog.",
   collection: "documentation",
   status: "final",
+  order: 10,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/SLIDES.md"

@@ -26,18 +26,20 @@ DEMOLAB_ROOT=demolab_cli/scaffold/demo uv run python -m demolab_cli.devserver
 (That writes build scratch into `scaffold/demo/temp/` + `scaffold/demo/artifacts/site/` —
 both gitignored, both excluded from the wheel.)
 
-## Full sandbox — when you need to *run* the experiments
+## Full sandbox — when you need to *run* an experiment
 
-To **run** the demo's experiments (regenerate figures, tweak a runner), materialise the demo
-at the repo root — this repo's own `demolab.yaml` makes it a valid lab:
+The shipped demo (`scaffold/demo/`) is documentation and slide decks only — it has no
+runnable experiments. To exercise the compute→publish loop locally, scaffold a throwaway lab
+and build a starter (this repo's own `demolab.yaml` already makes the root a valid lab):
 
 ```sh
-demolab add-demo-content   # copy the worked demo (skeleton + demo) to the repo root
-demolab dev                # serve whatever content is at the root
-demolab run exp000         # re-run a runner, etc.
+demolab scaffold                     # lay the bare structure into the root
+cp -r demolab_cli/scaffold/starters/monte-carlo-pi/. .   # drop in the π starter's runner + writeup
+demolab run exp000                   # run it end to end
+demolab dev                          # serve whatever content is at the root
 ```
 
-This *copies* the demo to the root, so keep it out of git with a **local** exclude — never
+That *copies* content to the root, so keep it out of git with a **local** exclude — never
 the shipped `.gitignore`. `.git/info/exclude` is per-clone and never committed:
 
 ```sh
@@ -50,7 +52,7 @@ cat >> .git/info/exclude <<'EOF'
 EOF
 ```
 
-Tear it down with `demolab clear-demo-content` (or `rm -rf writings experiments tools artifacts`).
+Tear it down with `rm -rf writings experiments tools artifacts`.
 
 ## Packaging & release
 

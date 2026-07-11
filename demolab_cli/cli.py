@@ -14,7 +14,6 @@ interpreter; the commands that need the lab's third-party deps (run/playground/t
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import re
 import shutil
@@ -38,8 +37,6 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("scaffolding", [
         ("scaffold", "🏗  (Re)lay the working-tree structure (writings/ experiments/ tools/ artifacts/ + config) — non-destructive"),
-        ("add-demo-content", "🏗  Overlay the worked demo (experiments + writeups + artifacts) onto the lab"),
-        ("clear-demo-content", "🧹 Remove the shipped demo content again"),
         ("deploy-setup", "🚀 Opt in to GitHub Pages — copy the deploy + preview workflows into .github/workflows/"),
     ]),
     ("the loop", [
@@ -159,7 +156,7 @@ def _git_init(target: Path) -> None:
 
 def _doc_files() -> dict[str, Path]:
     """Every runbook + guide shipped in the package, by stem, plus the agent manual, the
-    CHANGELOG, and the reference-data dirs (the worked demo + the starters — read as
+    CHANGELOG, and the reference-data dirs (the published docs site + the starters — read as
     models, never overlaid by hand)."""
     docs: dict[str, Path] = {}
     for d in (_paths.RUNBOOKS, _paths.GUIDES):
@@ -173,15 +170,25 @@ def _doc_files() -> dict[str, Path]:
 
 
 def _doc_summary(p: Path) -> str:
-    """The doc's one-liner: its first blockquote line (every runbook/guide opens with one),
-    else the first heading."""
+    """The doc's one-liner: the first blockquote or paragraph after its heading (runbooks
+    open with a summary blockquote; guides with a lead paragraph), joined across lines,
+    clipped to one sentence, and capped — the menu should be dense, not truncated mid-word."""
+    block: list[str] = []
     for line in p.read_text(encoding="utf-8").splitlines():
-        if line.startswith("> "):
-            return re.sub(r"[*_`]", "", line[2:]).strip()
-    for line in p.read_text(encoding="utf-8").splitlines():
-        if line.startswith("# "):
-            return line[2:].strip()
-    return ""
+        if line.startswith("#") or not line.strip():
+            if block:
+                break
+            continue
+        block.append(line[2:] if line.startswith("> ") else line)
+    text = " ".join(s.strip() for s in block)
+    text = re.sub(r"\[([^]]*)\]\([^)]*\)", r"\1", text)  # [label](url) -> label
+    text = text.replace("`", "")
+    # Strip *emphasis* / _emphasis_ pairs only — a lone glob star (*.slide.typ) survives.
+    text = re.sub(r"(?<!\S)([*_])(\S(?:[^*_]*?\S)?)\1(?!\S)", r"\2", text).strip()
+    m = re.match(r"(.+?[.!?])(\s|$)", text)
+    if m:
+        text = m.group(1)
+    return text if len(text) <= 110 else text[:107].rstrip() + "…"
 
 
 def cmd_docs(args: argparse.Namespace) -> int:
@@ -212,7 +219,7 @@ def cmd_docs(args: argparse.Namespace) -> int:
     print("  reference")
     print("    AGENT      this manual (the text above)")
     print("    CHANGELOG  what changed in each engine version")
-    print("    DEMO       the worked demo's source — read it for file shapes, never copy by hand")
+    print("    DEMO       the published docs site's source (writeup examples), never copy by hand")
     print("    STARTERS   canonical first-experiment references (e.g. monte-carlo-pi)")
     return 0
 
@@ -234,32 +241,8 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
     target = _paths.find_lab_root() or Path.cwd()
     overlay(_paths.SCAFFOLD / "skeleton", target, keep_existing=True)
     print("✓ scaffolded the folder structure. Add a writeup in writings/ and run 'demolab build'.")
-    print("  (want a worked example instead? run 'demolab add-demo-content')")
-    return 0
-
-
-def cmd_add_demo_content(args: argparse.Namespace) -> int:
-    code = cmd_scaffold(args)
-    if code != 0:
-        return code
-    lab = _paths.require_lab_root()
-    # The demo's prebuilt site/ (the upstream landing page) stays out of user labs.
-    overlay(_paths.SCAFFOLD / "demo", lab, exclude=("site", "temp"))
-    print("✓ added the demo content. Run 'demolab build' to publish it, or 'demolab clear-demo-content' to remove it.")
-    return 0
-
-
-def cmd_clear_demo_content(args: argparse.Namespace) -> int:
-    lab = _paths.require_lab_root()
-    manifest = json.loads((_paths.SCAFFOLD / "demo-manifest.json").read_text())
-    paths = manifest["paths"]
-    for rel in paths:
-        target = lab / rel
-        if target.is_dir():
-            shutil.rmtree(target, ignore_errors=True)
-        else:
-            target.unlink(missing_ok=True)
-    print(f"✓ removed {len(paths)} demo paths")
+    print("  (building a first experiment? ask your agent to follow GETTING-STARTED, or read a")
+    print("   reference with 'demolab docs STARTERS' — e.g. monte-carlo-pi.)")
     return 0
 
 
@@ -359,8 +342,6 @@ HANDLERS = {
     "install": cmd_install,
     "version": cmd_version,
     "scaffold": cmd_scaffold,
-    "add-demo-content": cmd_add_demo_content,
-    "clear-demo-content": cmd_clear_demo_content,
     "deploy-setup": cmd_deploy_setup,
     "run": cmd_run,
     "new": cmd_new,

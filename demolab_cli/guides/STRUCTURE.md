@@ -7,9 +7,9 @@ at the rule that governs each path.
 
 The engine ships in the **`demolab-cli` package** — a lab is content only. `demolab init`
 lays the structure below down in one shot; `demolab scaffold` re-lays the bare structure
-non-destructively; `demolab add-demo-content` also overlays the worked demo. The demo +
-skeleton live *inside the package* (so they version with it) and double as the engine's
-smoke test. See [Scaffolding](#scaffolding) below.
+non-destructively. The skeleton + the demo (the published docs site's source) live *inside the
+package* (so they version with it) and double as the engine's smoke test. See
+[Scaffolding](#scaffolding) below.
 
 ## The tree
 
@@ -73,6 +73,6 @@ lives in the installed `demolab-cli` package (site-packages), reached via `demol
 
 The content tree is materialised on demand from the package's scaffold data.
 
-**S7 — Two overlays, one command each.** `skeleton/` is the bare structure (empty `writings/` `experiments/` `tools/` `artifacts/` + the config templates `demolab.yaml`, `HOUSESTYLE.local.md`, `experiments/helpers/style.py` + `experiments/helpers/provenance.py`); `demolab scaffold` copies it into the lab root non-destructively (keep-existing, so re-running never clobbers your work; `demolab init` runs it as part of laying a new lab down). `demo/` is the worked example; `demolab add-demo-content` runs `scaffold` then overlays it. `demolab clear-demo-content` deletes exactly the paths in the package's `demo-manifest.json` — nothing you authored is listed there, so it can't touch your content.
+**S7 — One overlay, one command.** `skeleton/` is the bare structure (empty `writings/` `experiments/` `tools/` `artifacts/` + the config templates `demolab.yaml`, `HOUSESTYLE.local.md`, `experiments/helpers/style.py` + `experiments/helpers/provenance.py`); `demolab scaffold` copies it into the lab root non-destructively (keep-existing, so re-running never clobbers your work; `demolab init` runs it as part of laying a new lab down). `demo/` is the source of the published docs site (<https://demolab.eoinmurray.info>) — package data the Pages deploy builds, never overlaid into a user's lab; `starters/` holds first-experiment references you model on (`demolab docs STARTERS`), also never overlaid.
 
 **S8 — The demo is the engine's test.** Because `demo/` lives inside the package, it versions with the engine and can't drift from it. The engine's smoke test (run in the demolab-cli repo's CI) assembles skeleton + demo in a throwaway tree via `DEMOLAB_ROOT` and builds it end-to-end — so the shipped example is also the integration smoke test. It also asserts the empty (skeleton-only) tree builds its empty-state homepage. Read the demo any time with `demolab docs DEMO`.
