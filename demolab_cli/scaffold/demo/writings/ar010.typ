@@ -4,7 +4,7 @@
   description: "Named, on-demand procedures the agent runs step by step: onboarding, linting, migrating a codebase or a language, reproducing a paper, updating the engine.",
   collection: "documentation",
   status: "final",
-  order: 11,
+  order: 12,
 )
 
 #let base = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/runbooks"

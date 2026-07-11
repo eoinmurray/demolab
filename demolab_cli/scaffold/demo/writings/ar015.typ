@@ -4,7 +4,7 @@
   description: "How a demolab write-up should read: prose, math, figures, captions, and citations, and how to override the defaults per lab.",
   collection: "documentation",
   status: "final",
-  order: 9,
+  order: 10,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/HOUSESTYLE.md"

@@ -4,7 +4,7 @@
   description: "Where to get help with demolab, how to report a bug, and what to include so it's answerable fast.",
   collection: "documentation",
   status: "final",
-  order: 16,
+  order: 17,
 )
 
 #let src = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/guides/SUPPORT.md"
@@ -14,8 +14,7 @@
 
   == Where to ask
 
-  - *GitHub issues*: #link("https://github.com/eoinmurray/demolab/issues")[github.com/eoinmurray/demolab/issues]. Use these for bugs, feature requests, and questions about the framework. Prefer this: issues are searchable, so your question helps the next person and the fix lands in the open.
-  - *Email*: #link("mailto:em586@cam.ac.uk")[em586\@cam.ac.uk]. Use this for private matters, or if you can't or don't want to post publicly.
+  #link("https://github.com/eoinmurray/demolab/issues")[GitHub issues] are the place: bugs, feature requests, and questions about the framework. Issues are searchable, so your question helps the next person and the fix lands in the open.
 
   == Writing a report that gets answered
 

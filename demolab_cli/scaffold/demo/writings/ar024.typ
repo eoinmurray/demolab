@@ -4,7 +4,7 @@
   description: "The Typst authoring surface for a writeup: meta, the run, figures, math, cites, and the provenance stamp.",
   collection: "documentation",
   status: "final",
-  order: 8,
+  order: 9,
 )
 
 #let body = [

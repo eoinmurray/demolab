@@ -4,7 +4,7 @@
   description: "The demolab.yaml reference: branding keys, the collections registry, curated ordering, and why the file doubles as the lab marker.",
   collection: "documentation",
   status: "final",
-  order: 13,
+  order: 14,
 )
 
 #let body = [
@@ -90,20 +90,11 @@
   contents-title: Demolab — contents
   description: A lab notebook for computational science — reproducible results, published and citable.
 
-  collection-order: [documentation, neuron-models, mujoco, streamlit, slides]
+  collection-order: [documentation, slides]
   collections:
     documentation:
       label: Documentation
       description: "How demolab works, in reading order: what it is and why, setting up, the contract, the mechanics of experiments and writeups, and running the lab day to day."
-    neuron-models:
-      label: Neuron models
-      description: Integrate-and-fire neurons and the membrane biophysics behind them.
-    mujoco:
-      label: MuJoCo physics
-      description: Rigid-body simulations rendered to video.
-    streamlit:
-      label: Interactive
-      description: Live, slider-driven demos.
     slides:
       label: Talks & slides
       description: Deck PDFs from talks — paged-only, linked as PDF.

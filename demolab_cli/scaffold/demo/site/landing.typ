@@ -10,19 +10,19 @@
   html.elem("div", attrs: (class: "welcome"), {
     // Hero: the problem, the pitch, and the proof — this very site is a demolab lab.
     html.elem("p", attrs: (class: "welcome-body"), [
-      Demolab is a lab notebook for computational science. You write an experiment once as a
-      small program; a coding agent runs it, stamps every result with the exact code version
-      it came from, and publishes it — figures, live numbers, real maths — to web and PDF.
+      Demolab is a lab notebook for computational science that keeps coding agents on rails.
+      You say what to compute; the agent writes and runs the experiment — in Python by default,
+      though any stack works. Demolab stamps every result with the exact code version it came
+      from, reads the numbers straight from the run so nothing drifts, and typesets it all with
+      Typst — figures, live numbers, real maths — to web and PDF.
     ])
     html.elem("p", attrs: (class: "welcome-body"), [
       This site is itself a demolab lab, built and published by the engine it documents.
     ])
     html.elem("p", attrs: (class: "welcome-links"), {
-      link("https://github.com/eoinmurray/demolab", "GitHub")
-      [ · ]
-      link("ar018.html", "Introduction")
-      [ · ]
       link("documentation.html", "Documentation")
+      [ · ]
+      link("https://github.com/eoinmurray/demolab", "GitHub")
     })
 
     html.elem("p", attrs: (class: "welcome-kicker"), [Get started])
@@ -56,6 +56,7 @@
           ("ar012.html", "The vocabulary"),
           ("ar013.html", "The folder structure"),
           ("ar016.html", "The contract"),
+          ("ar026.html", "Using another language"),
         )),
         ([Build], (
           ("ar023.html", "Anatomy of an experiment"),
@@ -81,44 +82,6 @@
           })
         })
       }
-    })
-
-    html.elem("p", attrs: (class: "welcome-kicker"), [How it works])
-    html.elem("p", attrs: (class: "welcome-body"), [
-      One decoupled loop: _a tool computes → drops data → an experiment writes it up → the
-      site publishes it._
-    ])
-    html.elem("p", attrs: (class: "welcome-body"), {
-      [Every run records its parameters and the git commit it came from, stamped on the page.
-        Tables read their numbers straight from the run, so prose and results can't disagree.
-        One Typst pass emits the website, a PDF per entry, and a book — all sharing the same
-        numbers. The full rules are in ]
-      link("ar016.html", "The contract")
-      [.]
-    })
-
-    html.elem("p", attrs: (class: "welcome-kicker"), [What you can ask your agent])
-    html.elem("p", attrs: (class: "welcome-body"), [
-      Open your lab in your agent and say a runbook's name — it follows it step by step:
-    ])
-    html.elem("dl", attrs: (class: "welcome-runbooks"), {
-      for (name, desc) in (
-        ("FROM-JUPYTER", [launder a notebook into a seeded, reproducible experiment]),
-        ("FROM-PAPER", [reproduce a paper's key result in your stack]),
-        ("RED-TEAM", [adversarially check a result before you publish it]),
-        ("STEELMAN", [build the strongest honest case, so you don't under-sell it]),
-        ("NEXT", [read your whole arc and propose the next experiments]),
-        ("NIGHT-SHIFT", [work the queued experiments overnight, unattended]),
-      ) {
-        html.elem("div", attrs: (class: "welcome-runbook"), {
-          html.elem("dt", name)
-          html.elem("dd", desc)
-        })
-      }
-    })
-    html.elem("p", attrs: (class: "welcome-note"), {
-      link("ar010.html", "Runbooks")
-      [ lists all seventeen.]
     })
 
     html.elem("p", attrs: (class: "welcome-foot"), {

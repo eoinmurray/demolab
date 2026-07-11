@@ -4,7 +4,7 @@
   description: "How to pull the latest demolab engine: a plain dependency bump that can't touch your writings, experiments, or branding.",
   collection: "documentation",
   status: "final",
-  order: 15,
+  order: 16,
 )
 
 #let runbooks = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/runbooks"

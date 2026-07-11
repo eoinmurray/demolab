@@ -4,7 +4,7 @@
   description: "exp000 dissected end to end: the runner, the files it drops, and the write-up that reads them, so the contract stops being abstract.",
   collection: "documentation",
   status: "final",
-  order: 7,
+  order: 8,
 )
 
 #let body = [

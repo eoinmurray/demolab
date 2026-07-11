@@ -4,7 +4,7 @@
   description: "Every demolab command: what it does, its flags, and when to reach for it.",
   collection: "documentation",
   status: "final",
-  order: 12,
+  order: 13,
 )
 
 #let body = [

@@ -13,6 +13,22 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.7] — 2026-07-11
+
+### Added
+- New documentation article **"Using another language"** — Python is demolab's default, not a
+  lock-in. The tool contract is file-based and language-neutral, so science can live in MATLAB,
+  Julia, R, or anything with a command line (hybrid: tools in your language, Python glue; or a
+  full switch with Python out entirely). Points at the MIGRATE-STACK runbook.
+
+### Changed
+- Trimmed the landing page to hero → Get started → Documentation, and rewrote the intro:
+  demolab keeps coding agents on rails (you say what to compute, the agent writes and runs it),
+  Python by default but any stack works, typeset with Typst to web and PDF.
+
+### Removed
+- Dropped a stale support email from the "Getting help" page — GitHub issues is the channel.
+
 ## [1.1.6] — 2026-07-11
 
 ### Removed

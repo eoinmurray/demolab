@@ -103,7 +103,7 @@ def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
 
     index = (root / "artifacts" / "site" / "index.html").read_text()
     assert "open your coding agent in an empty folder" in index, "landing hero renders on the landing"
-    assert 'class="welcome-runbooks"' in index, "the runbook menu renders on the landing"
+    assert 'class="welcome-docs"' in index, "the documentation tiers render on the landing"
     assert "Open source, MIT licensed" in index, "landing footer renders"
     assert '<ul class="coll-list"' not in index, "the landing replaces the collection directory"
 

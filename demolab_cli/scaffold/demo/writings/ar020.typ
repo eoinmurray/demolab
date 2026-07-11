@@ -4,7 +4,7 @@
   description: "From artifacts/site/ to a public URL: what a build emits, the one-command GitHub Pages opt-in, per-PR previews, and why any static host works.",
   collection: "documentation",
   status: "final",
-  order: 14,
+  order: 15,
 )
 
 #let runbooks = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/runbooks"
