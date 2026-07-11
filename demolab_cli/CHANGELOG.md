@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-07-11
+
+### Changed
+- **The AGENTS.md/CLAUDE.md templates shrink to a three-line banner.** These files are the
+  user's to grow over time; demolab's whole claim on them is now the bootstrap ("run
+  `demolab docs` and follow it") and the NAME-in-CAPS routing hint. Everything else lives
+  in the packaged manual, where it versions with the engine.
+
 ## [1.1.0] — 2026-07-11
 
 ### Changed
