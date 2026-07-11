@@ -41,14 +41,17 @@ jobs:
           curl -fsSL "$url" | tar -xJ
           echo "$PWD/typst-x86_64-unknown-linux-musl" >> "$GITHUB_PATH"
 
+      - uses: astral-sh/setup-uv@v5
+        if: github.event.action != 'closed'
+
       - name: Build the demo with the core engine
         if: github.event.action != 'closed'
         run: |
-          rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
-          rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+          rsync -a --exclude 'site/' demolab_cli/scaffold/skeleton/ ./
+          rsync -a --exclude 'site/' demolab_cli/scaffold/demo/ ./
           # Same landing-only homepage as production (landing.yml), so the preview matches.
-          cp demolab-engine/scaffold/demo/site/landing.typ ./landing.typ
-          python3 demolab-engine/build/build.py
+          cp demolab_cli/scaffold/demo/site/landing.typ ./landing.typ
+          uv run --no-dev demolab build
 
       # Deploy artifacts/site (the raw built demo — no CNAME/installers; those only belong at the
       # production root) to pr-preview/pr-<N>/, maintain the sticky comment, and remove the subdir

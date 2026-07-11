@@ -5,12 +5,13 @@ name: Deploy the site (demo at root)
 #   `gh-pages` branch. Branch-based (not the GitHub-Actions Pages flow) so per-PR previews
 #   (landing-preview.yml) can live in the same branch under pr-preview/. Requires the Pages source
 #   set to "Deploy from a branch → gh-pages / (root)". A user's own lab deploy is separate and
-#   opt-in (demolab-engine/deploy/deploy.yml, added by `demolab deploy-setup`).
+#   opt-in (demolab_cli/deploy/deploy.yml, added by `demolab deploy-setup`).
 on:
   push:
     branches: [main]
     paths:
-      - "demolab-engine/**"
+      - "demolab_cli/**"
+      - "pyproject.toml"
       - ".github/workflows/landing.yml"
   workflow_dispatch:
 
@@ -43,22 +44,25 @@ jobs:
           curl -fsSL "$url" | tar -xJ
           echo "$PWD/typst-x86_64-unknown-linux-musl" >> "$GITHUB_PATH"
 
+      - uses: astral-sh/setup-uv@v5
+
       - name: Build the demo with the core engine
         run: |
           # Materialise the shipped demo at the repo root (skeleton + demo overlay), exactly as
-          # `demolab add-demo-content` does, then compile it with the engine. build.py is stdlib-only
-          # and the demo ships its rendered figures/videos, so no uv, runners, or deps are needed.
-          rsync -a --exclude 'site/' demolab-engine/scaffold/skeleton/ ./
-          rsync -a --exclude 'site/' demolab-engine/scaffold/demo/ ./
+          # `demolab add-demo-content` does, then compile it with the engine. The engine has zero
+          # runtime deps and the demo ships its rendered figures/videos, so --no-dev skips the
+          # heavy science deps (they're only for *running* experiments and the test suite).
+          rsync -a --exclude 'site/' demolab_cli/scaffold/skeleton/ ./
+          rsync -a --exclude 'site/' demolab_cli/scaffold/demo/ ./
           # The landing-only homepage (the marketing hero, a custom landing.typ) — kept under
           # site/ so the add-demo-content overlay never puts it in a user's lab.
-          cp demolab-engine/scaffold/demo/site/landing.typ ./landing.typ
-          python3 demolab-engine/build/build.py
+          cp demolab_cli/scaffold/demo/site/landing.typ ./landing.typ
+          uv run --no-dev demolab build
 
       - name: Assemble the Pages tree (demo at /, CNAME at root)
         run: |
           rm -rf _site && cp -R artifacts/site/. _site/
-          cp demolab-engine/scaffold/demo/site/CNAME _site/
+          cp demolab_cli/scaffold/demo/site/CNAME _site/
 
       # Publish _site to the root of gh-pages. clean-exclude preserves the live PR previews
       # (pr-preview/, owned by landing-preview.yml) — CNAME is re-emitted from _site every run.

@@ -1,0 +1,33 @@
+name: Publish demolab-cli to PyPI
+
+# Tag-triggered release: `git tag v<VERSION> && git push --tags` builds the wheel from a
+# clean checkout and publishes it via PyPI Trusted Publishing (OIDC — no API token stored).
+# One-time setup on pypi.org: Account → Publishing → add a pending publisher for project
+# `demolab-cli`, owner `eoinmurray`, repo `demolab`, workflow `publish.yml`, environment
+# `pypi` — and create the matching `pypi` environment in this repo's GitHub settings.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    # Upstream only — a fork's tags must never try to publish the package.
+    if: github.repository == 'eoinmurray/demolab'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # OIDC for Trusted Publishing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must match the engine VERSION
+        run: test "v$(cat demolab_cli/VERSION)" = "$GITHUB_REF_NAME"
+
+      - uses: astral-sh/setup-uv@v5
+
+      - run: uv build
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

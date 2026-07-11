@@ -1,7 +1,6 @@
 # CLAUDE.md
 
-Read **[AGENTS.md](AGENTS.md)** before working here — it's the entry point. (This checkout
-is also the demolab-cli source repo; engine work goes through [DEVELOPING.md](DEVELOPING.md).)
+Read **[AGENTS.md](AGENTS.md)** before working here — it's the entry point.
 
 ## Commands — type a NAME
 

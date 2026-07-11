@@ -3,22 +3,23 @@ name: Tests
 # Runs the Python test suite on Linux AND Windows. The Windows leg guards the portability
 # fixes a real Windows user's field report drove: the dev server's dual-stack bind (Windows
 # resolves `localhost` to ::1, so an IPv4-only bind makes the printed URL dead there), the
-# overlay.py copy behind task scaffold / add-demo-content (rsync doesn't exist on Windows),
-# and slides.py's deck detection (grep/basename didn't either). macOS/Linux pass these
-# trivially — only a real Windows runner is an honest check.
+# overlay.py copy behind demolab scaffold / add-demo-content (rsync doesn't exist on
+# Windows), and slides.py's deck detection (grep/basename didn't either). macOS/Linux pass
+# these trivially — only a real Windows runner is an honest check.
 #
 # Installing typst on the Linux leg unskips the engine build smoke test there; Windows
-# stays typst-less and fast.
+# stays typst-less and fast. The packaging job builds the wheel from this clean checkout
+# and inits a lab from it — the same path `uvx demolab-cli init` takes in the wild.
 on:
   push:
     branches: [main]
     paths:
-      - "demolab-engine/**"
+      - "demolab_cli/**"
       - "pyproject.toml"
       - ".github/workflows/tests.yml"
   pull_request:
     paths:
-      - "demolab-engine/**"
+      - "demolab_cli/**"
       - "pyproject.toml"
       - ".github/workflows/tests.yml"
   workflow_dispatch:
@@ -48,3 +49,21 @@ jobs:
 
       - name: Run the test suite
         run: uv run pytest
+
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Build the wheel and init a lab from it
+        run: |
+          uv build
+          # Noise that must never ship (untracked locally, but belt-and-braces).
+          if unzip -l dist/demolab_cli-*.whl | grep -E 'demo/temp/|demo/artifacts/site/|__pycache__|\.demolab/'; then
+            echo "wheel carries build noise" && exit 1
+          fi
+          mkdir /tmp/lab && cd /tmp/lab
+          uvx --from "$(ls "$GITHUB_WORKSPACE"/dist/demolab_cli-*.whl)" demolab-cli init
+          test -f demolab.yaml && test -f .demolab/lib.typ && test -f AGENTS.md

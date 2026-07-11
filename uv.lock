@@ -382,34 +382,31 @@ wheels = [
 ]
 
 [[package]]
-name = "demolab"
-version = "0.1.0"
+name = "demolab-cli"
 source = { editable = "." }
-dependencies = [
+
+[package.dev-dependencies]
+dev = [
     { name = "imageio", extra = ["ffmpeg"] },
     { name = "matplotlib" },
     { name = "mujoco" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pytest" },
     { name = "streamlit" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
 [package.metadata]
-requires-dist = [
+
+[package.metadata.requires-dev]
+dev = [
     { name = "imageio", extras = ["ffmpeg"], specifier = ">=2.34" },
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "mujoco", specifier = ">=3.2" },
     { name = "numpy", specifier = ">=1.26" },
+    { name = "pytest", specifier = ">=9.1.1" },
     { name = "streamlit", specifier = ">=1.36" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 
 [[package]]
 name = "etils"

@@ -20,11 +20,15 @@ __pycache__/
 temp/
 dist/
 artifacts/site/
-demolab-engine/scaffold/demo/temp/
-demolab-engine/scaffold/demo/artifacts/site/
+demolab_cli/scaffold/demo/temp/
+demolab_cli/scaffold/demo/artifacts/site/
 # Transient preview copy written by `demolab dev --demo --landing` (source of truth is
 # demo/site/landing.typ) — never committed, never part of the user-facing demo overlay.
-demolab-engine/scaffold/demo/landing.typ
+demolab_cli/scaffold/demo/landing.typ
+
+# Engine staging dir the demolab CLI materialises at the lab root (lib.typ + web assets
+# + version stamp) — regenerated whenever the installed demolab-cli version changes.
+.demolab/
 
 # Secrets — never commit
 .env

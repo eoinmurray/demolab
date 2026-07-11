@@ -1,38 +1,69 @@
+# The demolab-cli package: the demolab engine, distributed on PyPI. A lab installs it as a
+# normal dependency (its own pyproject lists demolab-cli; `uv sync` provides the `demolab`
+# command), and `uvx demolab-cli init` lays a fresh lab down. The engine has zero runtime
+# dependencies — the science deps below (dev group) exist only to run the shipped demo and
+# the test suite in this repo.
 [project]
-name = "demolab"
-version = "0.1.0"
+name = "demolab-cli"
+dynamic = ["version"]
 description = "Lab notebook for computational science: Python tools produce per-run artifacts; Typst publishes them as a web bundle, per-entry PDFs, and a book."
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
-dependencies = [
-    "numpy>=1.26",
-    "matplotlib>=3.8",
-    "mujoco>=3.2",
-    "imageio[ffmpeg]>=2.34",
-    "streamlit>=1.36",
-]
+dependencies = []
 
-# `demolab <command>` is the lab's command runner (replaces the old go-task Taskfile). The launcher
-# is demolab.py at the repo root; it finds the engine in the working tree and dispatches to the real
-# CLI in demolab-engine/build/cli.py. Installed into the venv by `uv sync`.
+[project.urls]
+Homepage = "https://github.com/eoinmurray/demolab"
+Changelog = "https://github.com/eoinmurray/demolab/blob/main/demolab_cli/CHANGELOG.md"
+
+# Both names, same CLI: `uvx demolab-cli` resolves the script matching the package name;
+# inside a lab's venv the command is plain `demolab`.
 [project.scripts]
-demolab = "demolab:main"
+demolab = "demolab_cli.cli:main"
+demolab-cli = "demolab_cli.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# Ship only the launcher — the engine + content are read from the working tree at runtime, never
-# packaged. (This is the whole "wheel": one tiny module that exists to register the console script.)
+# Single source of truth for the version: demolab_cli/VERSION (a bare-text file; `demolab
+# version` prints it, lib.typ stamps it into the generated site's meta).
+[tool.hatch.version]
+source = "regex"
+path = "demolab_cli/VERSION"
+pattern = "^(?P<version>\\S+)$"
+
 [tool.hatch.build.targets.wheel]
-include = ["demolab.py"]
+packages = ["demolab_cli"]
+exclude = [
+  # Untracked build noise `demolab dev --demo` leaves inside the demo overlay (gitignored,
+  # but wheels build from disk — CI's clean checkout is the backstop).
+  "demolab_cli/scaffold/demo/temp",
+  "demolab_cli/scaffold/demo/artifacts/site",
+  "demolab_cli/scaffold/demo/landing.typ",
+  # Engine tests run in this repo's CI, not in user labs.
+  "demolab_cli/test_*.py",
+  "**/__pycache__",
+  "**/.DS_Store",
+  "**/.demolab",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-# The engine smoke test always runs; tools/ + experiments/ tests are collected when those dirs
-# exist (scaffolded content, absent on a clean engine-only tree). Missing testpaths are skipped.
-testpaths = ["demolab-engine/build", "tools", "experiments"]
+# Engine tests always run; tools/ + experiments/ are collected when this checkout is being
+# used as a lab (scaffolded content, absent on a clean engine-only tree). The scaffold's
+# demo content carries its own tool tests — those run inside a materialised lab, never
+# from the package dir (their imports assume the lab root is on sys.path).
+testpaths = ["demolab_cli", "tools", "experiments"]
+norecursedirs = [".*", "build", "dist", "*.egg", "venv", "scaffold"]
 
+# Demo + test deps only — the package itself is pure stdlib.
 [dependency-groups]
 dev = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "mujoco>=3.2",
+    "imageio[ffmpeg]>=2.34",
+    "streamlit>=1.36",
     "pytest>=9.1.1",
 ]

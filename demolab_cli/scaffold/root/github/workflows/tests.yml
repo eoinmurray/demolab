@@ -1,0 +1,21 @@
+name: Tests
+
+# Runs your lab's test suite (tools/ + experiments/). `demolab test` runs the same thing
+# locally. Exit code 5 (no tests collected yet) counts as success — a fresh lab has none.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Run the test suite
+        run: uv run pytest || [ $? -eq 5 ]

@@ -2,7 +2,7 @@
 
 **A lab notebook for computational science — reproducible results, published and citable, run by a coding agent instead of a build system.**
 
-> **Coding agent setting someone up?** Open **[GETTING-STARTED.md](demolab-engine/runbooks/GETTING-STARTED.md)** and follow it strictly, step by step. *(Human, setting up by hand? See [Quickstart](#quickstart).)*
+> **Coding agent setting someone up?** Run `uvx demolab-cli docs GETTING-STARTED`, read the file it prints, and follow it strictly, step by step. *(Human, setting up by hand? See [Quickstart](#quickstart).)*
 
 You write a model or experiment once as a small program. Demolab runs it, captures everything it produced, stamps it with the exact code version, and publishes a clean page — figures, numbers, and real typeset maths — to both the web and PDF. The numbers on the page are read from the run, so they can't drift. You drive it all by talking to a coding agent; there's no web development or build config to touch.
 
@@ -10,28 +10,28 @@ You write a model or experiment once as a small program. Demolab runs it, captur
 
 Open your coding agent in an empty folder and paste:
 
-> Clone github.com/eoinmurray/demolab and follow its GETTING-STARTED.md strictly.
+> Run `uvx demolab-cli init` here, then follow its GETTING-STARTED runbook strictly.
 
-It installs the toolchain (`uv`, `typst`), makes you your own copy, and walks you through setup and your first experiment, one step at a time.
+It lays your lab down, walks you through the toolchain (`uv`, `typst`) and your first experiment, one step at a time.
 
 <details>
 <summary><b>Set it up by hand instead?</b></summary>
 
-Install [`uv`](https://docs.astral.sh/uv/) and [`typst`](https://typst.app) (`brew install uv typst`), then make a *fresh* copy — don't plain-`git clone`, it drags demolab's history and remote along:
+Install [`uv`](https://docs.astral.sh/uv/) and [`typst`](https://typst.app) (`brew install uv typst`), then:
 
 ```sh
-git clone --depth 1 https://github.com/eoinmurray/demolab my-lab
-rm -rf my-lab/.git my-lab/.github/workflows/landing.yml  # strip history + upstream deploy workflow
-cd my-lab && git init && git add -A && git commit -m "Start my lab from demolab"
+mkdir my-lab && cd my-lab
+uvx demolab-cli init   # lab structure + git init — yours from the first commit
+uv sync                # installs the deps and the `demolab` command
 ```
 
-Then `uv sync` (installs the deps and the `demolab` command), and `demolab add-demo-content && demolab run exp000 && demolab dev` to see the loop. `demolab clear-demo-content` wipes the demo; `demolab scaffold` gives a bare tree.
+Then `demolab add-demo-content && demolab run exp000 && demolab dev` to see the loop. `demolab clear-demo-content` wipes the demo again. The engine lives in the `demolab-cli` package — updating it is `uv lock --upgrade-package demolab-cli && uv sync`.
 
 </details>
 
 ## What to ask your agent
 
-Open the repo in your agent and say a runbook's name — it follows that runbook one step at a time. Each is a plain file under [`demolab-engine/runbooks/`](demolab-engine/runbooks/) you can also read yourself.
+Open your lab in your agent and say a runbook's name — it follows that runbook one step at a time. `demolab docs` lists them all (each is a plain file shipped in the package; `demolab docs <NAME>` prints its path). In this repo they live under [`demolab_cli/runbooks/`](demolab_cli/runbooks/).
 
 | Say… | …and it will |
 |------|--------------|
@@ -48,22 +48,22 @@ Open the repo in your agent and say a runbook's name — it follows that runbook
 | **DOCTOR** | audit the repo against the conventions |
 | **RED-TEAM** | adversarially check a result holds up before you publish it |
 | **STEELMAN** | build the strongest honest case for a result, so you don't under-sell it |
-| **UPDATE** | pull the latest engine, leaving your content untouched |
+| **UPDATE** | update the engine package, leaving your content untouched |
 
 ## How it works
 
 One decoupled loop: **a tool computes → drops data → an experiment writes it up → the site publishes it.** Every run records its exact parameters and the git commit it came from (stamped on the page), and tables read their numbers straight from the run — so prose and results can't disagree. A single Typst pass emits a website, a PDF per entry, and a book, all sharing the same live numbers.
 
-The detail lives in the guides:
+The detail lives in the guides (in a lab: `demolab docs <NAME>`; in this repo, the files under `demolab_cli/guides/`):
 
-- **[RULES.md](demolab-engine/guides/RULES.md)** — the tool ↔ experiment contract, schemas, provenance, and how to add things.
-- **[STRUCTURE.md](demolab-engine/guides/STRUCTURE.md)** — the annotated file tree.
-- **[HOUSESTYLE.md](demolab-engine/guides/HOUSESTYLE.md)** — prose, maths, and figure style.
-- **[AGENTS.md](AGENTS.md)** — the agent entry point and full runbook index.
+- **[RULES.md](demolab_cli/guides/RULES.md)** — the tool ↔ experiment contract, schemas, provenance, and how to add things.
+- **[STRUCTURE.md](demolab_cli/guides/STRUCTURE.md)** — the annotated file tree.
+- **[HOUSESTYLE.md](demolab_cli/guides/HOUSESTYLE.md)** — prose, maths, and figure style.
+- **[AGENTS.md](AGENTS.md)** — the agent entry point.
 
 ## Commands
 
-`demolab` shows them all. The everyday ones: `install`, `scaffold` · `add-demo-content` · `clear-demo-content`, `run expNNN`, `dev`, `build`, `test`.
+`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold` · `add-demo-content` · `clear-demo-content`, `run expNNN`, `dev`, `build`, `test`.
 
 ## License
 

@@ -1,0 +1,32 @@
+# Your lab's Python project. The science deps are yours to edit (these defaults cover the
+# shipped demo — numpy/matplotlib everywhere, mujoco/imageio for the physics demo,
+# streamlit for the playground). demolab-cli provides the `demolab` command and the
+# publishing engine; update it like any dependency:
+#   uv lock --upgrade-package demolab-cli && uv sync
+[project]
+name = "my-lab"
+version = "0.1.0"
+description = "A demolab lab notebook."
+requires-python = ">=3.10"
+dependencies = [
+    "demolab-cli>=1.0",
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "mujoco>=3.2",
+    "imageio[ffmpeg]>=2.34",
+    "streamlit>=1.36",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+# A lab is content, not a distributable package — tell uv not to build/install it.
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+# tools/ + experiments/ tests are collected when those dirs have tests; missing paths are skipped.
+testpaths = ["tools", "experiments"]
