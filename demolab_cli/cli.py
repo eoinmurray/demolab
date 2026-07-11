@@ -130,13 +130,11 @@ def cmd_init(args: argparse.Namespace) -> int:
     overlay(_paths.SCAFFOLD / "skeleton", target, keep_existing=True)
     _paths.stage(target)
     _git_init(target)
-    print(f"✓ demolab {_paths.VERSION} — your lab is ready.\n")
-    print("  Preview it:")
+    print(f"✓ Your lab is ready. (demolab {_paths.VERSION})\n")
+    print("  In one terminal tab, the live preview:")
     print("      uv run demolab dev")
-    print("\n  Or build it with your coding agent — paste this:")
-    print("      Follow this demolab lab's GETTING-STARTED runbook strictly:")
-    print("      run `uv run demolab docs GETTING-STARTED`, read the file it prints,")
-    print("      and drive it with me step by step.")
+    print("\n  In another, your coding agent — paste:")
+    print('      "Run `uv run demolab docs GETTING-STARTED` and follow it strictly, step by step."')
     return 0
 
 
