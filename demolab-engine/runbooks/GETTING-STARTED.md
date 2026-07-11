@@ -39,17 +39,26 @@ stop: you are freestyling, not following this runbook.
   we build your first experiment."* The six steps are: **1** stand the lab up · **2** first
   experiment · **3** make it permanent · **4** brand · **5** publish · **6** sign off. Don't
   turn it into ceremony; one clause at each transition is enough.
-- **The repo must be the user's own copy.** If you arrived with just a URL and an empty folder,
-  clone + *degit* it first, so there's **no `origin` remote** pointing at upstream and the
-  upstream Pages workflow is gone: `git clone --depth 1 https://github.com/eoinmurray/demolab .
-  && rm -rf .git .github/workflows/landing.yml && git init && git add -A && git commit -m
-  "Start my lab from demolab"`. If the tree is **already here and scaffolded**, don't re-clone —
-  resume at step 2.
+- **The repo must be the user's own copy — and your working directory must *be* it.** If you
+  arrived with just a URL and an empty folder, clone into the **current directory** (the `.`
+  matters: it makes your cwd the repo root, not its parent) + *degit* it, so there's **no
+  `origin` remote** pointing at upstream and the upstream Pages workflow is gone:
+  `git clone --depth 1 https://github.com/eoinmurray/demolab . && rm -rf .git
+  .github/workflows/landing.yml && git init && git add -A && git commit -m "Start my lab from
+  demolab"`. **Never clone into a named subfolder** (`… demolab`) and then work from above it —
+  you cannot change your own working directory mid-session, so you'd be stuck prefixing every
+  path forever and the runbook's repo-root-relative paths would all miss. If the current
+  directory isn't empty (so `.` won't clone), or you've already ended up one level above the
+  repo, **stop and ask the user to reopen their session *inside* the repo root** before
+  continuing — don't soldier on from the parent. If the tree is **already here and scaffolded**,
+  don't re-clone — resume at step 2.
 - **Toolchain:** drive everything through **`demolab`** (it wraps `uv` + `typst`). Never call `pip`
   / `python` / `python3` directly.
-- **Paths are repo-root-relative.** Every path in this runbook (and the guides) starts at the
-  repo root — `cd` into the clone before following one; if you started a directory above it,
-  prefix the clone's folder name.
+- **Paths are repo-root-relative, and you are *at* the repo root.** Every path in this runbook
+  (and the guides) starts at the repo root and is used as-is — no folder prefix, because your
+  cwd is the repo (see the clone rule above). If a bare `demolab build` or `ls writings/` can't
+  find the tree, you're in the wrong directory: reopen the session in the repo root — don't
+  paper over it with absolute paths.
 - **Commits:** author every commit as the **human only** — never an agent or `Co-Authored-By:`
   trailer.
 - Deeper conventions are in [`../guides/RULES.md`](../guides/RULES.md); the other runbooks
@@ -118,7 +127,11 @@ stop: you are freestyling, not following this runbook.
      quarter-circle, `π ≈ 4 · inside / N`. It's field-agnostic, genuinely small, has one obvious
      knob (`N` → a tighter estimate), and shows off the seed + provenance machinery cleanly.
      Always keep it in your back pocket as the fourth, numbered option so no one leaves step 2
-     empty-handed.
+     empty-handed. **When it's chosen, model it on the canonical reference
+     `demolab-engine/scaffold/starters/monte-carlo-pi/` (read it, never overlay it)** — copy the
+     shapes of its `exp000.py`/`exp000.typ` so the two figures always come out right: a
+     **scatter** of the sampled points coloured inside/outside with the quarter-circle arc, and a
+     **log-x convergence curve** settling toward π. Its `README.md` states the figure contract.
    - **Bringing something in?** Existing codebase → [`MIGRATE-CODE.md`](MIGRATE-CODE.md); a
      notebook → [`FROM-JUPYTER.md`](FROM-JUPYTER.md); a paper → [`FROM-PAPER.md`](FROM-PAPER.md).
      Land the **first** experiment via that runbook (same live-page payoff as below), and set
@@ -141,6 +154,12 @@ stop: you are freestyling, not following this runbook.
        `#let run = json("/artifacts/data/expNNN/numbers.json")`, embed figures with `#image(...)`,
        tables via `#numbers-table(...)` — **never hand-type numbers**. Video via `#video(...)`
        (HTML only).
+     - **New collection? Register it.** If the write-up's `meta.collection` slug isn't already
+       in the root `demolab.yaml` `collections:` map, add it — a `label` and a one-line
+       `description` — and append the slug to `collection-order`. An unregistered collection
+       still renders, but title-cases its slug with **no description** (RULES §6.5), which reads
+       as unfinished on the homepage. (Reusing an existing collection needs nothing; if the lab
+       has no `demolab.yaml` yet, this lands in step 4's branding pass instead.)
      - **Only if reuse was confirmed**, add the tool first: `tools/<name>/tool.py` (model
        `scaffold/demo/tools/neuron/tool.py`) — `setup_run_dir`/`write_output`, the data + a
        `manifest` of metrics, **data not plots**, plus `test_<tool>.py` (`demolab test` green). The
@@ -249,7 +268,9 @@ the landing site's source — read it for file shapes, never overlay it during o
   tool *only if they confirm reuse* — never manufacture one to satisfy the shape (RULES §4).
 - **Defer** (only if the user raises it): demo content (`demolab add-demo-content` — the worked
   example, also viewable at <https://demolab.eoinmurray.info>; `demolab clear-demo-content`
-  undoes it), collections (§6.5), house style (`HOUSESTYLE.local.md`), license (ships MIT).
+  undoes it), collection *curation and reordering* (§6.5), house style (`HOUSESTYLE.local.md`),
+  license (ships MIT). **Not deferred:** *registering* the collection a new experiment
+  introduces (label + description) — do that as part of building it, don't wait to be asked.
 - **Instruction, not a choice:** flipping the Pages setting is a GitHub-UI click you can't do —
   tell the user. And commits never record agent authorship (a rule, not a prompt).
 - **Two things you drive, not ask:** the **dev server** (start it at step 1 and leave it up, so

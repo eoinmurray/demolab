@@ -14,7 +14,20 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-11
+
 ### Changed
+- **GETTING-STARTED roots the agent *in* the repo, and closes the parent-folder trap.** The
+  clone step now clones into `.` (so the agent's working directory *is* the repo root), forbids
+  cloning into a named subfolder and working from above it, and — since an agent can't change
+  its own working directory mid-session — tells it to ask the user to reopen the session inside
+  the repo rather than prefix every path forever. The "prefix the clone's folder name" escape
+  hatch is removed.
+- **Agents register the collection a new experiment introduces.** GETTING-STARTED and RULES §6.5
+  now require adding a `label` + one-line `description` (and a `collection-order` entry) whenever
+  an experiment's `meta.collection` isn't yet in `demolab.yaml`. An unregistered collection still
+  renders, but title-cases its slug with **no description**, which reads as unfinished on the
+  homepage; only broader collection *curation and reordering* stays deferred.
 - **`demolab` CLI replaces the go-task `Taskfile` — one fewer prerequisite.** The command runner
   is now a Python console script (root `demolab.py` → `demolab-engine/build/cli.py`), installed
   into the venv by `uv sync` and invoked as `demolab <command>`. The toolchain drops to just `uv`
@@ -48,6 +61,13 @@ the runbook shows the entries between your version and the latest.
   `pr-preview/pr-<N>/`, post a sticky comment with the URL, and tear down on close/merge — so a
   night-shift PR is a clickable doc set, not a raw diff. A new build test asserts the emitted
   HTML carries no root-absolute URLs, since subpath-served previews depend on relative links.
+- **Canonical Monte Carlo π starter reference (`scaffold/starters/monte-carlo-pi/`).** The
+  GETTING-STARTED universal-backup starter now has a concrete reference — a runner + write-up the
+  agent models the user's `exp000.py`/`exp000.typ` on — so the two figures come out right every
+  time: a scatter of the sampled points coloured inside/outside with the quarter-circle arc, and
+  a log-x convergence curve settling toward π. Reference-only (read, never overlaid) and outside
+  repo-root `writings/`, so it never builds or ships into a lab; its `README.md` states the
+  figure contract.
 
   > **Migration — action required if you already publish (`.github/workflows/deploy.yml` exists).**
   > The new deploy uses a `gh-pages` branch instead of the GitHub-Actions Pages source, so an
