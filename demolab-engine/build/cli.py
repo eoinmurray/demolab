@@ -192,12 +192,21 @@ def cmd_dev(args: argparse.Namespace) -> int:
     # root — which is what --landing does for the session, mirroring the Pages deploy (landing.yml).
     env = {**os.environ, "DEMOLAB_ROOT": str(SCAFFOLD / "demo")}
     landing_dst = SCAFFOLD / "demo" / "landing.typ"
+    landing_src = SCAFFOLD / "demo" / "site" / "landing.typ"
     created = False
     if args.landing:
         if landing_dst.exists():
-            print(f"→ {landing_dst.relative_to(REPO)} already present — serving it as-is (leaving it in place)")
+            # A copy left behind by a previous preview that died before its cleanup ran
+            # (SIGKILL, closed shell) is byte-identical to the source — adopt it so we
+            # remove it on exit, closing the leak. Only leave it in place if it genuinely
+            # differs, i.e. someone is hand-editing the demo-root copy.
+            if landing_dst.read_text() == landing_src.read_text():
+                created = True
+                print(f"→ reusing a stale preview copy at {landing_dst.relative_to(REPO)} — will clean it up on exit")
+            else:
+                print(f"→ {landing_dst.relative_to(REPO)} already present and modified — serving it as-is (leaving it in place)")
         else:
-            shutil.copy(SCAFFOLD / "demo" / "site" / "landing.typ", landing_dst)
+            shutil.copy(landing_src, landing_dst)
             created = True
             print("→ previewing the upstream landing page (copied site/landing.typ to the demo root)")
     print("→ reading + serving from demolab-engine/scaffold/demo")

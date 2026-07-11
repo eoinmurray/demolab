@@ -22,6 +22,9 @@ dist/
 artifacts/site/
 demolab-engine/scaffold/demo/temp/
 demolab-engine/scaffold/demo/artifacts/site/
+# Transient preview copy written by `demolab dev --demo --landing` (source of truth is
+# demo/site/landing.typ) — never committed, never part of the user-facing demo overlay.
+demolab-engine/scaffold/demo/landing.typ
 
 # Secrets — never commit
 .env

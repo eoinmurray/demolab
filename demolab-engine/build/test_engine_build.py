@@ -34,7 +34,11 @@ def _assemble(root: Path, *, demo: bool) -> None:
     shutil.copy(ENGINE / "VERSION", root / "demolab-engine" / "VERSION")  # read by web-styles' generator meta
     shutil.copytree(SCAFFOLD / "skeleton", root, dirs_exist_ok=True)
     if demo:
-        shutil.copytree(SCAFFOLD / "demo", root, dirs_exist_ok=True)
+        # `landing.typ` is a transient preview copy (`demolab dev --demo --landing`), never
+        # part of the user-facing demo overlay — exclude it so a live preview can't turn the
+        # fixture's homepage into the landing hero and fail the directory assertion below.
+        shutil.copytree(SCAFFOLD / "demo", root, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("landing.typ"))
 
 
 def _build(root: Path) -> None:
