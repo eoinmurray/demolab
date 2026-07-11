@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.3] — 2026-07-11
+
+### Changed
+- **The CLAUDE.md template is a single line pointing at AGENTS.md** — it no longer repeats
+  the banner. One file owns the agent bootstrap; the other only routes to it.
+
 ## [1.1.2] — 2026-07-11
 
 ### Fixed
