@@ -153,13 +153,14 @@ def _git_init(target: Path) -> None:
 
 
 def _doc_files() -> dict[str, Path]:
-    """Every runbook + guide shipped in the package, by stem, plus the CHANGELOG and the
-    reference-data dirs (the worked demo + the starters — read as models, never overlaid
-    by hand)."""
+    """Every runbook + guide shipped in the package, by stem, plus the agent manual, the
+    CHANGELOG, and the reference-data dirs (the worked demo + the starters — read as
+    models, never overlaid by hand)."""
     docs: dict[str, Path] = {}
     for d in (_paths.RUNBOOKS, _paths.GUIDES):
         for p in sorted(d.glob("*.md")):
             docs[p.stem] = p
+    docs["AGENT"] = _paths.PACKAGE / "AGENT.md"
     docs["CHANGELOG"] = _paths.PACKAGE / "CHANGELOG.md"
     docs["DEMO"] = _paths.SCAFFOLD / "demo"
     docs["STARTERS"] = _paths.SCAFFOLD / "starters"
@@ -191,10 +192,11 @@ def cmd_docs(args: argparse.Namespace) -> int:
         else:
             print(docs[key])
         return 0
-    print("demolab documentation — runbooks are step-by-step procedures an agent (or you) can")
-    print("follow; guides are reference material. `demolab docs <NAME>` prints the file's path;")
-    print("read it and follow it. In an agent chat, typing a NAME (e.g. GETTING-STARTED) means:")
-    print("run `demolab docs <NAME>`, read the file, do what it says.\n")
+    # Bare `demolab docs` IS the agent's orientation: the full manual, then the menu —
+    # one command, complete operating context, always in step with the installed engine.
+    print((_paths.PACKAGE / "AGENT.md").read_text(encoding="utf-8"))
+    print("## The menu — runbooks are step-by-step procedures, guides are reference.")
+    print("## `demolab docs <NAME>` prints the file's path; read it and follow it.\n")
     for title, base in (("runbooks", _paths.RUNBOOKS), ("guides", _paths.GUIDES)):
         names = [n for n, p in docs.items() if p.parent == base]
         width = max(len(n) for n in names)
@@ -203,6 +205,7 @@ def cmd_docs(args: argparse.Namespace) -> int:
             print(f"    {n:<{width}}  {_doc_summary(docs[n])}")
         print()
     print("  reference")
+    print("    AGENT      this manual (the text above)")
     print("    CHANGELOG  what changed in each engine version")
     print("    DEMO       the worked demo's source — read it for file shapes, never copy by hand")
     print("    STARTERS   canonical first-experiment references (e.g. monte-carlo-pi)")

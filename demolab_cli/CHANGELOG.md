@@ -13,6 +13,21 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-11
+
+### Changed
+- **`demolab docs` (bare) now prints the full agent manual, not just a menu.** The manual
+  is a new packaged doc (`AGENT.md`, also reachable as `demolab docs AGENT`): what a lab
+  is, the CAPS-name command semantics, the non-negotiables, and the GETTING-STARTED
+  conversation contract — followed by the runbook/guide menu. One command gives an agent
+  its complete operating context, always in step with the installed engine.
+- **The lab-root `AGENTS.md`/`CLAUDE.md` stubs collapse to a bootstrap** ("run
+  `demolab docs` and follow it") plus a seeded **"This lab's own rules"** section — the
+  part of AGENTS.md that genuinely belongs to each lab. Framework prose no longer lives in
+  the stubs, so it can never drift from the engine again. Existing labs keep working
+  unchanged; to adopt, slim your AGENTS.md to the new template shape (`demolab docs AGENT`
+  shows what the manual now covers) and move any lab-specific rules under the new heading.
+
 ## [1.0.0] — 2026-07-11
 
 ### Changed
