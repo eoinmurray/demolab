@@ -39,10 +39,10 @@
   ```sh
   uvx demolab-cli init  # lay down the lab: root files + writings/ experiments/ tools/ artifacts/
   demolab dev           # serve the site at localhost:3000, live-reloading on save
-  demolab run exp000    # run an experiment end to end (once you've written one)
+  uv run python experiments/exp000.py   # run an experiment end to end (once you've written one)
   ```
 
-  Change a parameter, `demolab run` again, and watch the page update — figures and numbers, no
+  Change a parameter, run the experiment again, and watch the page update — figures and numbers, no
   prose touched. That's the whole point. `demolab build` compiles everything once; `demolab test`
   runs the suite. (Want a worked example to model your first experiment on? `demolab docs STARTERS`
   prints the reference dir — `monte-carlo-pi` is the canonical starter; build it as your own.)

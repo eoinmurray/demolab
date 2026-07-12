@@ -2,7 +2,7 @@
 
 No subprocesses are spawned — the handlers shell out to uv/typst, which the test env may not have.
 Instead we assert the two things that silently rot: the command catalog and the dispatch table must
-stay in step, and the argument parser must accept every command (with the right args for `run`/`dev`).
+stay in step, and the argument parser must accept every command (with the right args for `dev`).
 """
 import io
 from contextlib import redirect_stdout
@@ -26,13 +26,11 @@ def test_catalog_and_handlers_match():
 def test_every_command_parses():
     parser = cli._build_parser()
     for name in cli.HANDLERS:
-        argv = {"run": ["run", "exp000"]}.get(name, [name])
-        assert parser.parse_args(argv).command == name
+        assert parser.parse_args([name]).command == name
 
 
-def test_run_and_dev_arguments():
+def test_dev_arguments():
     parser = cli._build_parser()
-    assert parser.parse_args(["run", "exp042"]).experiment == "exp042"
     dev = parser.parse_args(["dev", "3010", "--demo", "--landing"])
     assert dev.port == 3010 and dev.demo is True and dev.landing is True
     bare_dev = parser.parse_args(["dev"])

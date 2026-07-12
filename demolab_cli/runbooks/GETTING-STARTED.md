@@ -164,7 +164,7 @@ freestyling, not following this runbook.
        the demo's `tools/neuron/tool.py`) — `setup_run_dir`/`write_output`, the data + a
        `manifest` of metrics, **data not plots**, plus `test_<tool>.py` (`demolab test` green). The
        runner then calls its CLI.
-   - `demolab run expNNN` — it rebuilds live in the dev server. Present the new page's URL
+   - `uv run python experiments/expNNN.py` — it rebuilds live in the dev server. Present the new page's URL
      **prominently**, have them open the page and its PDF. Their science, on a published page,
      minutes in.
 
@@ -202,8 +202,8 @@ freestyling, not following this runbook.
      from**: `experiments/expNNN.py` (the runner — its `CONFIG` block holds every parameter,
      and every metric on the page is computed here) and `writings/expNNN.typ` (the write-up —
      point at the `json("/artifacts/data/expNNN/numbers.json")` line, so they see the page
-     really is read from the run, not typed). Invite them to poke: edit either file, `demolab run
-     -- expNNN`, and the page follows.
+     really is read from the run, not typed). Invite them to poke: edit either file,
+     `uv run python experiments/expNNN.py`, and the page follows.
    - **Show the full menu** — close by running **HELP**: run `demolab docs` and present *every*
      runbook and then every guide as a **numbered list, one per line with its one-line
      description** (don't hand-summarise from memory or trim to a favourite few — the whole

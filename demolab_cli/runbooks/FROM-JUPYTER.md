@@ -62,7 +62,7 @@ working lab, or a bare `demolab scaffold`) and `demolab build` green before you 
 
 5. **Build and check parity.** End the runner's `main()` with
    `helpers/provenance.write_run_sh(ARTIFACTS)` so the committed record carries a reproducer
-   (RULES §4.7), then `demolab run expNNN` and `demolab build` (or the running `demolab dev`). Open the
+   (RULES §4.7), then `uv run python experiments/expNNN.py` and `demolab build` (or the running `demolab dev`). Open the
    new page beside the notebook's original output and confirm the figures + numbers match. If they
    differ, **explain why** — usually the notebook's numbers were stale or from out-of-order runs,
    and the reproducible version is the correct one. That's a feature, not a regression.

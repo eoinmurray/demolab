@@ -8,8 +8,9 @@ a new lab; `demolab docs` lists the runbooks + guides that ship in the package (
 read them by path). Run `demolab` with no arguments for the command list.
 
 The CLI itself is pure stdlib. Engine scripts (build/dev/slides) run on the current
-interpreter; the commands that need the lab's third-party deps (run/playground/test) and
-`install` go through `uv`, which guarantees the venv is present.
+interpreter; the commands that need the lab's third-party deps (playground/test) and
+`install` go through `uv`, which guarantees the venv is present. Experiment runners are no
+longer wrapped by a `run` command — run them directly with `uv run python experiments/expNNN.py`.
 """
 from __future__ import annotations
 
@@ -40,7 +41,6 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("deploy-setup", "🚀 Opt in to GitHub Pages — copy the deploy + preview workflows into .github/workflows/"),
     ]),
     ("the loop", [
-        ("run", "▶  Run an experiment end-to-end, e.g. `demolab run exp000`"),
         ("new", "✨ How to start a new experiment (hint — ask your coding agent)"),
     ]),
     ("publishing", [
@@ -264,12 +264,6 @@ def cmd_deploy_setup(args: argparse.Namespace) -> int:
 
 
 # ── the loop ───────────────────────────────────────────────────────────────
-def cmd_run(args: argparse.Namespace) -> int:
-    # Experiment runners import the project deps (numpy, mujoco, …), so this one goes through uv.
-    return _run("uv", "run", "python", f"experiments/{args.experiment}.py",
-                cwd=_paths.require_lab_root())
-
-
 def cmd_new(args: argparse.Namespace) -> int:
     print("Experiments aren't scaffolded from a template — ask your coding agent.")
     print("It models a *working* skeleton on an existing pair:")
@@ -343,7 +337,6 @@ HANDLERS = {
     "version": cmd_version,
     "scaffold": cmd_scaffold,
     "deploy-setup": cmd_deploy_setup,
-    "run": cmd_run,
     "new": cmd_new,
     "dev": cmd_dev,
     "build": cmd_build,
@@ -379,8 +372,6 @@ def _build_parser() -> argparse.ArgumentParser:
         elif name == "docs":
             sp.add_argument("name", nargs="?", help="runbook or guide name, e.g. GETTING-STARTED, RULES, CHANGELOG")
             sp.add_argument("--print", action="store_true", help="print the document instead of its path")
-        elif name == "run":
-            sp.add_argument("experiment", help="experiment id, e.g. exp000 (runs experiments/exp000.py)")
         elif name == "dev":
             sp.add_argument("port", nargs="?", type=int, help="port to serve on (default: first free from 3000)")
             sp.add_argument("--demo", action="store_true", help="serve the shipped demo instead of your lab")

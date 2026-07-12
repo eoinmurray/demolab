@@ -8,7 +8,7 @@ per-run artifacts; Typst publishes them as a website, per-entry PDFs, and a book
 ```sh
 uv sync              # install dependencies + the `demolab` command
 demolab dev          # live-preview the site at http://localhost:3000
-demolab run exp000   # run an experiment end-to-end
+uv run python experiments/exp000.py   # run an experiment end-to-end
 demolab build        # build the site + PDFs into artifacts/
 ```
 

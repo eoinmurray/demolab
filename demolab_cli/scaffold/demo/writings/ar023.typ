@@ -135,11 +135,11 @@
   numbers move together. That is the whole point: a number on the page cannot drift from the code
   that produced it (RULES §5.4).
 
-  == What #raw("demolab run exp000") does
+  == What #raw("uv run python experiments/exp000.py") does
 
   One command, start to finish:
 
-  + `demolab run exp000` executes `experiments/exp000.py` in the lab's `uv`-managed venv.
+  + `uv run python experiments/exp000.py` executes the runner in the lab's `uv`-managed venv.
   + The runner calls the tool once as a subprocess (`montecarlo pi`). The call writes its scratch
     file set into `temp/montecarlo/pi/`.
   + The runner renders `scatter.png` from `pi.csv` into `artifacts/data/exp000/`.

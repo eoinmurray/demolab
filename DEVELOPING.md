@@ -35,7 +35,7 @@ and build a starter (this repo's own `demolab.yaml` already makes the root a val
 ```sh
 demolab scaffold                     # lay the bare structure into the root
 cp -r demolab_cli/scaffold/starters/monte-carlo-pi/. .   # drop in the π starter's runner + writeup
-demolab run exp000                   # run it end to end
+uv run python experiments/exp000.py  # run it end to end
 demolab dev                          # serve whatever content is at the root
 ```
 

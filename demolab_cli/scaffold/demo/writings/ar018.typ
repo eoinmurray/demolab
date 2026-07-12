@@ -103,7 +103,7 @@
   convention. A runbook name (`GETTING-STARTED`, `LINT`, `DOCTOR`, `FROM-PAPER`, `MIGRATE-STACK`,
   and the rest) runs an on-demand procedure step by step: read a paper into code, convert a
   notebook, migrate the language, update the engine. Underneath it all is an ordinary CLI,
-  so `demolab run exp000` runs an experiment, `demolab dev` serves the site with live reload,
+  so `uv run python experiments/exp000.py` runs an experiment, `demolab dev` serves the site with live reload,
   and `demolab build` compiles the lot. The default stack is Python, but tools talk through files
   rather than imports, so you can switch to MATLAB, R, Julia, or Octave by asking, and the contract
   and the typesetting stay put.

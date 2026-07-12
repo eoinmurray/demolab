@@ -48,9 +48,9 @@
 
   == The loop
 
-  / `run`: Run an experiment end to end: `demolab run exp000` executes
-    `experiments/exp000.py` in the lab's venv. The runner stages figures and a
-    `numbers.json` under `artifacts/data/exp000/`. Daily driver.
+  / Running an experiment: There is no `run` command — invoke the runner directly.
+    `uv run python experiments/exp000.py` executes `experiments/exp000.py` in the lab's venv;
+    the runner stages figures and a `numbers.json` under `artifacts/data/exp000/`. Daily driver.
   / `new`: Not a scaffolder: it prints how to start a new experiment, which is to ask your
     coding agent to model one on an existing runner + writeup pair.
 

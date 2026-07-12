@@ -140,15 +140,16 @@
 - Many exist, commercial and open — no vendor lock-in.
 - Only recently good enough — still uneven, still supervised.
 
-// layout: bullets (each bullet is a literal prompt you could type at an agent — one per mode;
+// layout: bullets (each bullet is a literal prompt you could type at an agent;
 // the last two show off modern features: MCP tool connections and background/scheduled runs)
 == What an agent can do
 
-- *Coding* — "Port this script to Python; check outputs match."
-- *Reading* — "Read this paper and reproduce figure 3."
-- *Writing* — "Draft the methods section from the run log."
-- *Connecting* — "Pull yesterday's runs from the database and plot them."
-- *Scheduling* — "Run the sweep overnight; write up what you find."
+- "Port this script to Python; check outputs match."
+- "Read this paper and code up a simulation."
+- "Simulate an LIF neuron."
+- "Draft the methods section from the run log."
+- "Pull yesterday's runs from the database and plot them."
+- "Run the sweep overnight; write up what you find."
 
 // layout: bullets (framed as capabilities — what agents can do, not abstract strengths)
 == Strengths of coding agents
@@ -203,7 +204,7 @@
 #focus-slide(background: white, foreground: ink)[
   #text(size: 15pt, fill: muted)[PART TWO]
   #v(0.4em)
-  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v1 — a framework for the agent]
+  #text(size: 40pt, weight: "bold", fill: ink)[Demolab v1 — rails for the agent]
 ]
 
 // layout: bullets
@@ -340,11 +341,11 @@
     #set align(left)
     #text(size: 20pt)[
       ```
-      uvx demolab-cli init   set up a lab in an empty folder
-      demolab run exp000     run an experiment end-to-end
-      demolab dev            serve the site, live-reload on save
-      demolab build          website + a PDF per entry + a book
-      demolab test           run the test suite
+      uvx demolab-cli init                 set up a lab in an empty folder
+      uv run python experiments/exp000.py  run an experiment end-to-end
+      demolab dev                          serve the site with live-reload
+      demolab build                        website + a PDF per entry + book
+      demolab test                         run the test suite
       ```
     ]
   ]

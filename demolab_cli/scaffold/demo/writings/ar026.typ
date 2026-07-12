@@ -35,7 +35,7 @@
     minimal `uv` environment purely to stage figures and plot. Least churn, and the
     recommended path — you rewrite only the science.
   + *Full switch — tool and runner in your language.* Rewrite the runner too, so it renders
-    its own figures and writes `numbers.json`, then point `demolab run` at the new runtime and
+    its own figures and writes `numbers.json`, then run that runner on the new runtime and
     drop the Python dependencies. Julia is the natural fit here: it can own the tool, the
     runner, and the plotting. Take this only if you want Python out entirely.
 
@@ -57,6 +57,6 @@
 
   Say _MIGRATE-STACK_ (or "use Julia instead of Python") and your agent follows the
   #link(runbooks + "/MIGRATE-STACK.md")[MIGRATE-STACK] runbook: it confirms the runtime, ports
-  the tool contract into your language, wires `demolab run` and `demolab test` to it, and
+  the tool contract into your language, wires the runner entry point and `demolab test` to it, and
   offers the hybrid path first.
 ]
