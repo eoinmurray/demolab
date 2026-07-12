@@ -13,6 +13,28 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.9] — 2026-07-12
+
+### Removed
+- **Retired `demolab run`.** The command was a thin wrapper (`demolab run expNNN` →
+  `uv run python experiments/expNNN.py`) that hid where the work actually happens. Run experiment
+  runners directly instead: `uv run python experiments/exp000.py`. Same venv, nothing lost, one
+  less layer of magic between you and the runner. The runbooks, demo, and `demolab docs AGENT`
+  now show the direct invocation. (`demolab build` / `dev` / `slides` / `test` are unchanged.)
+
+### Changed
+- **Autoresearch: the scientific Record and the code log are now separate.** The night document's
+  Record holds the *science* — what ran, seeds, outcomes, anomalies — and must cold-read.
+  Engineering detail (what a tool/runner changed and why, debugging dead-ends, build fixes) is the
+  *code* log: it lives in per-experiment commit messages and, where the reviewer needs it, PR
+  comments — never in the Record or the digest. (AUTORESEARCH-RULES §2, NIGHT-SHIFT.)
+
+### Added
+- **Agent-assisted GitHub issue filing.** SUPPORT and the demo's "Getting help" page now explain
+  that your coding agent can file issues for you with `gh`, with guardrails: the agent *suggests*
+  `gh` but never installs it or runs `gh auth login` (the user's call), and shows you the full
+  issue text for an explicit yes before posting to the public tracker.
+
 ## [1.1.8] — 2026-07-12
 
 ### Changed
