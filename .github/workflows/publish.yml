@@ -1,33 +1,53 @@
 name: Publish demolab-cli to PyPI
 
-# Tag-triggered release: `git tag v<VERSION> && git push --tags` builds the wheel from a
-# clean checkout and publishes it via PyPI Trusted Publishing (OIDC — no API token stored).
+# Version-triggered release: any push to main that changes demolab_cli/VERSION builds the
+# wheel from a clean checkout, publishes it via PyPI Trusted Publishing (OIDC — no API token
+# stored), and tags the release v<VERSION>. `skip-existing` makes re-runs safe; the tag step
+# is idempotent. Use the Actions "Run workflow" button (workflow_dispatch) to publish the
+# current VERSION out of band (e.g. a one-off backfill).
 # One-time setup on pypi.org: Account → Publishing → add a pending publisher for project
 # `demolab-cli`, owner `eoinmurray`, repo `demolab`, workflow `publish.yml`, environment
 # `pypi` — and create the matching `pypi` environment in this repo's GitHub settings.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: ["demolab_cli/VERSION"]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   publish:
-    # Upstream only — a fork's tags must never try to publish the package.
+    # Upstream only — a fork must never try to publish the package.
     if: github.repository == 'eoinmurray/demolab'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
       id-token: write  # OIDC for Trusted Publishing
+      contents: write  # push the release tag
     steps:
       - uses: actions/checkout@v4
 
-      - name: Tag must match the engine VERSION
-        run: test "v$(cat demolab_cli/VERSION)" = "$GITHUB_REF_NAME"
+      - name: Read the engine VERSION
+        id: version
+        run: echo "version=$(cat demolab_cli/VERSION)" >> "$GITHUB_OUTPUT"
 
       - uses: astral-sh/setup-uv@v5
 
       - run: uv build
 
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+      - name: Tag the release
+        env:
+          TAG: v${{ steps.version.outputs.version }}
+        run: |
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "$TAG already exists — skipping tag."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
