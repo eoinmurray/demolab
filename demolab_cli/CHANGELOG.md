@@ -13,6 +13,18 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.10] — 2026-07-12
+
+### Added
+- **`LITERATURE-SEARCH` runbook.** Build a near-exhaustive, DOI-verified corpus of papers on a
+  narrow question from two sources — the model's pre-cutoff memory and live databases (OpenAlex,
+  Crossref, arXiv) — and *measure* recall via capture-recapture rather than claiming completeness.
+  The model scopes and seeds (a good size oracle, a bad recall oracle); databases and DOI-checks
+  supply recall and precision. Interactive through a scope freeze, then unattended. The record
+  lives in `artifacts/data/arNNN/` (machine-edited only; the user reviews `❓[ID]` markers), scratch
+  in `temp/arNNN/`, the living article in `writings/`. No committed tool and no API keys required —
+  preflight proposes optional keys and proceeds keyless. Builds the corpus, not the review.
+
 ## [1.1.9] — 2026-07-12
 
 ### Removed
