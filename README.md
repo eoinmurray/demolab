@@ -63,7 +63,7 @@ The detail lives in the guides (in a lab: `demolab docs <NAME>`; in this repo, t
 
 ## Commands
 
-`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold`, `run expNNN`, `dev`, `build`, `test`.
+`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold`, `dev`, `build`, `test`. Run an experiment end-to-end directly: `uv run python experiments/expNNN.py` (there's no `demolab run` wrapper).
 
 ## License
 

@@ -30,7 +30,7 @@ adapt.** Execute steps **0 → 6 in order**. Do **not** reorder, merge, or skip 
 **not** pull a later step forward — the most common mistake is raising **publishing or branding
 early; they are steps 4–5, after the first experiment, never before it.** Complete each step —
 *including waiting for the user's answer to its question* — before starting the next. Run
-**no** command (`demolab init`, `uv sync`, `run`, `dev`) before the step-0 orient and the
+**no** command (`demolab init`, `uv sync`, `uv run python experiments/expNNN.py`, `dev`) before the step-0 orient and the
 user's "ready". If you catch yourself doing several things then reporting back, stop: you are
 freestyling, not following this runbook.
 
@@ -226,7 +226,7 @@ data and the landing site's source — read it for file shapes, never overlay it
 - **Triggers** — `GETTING-STARTED`, "how do I get started", "help me set up", "onboard me",
   "walk me through this repo".
 - **Gates** — the step-0 orient + the user's "ready" must land before **any** command
-  (`demolab init`, `uv sync`, `run`, `dev`). Step 1's quiet verify is a hard gate:
+  (`demolab init`, `uv sync`, `uv run python experiments/expNNN.py`, `dev`). Step 1's quiet verify is a hard gate:
   **nothing of theirs gets built until `demolab build` and `demolab test` are green.** Never pull
   branding (step 4) or publishing (step 5) forward — the first experiment comes first.
 - **Report & apply** — **conversation-driven, not autonomous.** Orient first, ask the gated
