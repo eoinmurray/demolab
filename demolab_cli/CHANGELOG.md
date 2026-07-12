@@ -13,6 +13,24 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.8] — 2026-07-12
+
+### Changed
+- **Autoresearch: one document per night, no standing `plan`/`log`.** Replaced the three brittle,
+  cross-linked program documents (`plan` / `log` / night-shift contract) with a single
+  self-contained night-shift document per night — a **mandate** (pre-registered by PLAN on
+  `main`), a **record** (written by NIGHT-SHIFT through the shift), and a **digest** (the morning
+  read and the PR description). Append-only across nights; the program is worked tactically, night
+  by night, with per-night pre-registration. (#3)
+- **Autoresearch documents obey housestyle — no LINT exemption.** The old "the log is deliberately
+  messy" exemption is gone. Night documents are linted *throughout* the shift and must pass a new
+  **cold-read** LINT dimension: a domain expert with no repo context must understand them (expand
+  shorthand, define every metric on first use, lead with the claim). (#4)
+- **Autoresearch procedures load the lab's own rules first.** AUTORESEARCH / PLAN / NIGHT-SHIFT
+  now read the lab-root `AGENTS.md` (+ `HOUSESTYLE.local.md`) as step 0 and obey them over engine
+  defaults; DOCTOR additionally checks **PR descriptions** (not just commits) for AI-attribution
+  trailers, so an unattended night can't ship one. (#6)
+
 ## [1.1.7] — 2026-07-11
 
 ### Added

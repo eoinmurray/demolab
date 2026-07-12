@@ -61,11 +61,16 @@ re-runs.
    # RULES §3.3 — branding belongs in demolab.yaml, not hacked into the black box.
    # (Informational — compare against upstream during "update demolab".)
 
-   # AUTORESEARCH-RULES §1 — an autoresearch program (a collection with a plan article) has
-   # exactly one `plan` and one `log`. Only fires for repos that use the autoresearch flow.
-   [ -f writings/plan.typ ] && { [ -f writings/log.typ ] || echo "AUTORESEARCH: plan without a log article"; }
-   for a in plan log; do n=$(ls writings/$a.typ writings/*-$a.typ 2>/dev/null | wc -l | tr -d ' '); \
-     [ "$n" -gt 1 ] && echo "AUTORESEARCH: $n '$a' articles (expected one per program — split into collections)"; done
+   # AUTORESEARCH-RULES §1 — the per-night model has no standing `plan`/`log`; a leftover one is
+   # the old three-document shape and should migrate to per-night documents.
+   for a in plan log; do [ -f "writings/$a.typ" ] && \
+     echo "AUTORESEARCH: standing '$a' article — migrate to per-night night-shift documents (AUTORESEARCH-RULES §1)"; done
+
+   # AUTORESEARCH-RULES §5 — the autoresearch PR description (the digest) carries no
+   # AI-attribution trailer. Fires only where gh is available and the repo has PRs.
+   command -v gh >/dev/null 2>&1 && gh pr list --state all --limit 50 --json body --jq '.[].body' 2>/dev/null \
+     | grep -iE 'co-authored-by:.*(claude|anthropic|\[bot\])|generated with claude' \
+     && echo "VIOLATION: AI-attribution trailer in a PR description (AUTORESEARCH-RULES §5)"
    ```
 
 3. **Judgment checks (no grep suffices — the agent decides).**
@@ -90,9 +95,12 @@ re-runs.
    - **§3 — docs match reality.** Runbook counts, path references, and the firewall in
      [`../guides/RULES.md`](../guides/RULES.md) still describe the actual tree.
    - **AUTORESEARCH-RULES §2 — every `queued` entry has a kill criterion.** In an autoresearch
-     program, read the `plan`'s queue: any entry with `status: queued` and no `kill` field is a
-     violation (PLAN should have refused it). Also confirm `status` values are read from run
-     outputs, not hand-typed to `done` (spot-check against `artifacts/data/<id>/`).
+     program, read each night document's mandate queue: any entry with `status: queued` and no
+     `kill` field is a violation (PLAN should have refused it). Also confirm `status` values are
+     read from run outputs, not hand-typed to `done` (spot-check against `artifacts/data/<id>/`).
+   - **AUTORESEARCH-RULES §2 — each night document carries a mandate, record, and digest.** Spot-
+     check a program's night-shift documents have the three sections, and that a closed night's
+     mandate was not edited after its runs (git blame the mandate against the run commits).
 
 4. **Report.** Present one grouped report:
    - **Broken** (build/test red, agent authorship, import-boundary breach) — fix now.

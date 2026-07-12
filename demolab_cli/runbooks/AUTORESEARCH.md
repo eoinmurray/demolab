@@ -1,10 +1,10 @@
 # Runbook: Start or steer a research program
 
 > Stand up a **research program** as a demolab collection — define the falsifiable arc with the
-> scientist, scaffold the `plan` + `log` articles and the night-shift contract, and over the
-> program's life handle amendments and the closing retrospective. This is the **program-level**
-> session, run a handful of times per program; day-to-day experiment planning is **PLAN**, and
-> the overnight execution is **NIGHT-SHIFT**. Conventions live in
+> scientist, register the collection, and write the first night's mandate; over the program's
+> life, capture pivots and the closing retrospective. This is the **program-level** session, run
+> a handful of times per program; nightly queue-filling is **PLAN**, and the overnight execution
+> is **NIGHT-SHIFT**. Conventions live in
 > [`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md); this runbook is the procedure.
 
 ## When to use
@@ -12,56 +12,62 @@
 At the birth of a research program, and at its big hinge points — a major pivot, or the close.
 It is interactive and human-led: the agent interviews the scientist and writes down what they
 decide. It runs no compute. Everything it produces lands on `main` in a daytime session, because
-the plan's hypothesis and kill criteria are human-reviewed by construction (RULES / AUTORESEARCH-RULES §5).
+the falsifiable question and kill criteria are human-reviewed by construction (AUTORESEARCH-RULES §5).
 
 ## What it does
 
-0. **New program or existing one?** Look for a collection whose entries include a `plan` article.
-   - **Exists** → this is a steer: go to step 4 (amend) or step 5 (close).
-   - **None** → this is a birth: steps 1–3.
+0. **Load the lab's rules first.** Read the lab-root `AGENTS.md` and `HOUSESTYLE.local.md` (if
+   present) and obey them — **lab rules win over engine defaults** (AUTORESEARCH-RULES §4). Do
+   this before writing anything.
 
-1. **Define the falsifiable arc (interview the scientist).** Draw out, and write down in the
+1. **New program or existing one?** Look for a collection whose entries are night-shift documents.
+   - **Exists** → this is a steer: go to step 5 (pivot) or step 6 (close).
+   - **None** → this is a birth: steps 2–4.
+
+2. **Define the falsifiable arc (interview the scientist).** Draw out, and write down in the
    scientist's words:
    - The **question**, stated so a result could prove it wrong.
    - Why it matters — what it confirms or rules out in the field.
    - The **baseline** the stack must reproduce before any novel claim is trusted (a published
      number, e.g. a LIF net's accuracy on N-MNIST/SHD). This becomes the first queue entry.
    - The rough arc: the two or three questions after the baseline. Not a full programme — enough
-     to aim the first nights.
+     to aim the first nights. The program is worked tactically, night by night (AUTORESEARCH-RULES §1).
    Don't invent the science. If the scientist is vague, ask; a program with no falsifiable
    question is the thing this runbook exists to refuse.
 
-2. **Pick the collection and register it.** Choose a slug (`neuron-models`, `stdp-window`, …),
+3. **Pick the collection and register it.** Choose a slug (`neuron-models`, `stdp-window`, …),
    add it to `demolab.yaml` (`collections:` + `collection-order:`, RULES §6.5) with a label and
    one-line description.
 
-3. **Scaffold the three pieces.** Model the articles on an existing writing (`meta` + `body`):
-   - `writings/plan.typ` — `collection: <slug>`, the question and baseline in the body, an empty
-     `== Amendments` heading, and an empty `queue` (frontmatter or fenced block; schema in
-     AUTORESEARCH-RULES §2). Leave the queue for **PLAN** to fill.
-   - `writings/log.typ` — `collection: <slug>`, a one-line "program opened" first entry, digest
-     slot at top.
-   - The **night-shift contract** — `night-shift.yaml` beside the collection (or a fenced block
-     in the plan) with budgets, `scope.collection`, and stop conditions (AUTORESEARCH-RULES §4).
-   Build to confirm it renders (`demolab build` / the running `demolab dev`), then commit on `main`
-   ("Open program <slug>"). That commit is the pre-registration anchor.
+4. **Write the first night's mandate.** Scaffold the first night-shift document,
+   `writings/arNNN.typ` ("Night shift — YYYY-MM-DD") with `collection: <slug>` and an `order:` (a
+   low number; nights list chronologically). In its **Mandate** section, state the program's
+   question and baseline, and seed the queue with the baseline-reproduction entry (schema in
+   AUTORESEARCH-RULES §2), plus the operating contract (budgets, `scope.collection`, stop
+   conditions). Leave the record and digest empty — the night fills them. Build to confirm it
+   renders (`demolab build` / the running `demolab dev`), then commit on `main` ("Open program
+   <slug>"). That commit is the pre-registration anchor. Hand off to **PLAN** to flesh out the
+   queue, or straight to **NIGHT-SHIFT** if the baseline entry is enough for night one.
 
-4. **Amend (existing program, a pivot).** A hypothesis or kill criterion never gets edited in
-   place once an experiment has run against it. Add a **dated entry** under `== Amendments` in the
-   plan body saying what changed and why, on `main`. Then hand off to **PLAN** to queue whatever
-   the pivot implies.
+5. **Pivot (existing program).** A pivot is not an in-place edit of a past mandate — those are
+   frozen (AUTORESEARCH-RULES §1). Capture the new direction in the **next** night's mandate: a
+   dated statement at its top of what changed and why, then the queue entries the pivot implies.
+   Committed on `main` before that night runs, it is provably prior. Hand to **PLAN** to fill the
+   rest of the queue.
 
-5. **Close (retrospective).** When the arc is done, append a **Retrospective** section to the
-   plan: what held, what died, what the log's decision trail says in hindsight, and the honest
-   limitations. Flip lingering `queued` entries to a terminal status. The collection now reads,
-   top to bottom, as question → journey → verdict.
+6. **Close (retrospective).** When the arc is done, write a closing **Retrospective** in the
+   final night's digest (or a short closing document): what held, what died, what the nights'
+   records say in hindsight, and the honest limitations. The collection now reads, oldest to
+   newest, as question → journey → verdict.
 
 ---
 
 ## Agent contract
 - **Triggers** — `AUTORESEARCH`, "start a research program", "set up an autoresearch program",
-  "steer/amend the program", "close out the program".
-- **Gates** — runs on `main`, daytime, no compute. Refuse to scaffold a program with no
-  falsifiable question or no baseline. Do not fill the queue here — that's **PLAN**.
-- **Report & apply** — interview interactively; write the plan/log/contract; build to confirm;
-  commit on `main`. Then point the scientist at **PLAN** to queue the first experiments.
+  "steer/pivot the program", "close out the program".
+- **Gates** — load lab rules first (§0); runs on `main`, daytime, no compute. Refuse to open a
+  program with no falsifiable question or no baseline. Fill the full nightly queue in **PLAN**,
+  not here.
+- **Report & apply** — interview interactively; register the collection; write the first night's
+  mandate; build to confirm; commit on `main`. Then point the scientist at **PLAN** to plan the
+  first night.

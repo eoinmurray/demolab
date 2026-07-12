@@ -19,13 +19,13 @@ the user asks.
 pass, because a grep can't see a plot and an SVG *looks* like text but isn't (see §2b). A lint
 that never opened a figure is half a lint — §2b is not optional.
 
-**The `log` article is exempt from the prose rules.** In an autoresearch program (see
-[`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md)) the `log` is a
-chronological, append-only notebook — it deliberately doesn't lead with a claim, define every
-symbol, or read like a polished article, so **skip H2–H5 and the voice/structure judgment checks
-for `writings/log.typ`**. What still applies: it's a published page, so the can't-drift rules
-hold — no hand-typed run numbers (H9), citations through the system (H24), and figures it embeds
-obey H10–H15. The `plan` article is a normal article and gets the full pass.
+**Autoresearch night documents get the full pass — no exemption.** In an autoresearch program
+(see [`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md)) each night's document is
+a published scientific artifact, not private scratch, so it obeys the prose rules like any other
+article — H2–H5, voice, and structure included. It must also clear the **cold-read** dimension
+(§2c). And it is linted *throughout the night* as it is written, not only at the end, so drift is
+caught early rather than accumulating into an end-of-run mess — a subagent pass per experiment is
+fine.
 
 **Lint against the *effective* style.** First check for a root `HOUSESTYLE.local.md`. If it's
 absent, use these defaults. In `extend` mode (default) its rules override or add to the defaults
@@ -148,6 +148,22 @@ style; drop or adjust any the local file overrides.
    A *rendering* (an mp4, e.g. `mujoco`) is the exception: it plays on the web and the PDF just
    notes "view the web edition" — no still to inspect (H14).
 
+2c. **Cold-read — would an outsider understand this?**
+
+   Beyond the per-rule checks, read the writing as **a domain expert who has never seen this repo**
+   would: with no access to the queue, the runner, or the terminal shorthand behind it. This is
+   the pass an autoresearch program's documents must clear so they can be handed to a collaborator
+   as-is — and it catches what H2–H5 miss when a page is technically rule-compliant but still
+   illegible in isolation. Flag, section by section:
+   - **Unexpanded shorthand.** Terminal-log fragments ("13/30 → 0/30", "gnorm 7.5M", "kill") that
+     mean nothing without the run in front of you — spell them out.
+   - **Undefined metrics and symbols.** Every metric, unit, and abbreviation is defined on first
+     use, not assumed (mirrors H5), so a reader meets no unexplained jargon.
+   - **Buried claims.** Each section leads with what it is telling you, not a chronological
+     wind-up to it (H2).
+   The test is binary: could the named outsider read this section and know what happened and what
+   it means? If not, it fails cold-read.
+
 3. **Report.** Present one report grouped by severity:
    - **Prose tells** (em-dashes in prose, LLM vocabulary, false balance) — fix; they're the
      loudest giveaways.
@@ -155,6 +171,9 @@ style; drop or adjust any the local file overrides.
    - **Figures** (§H10–H15 from §2b) — an unlabelled axis, a baked-in title, or a soft PNG line
      plot is a fix; aspect/palette/style drift is often advisory. A figure fix usually means
      editing the *runner*, not the writing.
+   - **Cold-read** (§2c) — for an autoresearch night document, an outsider-illegible section
+     (unexpanded shorthand, undefined metrics, buried claims) is a fix, not advisory: the whole
+     point is a record a collaborator can read without the repo.
    - **Advisory** (voice, structure, define-terms consistency) — the user's call.
 
    For each finding: name the rule (link `../guides/HOUSESTYLE.md`), the `file:line` **or figure
