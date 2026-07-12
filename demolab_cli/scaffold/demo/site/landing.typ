@@ -9,6 +9,11 @@
 #let body = {
   html.elem("div", attrs: (class: "welcome"), {
     // Hero: the problem, the pitch, and the proof — this very site is a demolab lab.
+    html.elem("p", attrs: (class: "welcome-links"), {
+      link("documentation.html", "Documentation")
+      [ · ]
+      link("https://github.com/eoinmurray/demolab", "GitHub")
+    })
     html.elem("p", attrs: (class: "welcome-body"), [
       Demolab is a lab notebook for computational science that keeps coding agents on rails.
       You say what to compute; the agent writes and runs the experiment — in Python by default,
@@ -19,11 +24,6 @@
     html.elem("p", attrs: (class: "welcome-body"), [
       This site is itself a demolab lab, built and published by the engine it documents.
     ])
-    html.elem("p", attrs: (class: "welcome-links"), {
-      link("documentation.html", "Documentation")
-      [ · ]
-      link("https://github.com/eoinmurray/demolab", "GitHub")
-    })
 
     html.elem("p", attrs: (class: "welcome-kicker"), [Get started])
     html.elem("p", attrs: (class: "welcome-body"), {
@@ -47,31 +47,43 @@
     // (each writing's meta `order:`): evaluate → start → understand/build → operate.
     html.elem("div", attrs: (class: "welcome-docs"), {
       for (tier, entries) in (
-        ([Start], (
-          ("ar018.html", "Introduction"),
-          ("ar019.html", "Why demolab"),
-          ("ar017.html", "Getting started"),
-        )),
-        ([Concepts], (
-          ("ar012.html", "The vocabulary"),
-          ("ar013.html", "The folder structure"),
-          ("ar016.html", "The contract"),
-          ("ar026.html", "Using another language"),
-        )),
-        ([Build], (
-          ("ar023.html", "Anatomy of an experiment"),
-          ("ar024.html", "Writing a writeup"),
-          ("ar015.html", "Writing style"),
-          ("ar014.html", "Authoring slides"),
-        )),
-        ([Operate], (
-          ("ar010.html", "Runbooks"),
-          ("ar022.html", "The command line"),
-          ("ar025.html", "Configuring your lab"),
-          ("ar020.html", "Publishing your lab"),
-          ("ar021.html", "Updating the engine"),
-          ("ar011.html", "Getting help"),
-        )),
+        (
+          [Start],
+          (
+            ("ar018.html", "Introduction"),
+            ("ar019.html", "Why demolab"),
+            ("ar017.html", "Getting started"),
+          ),
+        ),
+        (
+          [Concepts],
+          (
+            ("ar012.html", "The vocabulary"),
+            ("ar013.html", "The folder structure"),
+            ("ar016.html", "The contract"),
+            ("ar026.html", "Using another language"),
+          ),
+        ),
+        (
+          [Build],
+          (
+            ("ar023.html", "Anatomy of an experiment"),
+            ("ar024.html", "Writing a writeup"),
+            ("ar015.html", "Writing style"),
+            ("ar014.html", "Authoring slides"),
+          ),
+        ),
+        (
+          [Operate],
+          (
+            ("ar010.html", "Runbooks"),
+            ("ar022.html", "The command line"),
+            ("ar025.html", "Configuring your lab"),
+            ("ar020.html", "Publishing your lab"),
+            ("ar021.html", "Updating the engine"),
+            ("ar011.html", "Getting help"),
+          ),
+        ),
       ) {
         html.elem("div", attrs: (class: "welcome-docs-tier"), {
           html.elem("p", attrs: (class: "welcome-docs-label"), tier)

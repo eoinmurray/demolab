@@ -12,6 +12,7 @@
 #let meta = (
   title: "Slide layout gallery",
   date: "2026-07-06",
+  collection: "documentation",
 )
 
 // header: none drops touying's running section header (the small gray repeat of the title on
