@@ -16,6 +16,8 @@
 
   #link("https://github.com/eoinmurray/demolab/issues")[GitHub issues] are the place: bugs, feature requests, and questions about the framework. Issues are searchable, so your question helps the next person and the fix lands in the open.
 
+  Install the #link("https://cli.github.com/")[GitHub CLI] (`gh` — e.g. `brew install gh`, then `gh auth login`) and your coding agent can file issues for you: describe the problem and ask it to submit — it will gather the details below, write the report, and post it with `gh issue create`.
+
   == Writing a report that gets answered
 
   Before opening an issue, run the doctor (say _"doctor the repo"_), check the guides and runbooks, and search existing issues. Then include, in order:

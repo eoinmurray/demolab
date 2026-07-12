@@ -14,6 +14,11 @@ GitHub issues are searchable, so your question helps the next person and the fix
 
 Install the [GitHub CLI](https://cli.github.com/) (`gh`, e.g. `brew install gh` then `gh auth login`) and your agent can file issues for you: describe the problem and ask it to submit — it will gather the details below, write the report, and post it with `gh issue create`.
 
+> **Agent:** if `gh` is missing or unauthenticated, *suggest* it and stop — never install it or
+> run `gh auth login` yourself. Installing tools and authenticating with GitHub are the user's
+> call, made in their own terminal. And before posting: show the user the full issue text and
+> get an explicit yes — `gh issue create` publishes to a public tracker.
+
 ## Before you open an issue
 
 1. **Run the doctor.** Say *"doctor the repo"* — it checks the toolchain (`uv` / `typst` / `demolab`) and audits the repo against the conventions, often surfacing the problem directly with a RULES anchor and a `file:line`.
