@@ -10,9 +10,13 @@
 ## When to use
 When you want a near-exhaustive, auditable paper list on a question narrow enough that only a few
 hundred papers exist — the PING mechanism for gamma, not "gamma oscillations." The premise is a
-split of labour: the model is a good **size oracle** and a bad **recall oracle** (it can tell
-hundreds from thousands, but can't list the hundreds without fabricating), so it scopes and seeds,
-and the databases plus a DOI check do the finding and the fact-checking. What you get is a corpus
+split of labour: the model is a good **size oracle** and a *lossy* **recall oracle** — one readout
+misses most of the list, but recall climbs steeply when you multiplex decorrelated reads (author-,
+claim-, and gap-anchored) and union them. So the model scopes, seeds, and **judges membership**,
+while the databases plus a DOI check do the wide finding and the fact-checking. Treat the lossiness
+as something the pipeline engineers around by multiplexing — not a fixed ceiling, and not a number
+it measures; a single-pass harvest that stalls at a few dozen papers has under-run the method, not
+hit its limit. What you get is a corpus
 with a *measured* recall estimate, not a claim of completeness taken on faith. If the question
 can't be narrowed to an exhaustible set, say so and offer a defensible sub-slice — an honest survey
 beats a promise the method can't keep.
@@ -74,31 +78,60 @@ someone typed). Going another round on a misread marker is expected and fine.
    defaults and log them.
 
 4. **Harvest — Source 1 (unattended).** The model's memory *as recall*, against the frozen
-   vocabulary: facet × persona × temporal sweeps with repeated sampling and union (many decorrelated
-   reads beat one lossy readout). DOI-verify every candidate against Crossref via a throwaway script
-   in `temp/arNNN/`; discard anything that won't resolve — an unverifiable DOI is a hallucination.
-   Write survivors to `corpus.jsonl` tagged `mechanism: [memory]`. This is sample **A**. Log every
-   query to `runlog.jsonl`.
+   vocabulary. **Multiplex, don't single-pass** — run many decorrelated reads under *different
+   indexes into the same memory* and union them: author/lab-anchored ("list Kopell–Börgers
+   gamma+attention papers"), claim-anchored ("name findings where gamma phase gates a coincidence
+   window", then reverse-resolve each to its source), and gap-probing on the axes your list is thin
+   on. One index per subagent works well. Many decorrelated reads beat one lossy readout, and a
+   single sweep is the most common way this step under-delivers (it is what turns a real corpus into
+   a lazy 40-paper stub). DOI-verify every candidate against Crossref via a throwaway script in
+   `temp/arNNN/`, and **confirm-and-correct, don't just gate**: on a confident match, snap to the
+   Crossref record — copy its exact DOI, title, and year rather than trusting the remembered DOI,
+   which turns fuzzy near-misses into hits; discard only what won't resolve at all (an unverifiable
+   DOI is a hallucination). Write survivors to `corpus.jsonl` tagged `mechanism: [memory]`. This is
+   sample **A**. Log every query to `runlog.jsonl`.
 
 5. **Search — Source 2 (unattended).** The databases *as recall*, decorrelated from memory by
    attacking different indexes: synonym-ring keyword queries, semantic nearest-neighbour, author-
    resolved pulls, and concept-tag traversal across OpenAlex / Semantic Scholar / PubMed / arXiv
-   (throwaway scripts in `temp/arNNN/`). Dedup against `corpus.jsonl`, relevance-filter, DOI-verify.
-   Tag `mechanism: [search]`. This is sample **B**. Log every query. (No citation-graph traversal
-   here — that's the phase-6 escalation, held until the measure step says it's warranted.)
+   (throwaway scripts in `temp/arNNN/`). **Recall and membership are two different jobs — keep them
+   apart.** Databases cast a deliberately *wide, high-recall / low-precision* net; **the model-as-
+   judge decides in/out** against the frozen rubric, one paper at a time. Never let a keyword
+   predicate stand in for membership: a filter strict enough to exclude the noise also ejects the
+   canonical papers whose abstracts talk *function*, not *mechanism* — that is exactly the wall that
+   makes the recall estimate collapse. **The abstract-availability trap:** OpenAlex and friends
+   carry no abstract for many paywalled seminal papers, so an abstract-blind judge silently cuts the
+   old/canonical stratum on a title-only read (it will drop your own anchors). Flag missing-abstract
+   candidates and route them to memory-judgment or full text instead of rejecting them blind. Dedup
+   against `corpus.jsonl`, DOI-verify (snap-to-record as in step 4). Tag `mechanism: [search]`. This
+   is sample **B**. Log every query. (No citation-graph traversal here — that's the phase-6
+   escalation, held until the measure step says it's warranted.)
 
 6. **Measure (unattended).** Estimate the true corpus size and recall from the overlap between the
-   two independent samples (Lincoln–Petersen capture-recapture: with `n_A` from memory, `n_B` from
-   search, and `m` in both, the true size is about `n_A · n_B / m`). Write `numbers.json`, and plot
-   cumulative-unique-papers against queries-fired to show saturation. If recall is below target,
-   emit a `❓` proposing either more query angles or the citation-graph escalation — don't silently
-   declare victory. Exit on saturation, or on the user's stop/continue answer.
+   samples — but **capture-recapture is only valid over judgment-labeled sets, never keyword-
+   filtered ones**: run it over the in/out labels the judge assigned to each channel's pool, so no
+   keyword predicate is load-bearing. Lincoln–Petersen gives `n_A · n_B / m`; prefer **Chapman for
+   small overlap** (less biased): `N̂ = (n_A+1)(n_B+1)/(m+1) − 1`, from memory `n_A`, search `n_B`,
+   and `m` in both. Write `numbers.json`, and log the marginal yield per channel to `runlog.jsonl`.
+   **Saturation is a yield curve across *orthogonal* channels, not a flattening within one** — you
+   have *demonstrated* it (not merely declared it) when a genuinely orthogonal probe, centred on
+   your best seeds, adds ≈ zero in-scope (e.g. a real run's marginal yield 80 → 45 → 36 → 0 across
+   memory → search → citation → embedding). Stay adversarial about a null: a recency-biased channel
+   (embedding nearest-neighbour) nulling proves the *recent* stratum is covered, only weakly the
+   old — pair it with a channel that sweeps the old stratum (citation graph) before calling it. If
+   recall is below target or no orthogonal channel has nulled yet, emit a `❓` proposing the next
+   orthogonal probe (citation-graph, then author-complete or a keyed biomed pull) — don't silently
+   declare victory. Exit on demonstrated saturation, or on the user's stop/continue answer.
 
 7. **Hand off.** Regenerate `writings/arNNN.typ` from the record — confidence header (size,
    estimated true size, recall %, and the coverage caveats from preflight), the bibliography, and a
-   provenance histogram showing which mechanism carried which papers. `demolab build`, open the page
-   and PDF, and report the honest number: how big, how complete, and which silos memory versus
-   search each reached. Offer the citation-graph pass as the next step if recall fell short.
+   provenance histogram showing which mechanism carried which papers. **Set the article's
+   `collection:` meta so it isn't orphaned** — an entry with no collection falls into
+   `uncategorized` and surfaces only on the all-entries page. Ask which collection it belongs in
+   (offer the lab's existing ones from `demolab.yaml`'s `collection-order`), or deliberately default
+   it to a `miscellaneous` bucket rather than leaving it unset. `demolab build`, open the page and
+   PDF, and report the honest number: how big, how complete, and which silos memory versus search
+   each reached. Offer the citation-graph pass as the next step if recall fell short.
 
 ---
 
@@ -114,3 +147,8 @@ someone typed). Going another round on a misread marker is expected and fine.
   `runlog.jsonl`; freeze the scope once per tag. State what the search *had* (sources, keys,
   reached silos) — a measured, caveated recall number is the deliverable, not a claim of
   completeness.
+- **Two principles the measured runs live or die on** — **recall is the databases' job, membership
+  is the model's** (never let a keyword filter decide in/out); and **saturation means an orthogonal
+  channel came up empty**, not that one channel's curve flattened. Multiplex memory (don't
+  single-pass it), snap DOIs to the Crossref record (don't just gate on them), and never feed a
+  membership judge an empty abstract — it will cut your anchors.

@@ -13,6 +13,21 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.12] — 2026-07-12
+
+### Changed
+- **`LITERATURE-SEARCH` runbook hardened from a real run's failures.** The method was right but too
+  easy to under-execute; the steps now guard the ways it actually broke. Harvest (step 4): *multiplex,
+  don't single-pass* — decorrelated author/claim/gap-anchored reads (one index per subagent), and
+  *confirm-and-correct* DOIs (snap to the Crossref record, don't just gate). Search (step 5): recall
+  and membership are separate jobs — databases cast a wide net, the **model-as-judge** decides in/out
+  (never a keyword filter), plus the **abstract-availability trap** (an abstract-blind judge silently
+  cuts the paywalled seminal stratum). Measure (step 6): capture-recapture is only valid over
+  judgment-labeled sets, Chapman for small overlap, and **saturation is an orthogonal-channel null,
+  not a curve flattening within one**. Hand-off (step 7): set the article's `collection:` meta (ask,
+  or default to `miscellaneous`) so it isn't orphaned into `uncategorized`. The "bad recall oracle"
+  premise is restated as a *lossy* one the pipeline engineers around, not a measured ceiling.
+
 ## [1.1.11] — 2026-07-12
 
 ### Fixed
