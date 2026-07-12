@@ -46,3 +46,16 @@ def test_docs_is_case_insensitive(capsys):
 
 def test_unknown_doc_fails_cleanly(capsys):
     assert cli.main(["docs", "NO-SUCH-DOC"]) == 2
+
+
+def test_scaffolded_claude_md_carries_the_command_reflex():
+    """CLAUDE.md is the only file auto-injected into an agent's context every session, so
+    the CAPS-command reflex has to live there — not just behind a pointer to AGENTS.md.
+    A bare `LITERATURE-SEARCH` must be recognisable as a command before any file is read,
+    or the agent improvises (greps, guesses, asks for a topic) instead of running the runbook.
+    Guards the always-loaded surface against regressing back to a bare pointer.
+    """
+    claude_md = (_paths.SCAFFOLD / "root" / "CLAUDE.md").read_text(encoding="utf-8")
+    assert "AGENTS.md" in claude_md, "must still point at AGENTS.md"
+    assert "demolab docs" in claude_md, "must name the command to run for a CAPS message"
+    assert "CAPS" in claude_md, "must state the CAPS-name trigger grammar on the loaded surface"

@@ -13,6 +13,18 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [1.1.11] — 2026-07-12
+
+### Fixed
+- **CAPS-command reflex now lives in `CLAUDE.md`, the always-loaded surface.** The trigger grammar
+  (a user message that is only a `NAME` in CAPS is a command → run `demolab docs <NAME>`) previously
+  lived only in `AGENTS.md` and the packaged manual — both gated behind the agent *first* reading a
+  file. A cold `LITERATURE-SEARCH` therefore arrived with no idea it was a command, so agents
+  improvised (grepped, guessed, asked for a topic) instead of routing to the runbook. The scaffolded
+  `CLAUDE.md` now states the reflex directly, so any agent recognises a CAPS command before touching
+  a file. Note: `init`/`scaffold` keep an existing `CLAUDE.md` (non-destructive) — re-copy the file
+  to harden an older lab.
+
 ## [1.1.10] — 2026-07-12
 
 ### Added
