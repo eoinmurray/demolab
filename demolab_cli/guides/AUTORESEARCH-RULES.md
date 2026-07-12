@@ -64,6 +64,14 @@ human/agent split:
   lives here — each night proposes the next, the next night's PLAN picks them up. **No standing
   master queue.**
 
+**Scientific log in the document, code log in git.** The Record is the *scientific* notebook —
+what ran, what it showed, what was killed or parked. Engineering detail — what a tool or runner
+changed and why, a debugging dead-end, a build fix — is a *code* log: it goes in the per-experiment
+commit messages and, where the reviewer needs it in context, as comments on the night's PR, **not
+in the Record**. This is what lets the Record cold-read (§3): a collaborator opening the document
+wants the science, not the stack traces. The rule of thumb — would it mean anything to the
+collaborating scientist? Science, into the document; plumbing, into the commits and the PR thread.
+
 **The queue slice** (in the mandate) is structured data the runbooks read — a list of entries,
 one per planned experiment (a `queue:` field in `meta`, or a fenced ```yaml block the runbooks
 parse). Each entry:
@@ -138,6 +146,10 @@ non-compliant artifact can't ship even if the agent misses the rule.
   collection directories, so parallel nights merge cleanly.
 - **One commit per experiment attempt**, including killed ones — a negative result is a result,
   and per-experiment commits let you cherry-pick the two good runs out of a mixed night.
+- **The commit messages and PR comments carry the code log** — the engineering narrative kept out
+  of the Record (§2): what the runner/tool changed and why, debugging, build fixes. Put it in the
+  per-experiment commit message, and surface anything the reviewer should weigh as a PR comment.
+  The scientific record stays in the document; the code log stays in git and the PR thread.
 - **Merge commits only — never squash or rebase.** Run stamps point at the night-branch commits;
   rewriting history breaks the provenance shown on published pages.
 - **The PR is the morning gate.** NIGHT-SHIFT ends by opening a PR whose description *is* the

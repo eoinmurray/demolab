@@ -41,11 +41,14 @@ a scheduler). It never invents science: it works the mandate PLAN pre-registered
      the mandate's hypothesis or kill criterion — those are read-only on a night branch
      (AUTORESEARCH-RULES §5).
    - **Write it up** — `writings/expNNN.typ`, numbers pulled from the record, not typed.
-   - **Record it** — append to the document's **Record** section: what ran, seeds, outcome, any
-     abort, and any anomaly. Write it to housestyle *as you go* and lint it throughout the shift
-     (a subagent pass is fine) — the record is a published artifact, not scratch, and must
-     cold-read (AUTORESEARCH-RULES §3).
-   - **Commit** — one commit per experiment attempt, killed ones included. Merge-workflow only;
+   - **Record it (science only)** — append to the document's **Record** section: what ran, seeds,
+     outcome, any abort, and any anomaly — the *scientific* narrative. Keep engineering detail out
+     of it (that's the code log, below). Write it to housestyle *as you go* and lint it throughout
+     the shift (a subagent pass is fine) — the record is a published artifact, not scratch, and
+     must cold-read (AUTORESEARCH-RULES §3).
+   - **Commit (the code log)** — one commit per experiment attempt, killed ones included. The
+     commit message carries the *code* log — what the runner/tool changed and why, debugging, a
+     build fix — kept out of the scientific Record (AUTORESEARCH-RULES §2). Merge-workflow only;
      no rebase/squash. No AI-attribution trailer on the commit.
 
 4. **Anomaly policy: record and move on.** If a run looks odd, do **not** chase it at 3 a.m. —
@@ -62,10 +65,12 @@ a scheduler). It never invents science: it works the mandate PLAN pre-registered
    attention, what's proposed. Not a recitation of everything done — the thing a human reads in
    thirty seconds over coffee. It obeys housestyle and must cold-read (AUTORESEARCH-RULES §3).
 
-7. **Open the PR.** Push the branch, open a PR whose **description is the digest** — with **no
-   AI-attribution trailer** (§0; AUTORESEARCH-RULES §5). Stop. The night is over; the morning gate
-   (PLAN / the human review) decides what merges. Publish nothing — CI deploys from `main`, and
-   only a human merge reaches `main`.
+7. **Open the PR.** Push the branch, open a PR whose **description is the digest** (the science) —
+   with **no AI-attribution trailer** (§0; AUTORESEARCH-RULES §5). Any engineering context the
+   reviewer should weigh — a workaround, a flaky build, a decision made mid-run — goes as a **PR
+   comment** (the code log), not in the digest. Stop. The night is over; the morning gate (PLAN /
+   the human review) decides what merges. Publish nothing — CI deploys from `main`, and only a
+   human merge reaches `main`.
 
 ---
 
