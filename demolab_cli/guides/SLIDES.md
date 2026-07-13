@@ -82,7 +82,8 @@ gutters + captions and check it stays under ~350 pt.
 
 **D8 — Fill or split.** If a slide is mostly whitespace, the figures are too small — grow
 them to the budget or merge slides. If content doesn't fit at readable sizes, split the
-slide; never shrink text below ~19 pt or captions below ~14 pt to force a fit.
+slide; never shrink body text below ~19 pt or captions, diagram labels, and chart annotations
+below ~16 pt to force a fit.
 
 ## 3. Verify — overflow paginates silently
 

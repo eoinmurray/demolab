@@ -19,6 +19,7 @@
 
 #set text(font: "New Computer Modern", size: 22pt)
 #show raw: set text(font: "DejaVu Sans Mono")
+#show raw.where(block: true): set text(1em / 0.8)
 
 // demolab two-ink palette (see SLIDES.md D4): ink headings + bold, muted secondary.
 #let ink = rgb("#1a1a1a")
@@ -32,7 +33,7 @@
   #set align(left)
   = An opinionated take on coding agents in computational science
   #v(1.2em)
-  #text(size: 17pt, fill: muted)[Eoin Murray]
+  #text(size: 18pt, fill: muted)[Eoin Murray]
 ]
 
 // layout: bullets (numbered — the agenda)
@@ -45,7 +46,7 @@
 // ═══════════════════════════════ PART ONE ═══════════════════════════════
 // layout: section-divider
 #focus-slide(background: white, foreground: ink)[
-  #text(size: 15pt, fill: muted)[PART ONE]
+  #text(size: 17pt, fill: muted)[PART ONE]
   #v(0.4em)
   #text(size: 44pt, weight: "bold", fill: ink)[Coding agents]
   #v(0.5em)
@@ -91,9 +92,9 @@
           y = y + 1
           mi = 0
         }
-        text(size: 13pt)[#months.at(mi) #str(y)]
+        text(size: 16pt)[#months.at(mi) #str(y)]
       },
-      y-format: v => text(size: 15pt)[#str(calc.round(v))%],
+      y-format: v => text(size: 16pt)[#str(calc.round(v))%],
       axis-style: "left",
       {
         let data = (
@@ -115,8 +116,8 @@
           mark-style: (fill: ink, stroke: none),
         )
         plot.annotate(resize: false, {
-          content((2024.62, 43), text(size: 14pt, weight: "bold", fill: ink)[33%])
-          content((2025.78, 88), text(size: 17pt, weight: "bold", fill: ink)[77%])
+          content((2024.62, 43), text(size: 16pt, weight: "bold", fill: ink)[33%])
+          content((2025.78, 88), text(size: 18pt, weight: "bold", fill: ink)[77%])
         })
       },
     )
@@ -124,12 +125,12 @@
 ]
 #v(0.4em)
 #align(center)[#text(
-  size: 15pt,
+  size: 17pt,
   fill: muted,
 )[Share of real, human-validated GitHub issues an agent resolves end-to-end — SWE-bench Verified (swebench.com). Software bugs, not science.]]
 #v(0.6em)
 #align(center)[#text(
-  size: 16pt,
+  size: 18pt,
 )[autocomplete #text(fill: muted)[(2021)] #sym.arrow.r chat #text(fill: muted)[(2023)] #sym.arrow.r *agents that do real work* #text(fill: muted)[(2025)]]]
 
 // layout: bullets
@@ -195,14 +196,14 @@
 ]
 #v(0.5em)
 #align(center)[#text(
-  size: 15pt,
+  size: 17pt,
   fill: muted,
 )[Bundled agents: seat + usage meter. DeepSeek: pay-per-token. Local Llama: free, assist-tier only.]]
 
 // ═══════════════════════════════ PART TWO ═══════════════════════════════
 // layout: section-divider
 #focus-slide(background: white, foreground: ink)[
-  #text(size: 15pt, fill: muted)[PART TWO]
+  #text(size: 17pt, fill: muted)[PART TWO]
   #v(0.4em)
   #text(size: 40pt, weight: "bold", fill: ink)[Demolab v1 — rails for the agent]
 ]
@@ -249,7 +250,7 @@
 #align(center)[
   #block(fill: luma(245), stroke: 0.75pt + luma(210), radius: 12pt, inset: 26pt)[
     #set align(left)
-    #text(size: 20pt)[
+    #text(size: 18pt)[
       ```
       tools/          the science — models & solvers
       experiments/    the runners — expNNN.py per experiment
@@ -296,7 +297,7 @@
 #align(center)[
   #block(fill: ink, radius: 12pt, inset: (x: 30pt, y: 26pt), width: 90%)[
     #set align(left)
-    #set text(font: "DejaVu Sans Mono", fill: fg, size: 16pt)
+    #set text(font: "DejaVu Sans Mono", fill: fg, size: 18pt)
     #set par(leading: 0.85em)
     #text(fill: dim)[my-coding-agent ▸ ]#text(weight: "bold")[HELP]#h(0.2em)#box(
       fill: fg,
@@ -321,7 +322,7 @@
 #align(center)[
   #block(fill: ink, radius: 12pt, inset: (x: 30pt, y: 26pt), width: 90%)[
     #set align(left)
-    #set text(font: "DejaVu Sans Mono", fill: fg, size: 16pt)
+    #set text(font: "DejaVu Sans Mono", fill: fg, size: 18pt)
     #set par(leading: 0.85em)
     #text(weight: "bold")[RUNBOOKS]#h(1.1em)#text(fill: dim)[\# on demand — run it, step by step]
     #v(0.6em)
@@ -341,11 +342,11 @@
     #set align(left)
     #text(size: 20pt)[
       ```
-      uvx demolab-cli init                 set up a lab in an empty folder
-      uv run python experiments/exp000.py  run an experiment end-to-end
-      demolab dev                          serve the site with live-reload
-      demolab build                        website + a PDF per entry + book
-      demolab test                         run the test suite
+      uvx demolab-cli init                 scaffold a lab
+      uv run python experiments/exp000.py  run one experiment
+      demolab dev                          live-reload the site
+      demolab build                        website + PDFs
+      demolab test                         run tests
       ```
     ]
   ]
@@ -366,7 +367,7 @@
 // Closes the Demolab v1 section before the v2 divider.
 #focus-slide(background: white, foreground: ink)[
   #align(center)[
-    #text(size: 12pt, fill: muted, tracking: 2pt)[GETTING STARTED]
+    #text(size: 16pt, fill: muted, tracking: 2pt)[GETTING STARTED]
     #v(0.25em)
     #link("https://demolab.eoinmurray.info")[
       #text(size: 34pt, weight: "bold", fill: ink)[demolab.eoinmurray.info]
@@ -374,13 +375,13 @@
 
     #v(1.6em)
 
-    #text(size: 12pt, fill: muted, tracking: 2pt)[SUPPORT]
+    #text(size: 16pt, fill: muted, tracking: 2pt)[SUPPORT]
     #v(0.25em)
     #link("https://github.com/eoinmurray/demolab")[
       #text(size: 22pt, weight: "bold", fill: ink)[github.com/eoinmurray/demolab]
     ]
     #v(0.4em)
-    #text(size: 15pt, fill: muted)[
+    #text(size: 17pt, fill: muted)[
       Open a #link("https://github.com/eoinmurray/demolab/issues")[GitHub issue] and I'll fix it quickly.
     ]
   ]
@@ -394,7 +395,7 @@
 // ═══════════════════════════════ PART THREE ═══════════════════════════════
 // layout: section-divider
 #focus-slide(background: white, foreground: ink)[
-  #text(size: 15pt, fill: muted)[PART THREE]
+  #text(size: 17pt, fill: muted)[PART THREE]
   #v(0.4em)
   #text(size: 40pt, weight: "bold", fill: ink)[Demolab v2 — the future of Demolab]
 ]
@@ -409,7 +410,7 @@
 - *The rails already exist* — provenance, reproducibility, and a published trail come free.
 
 #v(1.1em)
-#align(center)[#text(size: 15pt, fill: muted)[Status: implemented, but untested.]]
+#align(center)[#text(size: 17pt, fill: muted)[Status: implemented, but untested.]]
 
 // layout: bullets
 == Lab scale

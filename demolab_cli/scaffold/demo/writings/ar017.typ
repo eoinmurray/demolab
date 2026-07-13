@@ -21,8 +21,10 @@
   Open a coding agent in an empty folder and paste:
 
   ```
-  Run uvx demolab-cli init here, then follow its GETTING-STARTED runbook strictly.
+  uvx demolab-cli init
   ```
+
+  Then ask it to follow the GETTING-STARTED runbook strictly.
 
   It runs the #link(runbooks + "/GETTING-STARTED.md")[GETTING-STARTED] runbook and sets everything
   up with you: the toolchain — #link("https://docs.astral.sh/uv/")[uv] for Python and
@@ -37,15 +39,19 @@
   By hand, the loop is:
 
   ```sh
-  uvx demolab-cli init  # lay down the lab: root files + writings/ experiments/ tools/ artifacts/
-  demolab dev           # serve the site at localhost:3000, live-reloading on save
-  uv run python experiments/exp000.py   # run an experiment end to end (once you've written one)
+  uvx demolab-cli init
+  demolab dev
+  uv run python experiments/exp000.py
   ```
 
-  Change a parameter, run the experiment again, and watch the page update — figures and numbers, no
-  prose touched. That's the whole point. `demolab build` compiles everything once; `demolab test`
-  runs the suite. (Want a worked example to model your first experiment on? `demolab docs STARTERS`
-  prints the reference dir — `monte-carlo-pi` is the canonical starter; build it as your own.)
+  The first command lays down the lab, the second serves it at `localhost:3000` with live reload,
+  and the third runs an experiment end to end. Change a parameter, run the experiment again, and
+  watch the page update — figures and numbers, no prose touched. That's the whole point.
+  `demolab build` compiles everything once; `demolab test` runs the suite. (Want a worked example
+  to model your first experiment on? `demolab docs STARTERS` prints the reference dir —
+  `monte-carlo-pi` is the canonical starter; build it as your own.)
+
+  #context { if target() != "html" { pagebreak() } }
 
   == How a lab is laid out
 

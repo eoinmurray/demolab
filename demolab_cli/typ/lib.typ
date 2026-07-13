@@ -173,7 +173,7 @@
         line(length: 100%, stroke: 0.5pt + gray)
       }
     }
-    text(size: 8pt, fill: gray)[
+    text(size: 8pt, fill: rgb("#555555"))[
       Generated from commit #raw(prov.commit.slice(0, 7))#if prov.dirty [ (uncommitted changes)] · #human-date(prov.at("generated_at", default: "").slice(0, 10))
     ]
   }
@@ -352,6 +352,32 @@
   body
 }
 
+// The paged reading surface shared by standalone entry PDFs and book chapters. Technical prose
+// stays ragged-right so inline code and long identifiers don't open rivers in justified lines;
+// slightly increased leading keeps the 11pt body comfortable on screen and paper. PDF code is
+// monochrome (print-safe), a touch larger than Typst's 0.8em raw default, and short blocks move as
+// a unit instead of splitting without a continuation cue. Long blocks remain breakable so a user
+// can never create an unplaceable element taller than a page.
+#let paged-body(body) = {
+  set par(justify: false, leading: 0.76em)
+  set raw(theme: none)
+  show heading.where(level: 2): set text(size: 14pt)
+  show heading.where(level: 2): set block(above: 1.25em, below: 0.4em, breakable: false)
+  show raw.where(block: true): set text(0.84em / 0.8)
+  show raw.where(block: true): it => {
+    let lines = it.text.split("\n").len()
+    block(
+      width: 100%,
+      fill: luma(248),
+      stroke: (left: 2pt + rgb("#222222")),
+      inset: (x: 11pt, y: 8pt),
+      breakable: lines > 18,
+      it,
+    )
+  }
+  body
+}
+
 // --- page templates (one per output document) ---
 
 // --- broken-entry-page: a visible stub for an entry that failed to build (a missing figure, a
@@ -370,7 +396,6 @@
 #let entry-page(meta, body, id: none, brand: default-brand) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
-  set par(justify: true)
   // Restart figure numbering per entry: the whole bundle is one compile, so Typst's global
   // figure counter would otherwise carry across every document. Each entry (its page + its
   // standalone PDF) numbers its own figures from 1.
@@ -403,7 +428,23 @@
       html.elem("a", attrs: (class: "home-link", href: "index.html"), [← Home])
     }
   }
-  heading(level: 1, meta.title)
+  context {
+    if target() == "html" {
+      heading(level: 1, meta.title)
+    } else {
+      text(
+        font: "DejaVu Sans Mono",
+        size: 7.5pt,
+        tracking: 0.12em,
+        fill: rgb("#555555"),
+        upper(meta.at("collection", default: "entry")),
+      )
+      v(8pt)
+      show heading.where(level: 1): set text(size: 24pt)
+      show heading.where(level: 1): set block(below: 0.15em)
+      heading(level: 1, meta.title)
+    }
+  }
   // the metadata strip under the title — id · date · status · pdf, all inline on the left (web
   // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
   let meta-bits = (
@@ -424,11 +465,14 @@
         }
       })
     } else {
-      text(size: 9pt, fill: gray, { meta-line; if status != "final" [ · #status-badge(status)] })
+      text(size: 9pt, fill: rgb("#555555"), { meta-line; if status != "final" [ · #status-badge(status)] })
+      v(9pt)
+      line(length: 100%, stroke: 0.6pt + rgb("#cccccc"))
+      v(14pt)
     }
   }
-  parbreak()
-  body
+  context { if target() == "html" { parbreak() } }
+  context { if target() == "html" { body } else { paged-body(body) } }
   // a little breathing room below the last line on the web (the PDF has page margins)
   context { if target() == "html" { html.elem("div", attrs: (class: "entry-tail")) } }
 }
@@ -524,7 +568,13 @@
 
 #let book-page(entries, brand: default-brand) = {
   set text(font: "New Computer Modern", size: 11pt)
-  set par(justify: true)
+  let chapter = state("demolab-book-chapter", none)
+  set page(header: context {
+    let current = chapter.get()
+    if current != none {
+      align(right, text(size: 8pt, fill: rgb("#666666"), current))
+    }
+  })
   show figure.caption: set align(left) // left-align captions (book is PDF-only)
   // The book is emitted after every entry document in the same compile, so reset the global
   // figure counter here too — the book then numbers figures continuously 1…N across all chapters.
@@ -532,10 +582,11 @@
   // Table of contents (page numbers auto-resolved from each entry's heading), no cover.
   outline(title: [#brand.contents-title], depth: 1)
   for e in entries {
+    chapter.update(e.meta.title)
     pagebreak()
     heading(level: 1, e.meta.title)
-    text(size: 9pt, fill: gray)[#human-date(e.meta.date)]
+    text(size: 9pt, fill: rgb("#555555"))[#human-date(e.meta.date)]
     parbreak()
-    e.body
+    paged-body(e.body)
   }
 }

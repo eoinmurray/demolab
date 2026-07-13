@@ -21,6 +21,7 @@
 
 #set text(font: "New Computer Modern", size: 22pt)
 #show raw: set text(font: "DejaVu Sans Mono")
+#show raw.where(block: true): set text(1em / 0.8)
 
 // Align the deck to demolab's two-ink web palette (RULES/style.css): ink for headings + bold,
 // muted for secondary text — instead of touying's default teal accent. `strong` needs a transform
@@ -36,7 +37,7 @@
 
 // In a real entry, the table / figure / big-number slides read their numbers from the run record
 // (never typed). This gallery has no run attached, so it uses fixed sample values inline.
-#let cap(body) = text(size: 14pt, fill: muted)[#body]
+#let cap(body) = text(size: 17pt, fill: muted)[#body]
 
 // layout: title — opens the deck; mirror the closer so it bookends
 #title-slide[
@@ -45,7 +46,7 @@
   #v(0.4em)
   A worked example of every demolab slide layout.
   #v(1.4em)
-  #text(size: 17pt, fill: muted)[Demolab · SLIDES.md D11]
+  #text(size: 18pt, fill: muted)[Demolab · SLIDES.md D11]
 ]
 
 // layout: bullets — the workhorse; bold the load-bearing phrase, five bullets max
@@ -152,7 +153,7 @@ where:
 
 // layout: section-divider — chrome-free focus-slide signposting a new part (no stale header)
 #focus-slide(background: white, foreground: ink)[
-  #text(size: 15pt, fill: muted)[PART TWO]
+  #text(size: 17pt, fill: muted)[PART TWO]
   #v(0.4em)
   #text(size: 44pt, weight: "bold", fill: ink)[Figures]
   #v(0.5em)
@@ -232,7 +233,7 @@ where:
 == Diagram
 
 #let node(b) = box(fill: luma(245), stroke: 0.75pt + luma(200), radius: 8pt, inset: (x: 14pt, y: 10pt))[#text(size: 18pt)[#b]]
-#let flow(lbl) = stack(dir: ttb, spacing: 3pt, align(center, text(size: 12pt, fill: muted)[#lbl]), align(center, text(size: 22pt, fill: muted)[#sym.arrow.r]))
+#let flow(lbl) = stack(dir: ttb, spacing: 3pt, align(center, text(size: 16pt, fill: muted)[#lbl]), align(center, text(size: 22pt, fill: muted)[#sym.arrow.r]))
 
 #align(center)[
   #grid(columns: 7, align: horizon, column-gutter: 8pt,
@@ -291,5 +292,5 @@ where:
     - Numbers and figures come from the run, never the keyboard.
   ]
   #v(1em)
-  #text(size: 17pt, fill: muted)[Every layout, one demolab look.]
+  #text(size: 18pt, fill: muted)[Every layout, one demolab look.]
 ]
