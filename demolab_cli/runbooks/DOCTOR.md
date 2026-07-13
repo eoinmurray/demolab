@@ -96,7 +96,7 @@ re-runs.
      [`../guides/RULES.md`](../guides/RULES.md) still describe the actual tree.
    - **AUTORESEARCH-RULES §2 — every `queued` entry has a kill criterion.** In an autoresearch
      program, read each night document's mandate queue: any entry with `status: queued` and no
-     `kill` field is a violation (PLAN should have refused it). Also confirm `status` values are
+     `kill` field is a violation (AUTORESEARCH should have refused it at the mandate gate). Also confirm `status` values are
      read from run outputs, not hand-typed to `done` (spot-check against `artifacts/data/<id>/`).
    - **AUTORESEARCH-RULES §2 — each night document carries a mandate, record, and digest.** Spot-
      check a program's night-shift documents have the three sections, and that a closed night's

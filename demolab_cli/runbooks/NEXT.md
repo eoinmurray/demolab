@@ -20,8 +20,8 @@ over the committed record.
    documents, see [`../guides/AUTORESEARCH-RULES.md`](../guides/AUTORESEARCH-RULES.md)) also read
    the **night documents' records and digests** — the decision arc, killed hypotheses, and parked
    anomalies say what's already been tried and ruled out, which a published-results-only view
-   can't see. NEXT's proposals here are candidate directions the scientist turns into
-   pre-registered queue entries via **PLAN**; they are not self-approved experiments.
+   can't see. NEXT's proposals here are candidate directions the scientist may approve as
+   pre-registered queue entries through **AUTORESEARCH**; they are not self-approved experiments.
 
 1. **Find the openings.** Across that map, look for:
    - **Untested regimes** — a parameter held fixed that the conclusion might hinge on (one value

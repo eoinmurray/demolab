@@ -21,6 +21,48 @@ def test_docs_menu_covers_every_file(capsys):
         assert f"\n    {name} " in menu or f"\n    {name}\n" in menu, f"{name} missing from `demolab docs`"
 
 
+def test_autoresearch_is_the_single_program_command(capsys):
+    """Planning, execution, and review are states of AUTORESEARCH, not user-facing commands."""
+    assert (_paths.RUNBOOKS / "AUTORESEARCH.md").exists()
+    assert not (_paths.RUNBOOKS / "PLAN.md").exists()
+    assert not (_paths.RUNBOOKS / "NIGHT-SHIFT.md").exists()
+
+    assert cli.main(["docs"]) == 0
+    menu = capsys.readouterr().out
+    assert "\n    AUTORESEARCH " in menu
+    assert "\n    PLAN " not in menu
+    assert "\n    NIGHT-SHIFT " not in menu
+
+    assert cli.main(["docs", "PLAN"]) == 2
+    capsys.readouterr()
+    assert cli.main(["docs", "NIGHT-SHIFT"]) == 2
+
+
+def test_autoresearch_formulates_before_registering():
+    """A fuzzy idea is reviewed and operationalised before AUTORESEARCH creates program state."""
+    runbook = (_paths.RUNBOOKS / "AUTORESEARCH.md").read_text(encoding="utf-8")
+    rules = (_paths.GUIDES / "AUTORESEARCH-RULES.md").read_text(encoding="utf-8")
+
+    required_runbook_terms = (
+        "State of play",
+        "SUITABLE",
+        "NEEDS REFINEMENT",
+        "BLOCKED",
+        "WRONG WORKFLOW",
+        "Conservative",
+        "Balanced",
+        "Ambitious",
+        "Programme Brief",
+        "Nothing is committed during formulation",
+    )
+    for term in required_runbook_terms:
+        assert term in runbook, f"AUTORESEARCH formulation lost required contract: {term}"
+
+    assert runbook.index("### 2. Formulating") < runbook.index("Continue to **draft**")
+    assert "Formulation precedes registration" in rules
+    assert "Nothing is committed before the scientist approves" in rules
+
+
 def test_docs_prints_the_agent_manual(capsys):
     """Bare `demolab docs` is the agent's one-call orientation: the packaged AGENT.md
     manual in full, then the menu."""

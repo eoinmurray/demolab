@@ -2,9 +2,9 @@
 
 > The conventions for running a **research program** on demolab: a collection worked one night
 > at a time by an overnight agent, pre-registered per night, and gated every morning by a human.
-> This guide is the source of truth the three runbooks cite — **AUTORESEARCH** (start/steer a
-> program), **PLAN** (queue the next night), **NIGHT-SHIFT** (work the night). It defines the
-> per-night document, the queue schema, and the git workflow; the runbooks are the procedures.
+> This guide is the source of truth for the state-aware **AUTORESEARCH** runbook, the single front
+> door that defines, plans, runs, reviews, pivots, and closes a program. It defines the per-night
+> document, queue schema, human gates, and git workflow; the runbook is the procedure.
 
 ## When to use
 
@@ -13,6 +13,21 @@ during the day, run unattended for **at most one night** at a time, and never pu
 review. This is not "an AI writes papers" — it's a lab notebook with a night shift. The whole
 value is that every overnight claim is auditable the next morning, because demolab already
 stamps every run with its git commit and reads every published number straight from the run.
+
+## 0. Formulation precedes registration
+
+AUTORESEARCH does not assume the scientist arrives with a programme-shaped hypothesis. Before a
+collection or mandate exists, it reviews the relevant lab evidence and constraints, tests whether
+the idea is suitable for bounded unattended computation, and helps the scientist compare honest
+formulations. The approved output is a **Programme Brief**: question, rationale, operational
+definitions, outcomes, baseline, falsifier, confounds, feasibility envelope, stop condition, and
+first-night objective.
+
+Nothing is committed before the scientist approves that brief at the program gate. A rejected,
+blocked, or wrong-workflow idea creates no empty collection. On approval, the brief is copied into
+the first night's Mandate; it is not another standing document that can drift. A material pivot
+repeats formulation and records the newly approved brief in the next dated Mandate without
+rewriting history.
 
 ## 1. The shape — one program = one collection, one document per night
 
@@ -31,9 +46,10 @@ a night's document is a working log the agent writes to throughout its own shift
 night is never edited, and each new night appends its own document. No cross-links, no drift.
 
 **Tactical, not strategic.** The program is deliberately worked night by night, not against a
-grand upfront plan. The overarching question and baseline are stated in the **first** night's
-mandate; a mid-course pivot is stated in the mandate of the night it takes effect — dated, and
-provably prior to that night's runs. The collection, read oldest to newest, *is* the arc:
+grand upfront plan. The approved Programme Brief, including the overarching question and baseline,
+is stated in the **first** night's mandate; a mid-course pivot is reformulated with the scientist
+and stated in the mandate of the night it takes effect — dated, and provably prior to that night's
+runs. The collection, read oldest to newest, *is* the arc:
 question → journey → verdict. Give the night documents an ascending `order:` (RULES §6.5a) so
 they list chronologically.
 
@@ -50,18 +66,18 @@ Three sections, in rendered order **Digest → Mandate → Record** — the dige
 is the morning read, read first and often only. The two authoring phases keep the existing
 human/agent split:
 
-- **Mandate — written by PLAN, on `main`, before the night.** The pre-registration: the queue
+- **Mandate — locked by AUTORESEARCH on `main`, before the night.** The pre-registration: the queue
   slice this night will work, and the operating contract (budgets, scope, stop conditions). This
   section is human-authored and, once committed, **never edited** — a night branch may set queue
   *statuses* from run outputs, but never touches a hypothesis or kill criterion. Its commit is
   the pre-registration anchor.
-- **Record — written by NIGHT-SHIFT, on the night branch, throughout the shift.** The working
+- **Record — written by AUTORESEARCH on the night branch, throughout the shift.** The working
   notebook: what ran, seeds, outcomes, aborts, and anomalies parked for a human. It accrues
   through the night; it is *not* style-exempt (§3).
-- **Digest — written by NIGHT-SHIFT at shift end.** A ruthless triage summary (what confirmed,
+- **Digest — written by AUTORESEARCH at shift end.** A ruthless triage summary (what confirmed,
   what died by its own criterion, which anomaly deserves attention) plus the night's `proposed`
   next steps. It is the morning read **and** the PR description (§5). The cross-night backlog
-  lives here — each night proposes the next, the next night's PLAN picks them up. **No standing
+  lives here — each night proposes the next, the next AUTORESEARCH review picks them up. **No standing
   master queue.**
 
 **Scientific log in the document, code log in git.** The Record is the *scientific* notebook —
@@ -85,7 +101,7 @@ parse). Each entry:
 | `seeds` | Seed count for the sweep (§6). One seed is an anecdote, not a result. |
 | `budget` | Per-run wall-clock ceiling (and any resource cap). Stops a diverging run eating the night. |
 | `status` | `queued → running → done → killed`. **Read from run outputs, not hand-edited** (RULES §6.2) — the mandate can't claim a success that didn't run. |
-| `origin` | `human` (queued via PLAN) or `proposed` (drafted in a prior night's digest, awaiting human approval). A `proposed` entry is never run. |
+| `origin` | `human` (approved at the mandate gate) or `proposed` (drafted in a prior night's digest, awaiting human approval). A `proposed` entry is never run. |
 
 The typeset status table in the body is **generated from this queue** (single source, same trick
 as `numbers-table`), so the published mandate and the agent's worklist can never disagree.
@@ -114,7 +130,7 @@ prose rules like any other entry (HOUSESTYLE / LINT) — the earlier "the log is
 messy" exemption is gone: it licensed exactly what made real programs illegible (terminal
 shorthand, metrics used before they are defined, no lead-with-the-claim).
 
-- **Lint throughout the night, not only at the end.** NIGHT-SHIFT lints the document as it writes
+- **Lint throughout the night, not only at the end.** AUTORESEARCH lints the document as it writes
   so drift is caught early instead of accumulating into an end-of-run mess. Subagent passes are
   fine. "Working document" means *mutable during its shift*, never *exempt from style*.
 - **Cold-read is the bar.** The test is: *would a domain expert who has never seen this repo
@@ -128,9 +144,9 @@ shorthand, metrics used before they are defined, no lead-with-the-claim).
 
 A cold cloud session runs on **engine defaults** unless the flow makes it read the lab's own
 rules — which is how an unattended night once shipped a PR carrying an AI-attribution trailer its
-lab's `AGENTS.md` explicitly banned. So every autoresearch procedure (AUTORESEARCH, PLAN,
-NIGHT-SHIFT) **loads the lab-root `AGENTS.md` and `HOUSESTYLE.local.md` (if present) as its first
-step, and obeys them — lab rules win over engine defaults** — before acting, not as an
+lab's `AGENTS.md` explicitly banned. So every AUTORESEARCH invocation **loads the lab-root
+`AGENTS.md` and `HOUSESTYLE.local.md` (if present) as its first step, and obeys them — lab rules
+win over engine defaults** — before acting, not as an
 afterthought. The morning gate (§5, DOCTOR) also checks for the concrete violations, so a
 non-compliant artifact can't ship even if the agent misses the rule.
 
@@ -138,12 +154,14 @@ non-compliant artifact can't ship even if the agent misses the rule.
 
 - **Main is the published record.** Turn on branch protection; CI deploys the site from `main`
   only, so nothing publishes without a merge.
-- **The mandate lands on `main` in a daytime PLAN session.** That commit is the night's
+- **The mandate lands on `main` at AUTORESEARCH's human-approved mandate gate.** That commit is the night's
   pre-registration anchor. A night branch may update queue **statuses** and write the record +
   digest, but never edits a hypothesis or kill criterion — hypothesis changes are human-reviewed
   by construction.
-- **One branch per night per program:** `night/YYYY-MM-DD-<collection>`. Programs touch disjoint
-  collection directories, so parallel nights merge cleanly.
+- **One branch per night per program:** `night/<collection>/<arNNN>`, created from the exact
+  locked-mandate commit. The immutable night id prevents a delayed or restarted shift colliding
+  with another branch. Programs reserve disjoint article and experiment ids on `main` before
+  branching, so parallel nights do not claim the same entries.
 - **One commit per experiment attempt**, including killed ones — a negative result is a result,
   and per-experiment commits let you cherry-pick the two good runs out of a mixed night.
 - **The commit messages and PR comments carry the code log** — the engineering narrative kept out
@@ -152,7 +170,7 @@ non-compliant artifact can't ship even if the agent misses the rule.
   The scientific record stays in the document; the code log stays in git and the PR thread.
 - **Merge commits only — never squash or rebase.** Run stamps point at the night-branch commits;
   rewriting history breaks the provenance shown on published pages.
-- **The PR is the morning gate.** NIGHT-SHIFT ends by opening a PR whose description *is* the
+- **The PR is the morning gate.** AUTORESEARCH ends a shift by opening a PR whose description *is* the
   digest. Triage = review the PR: merge, request changes ("rerun exp014, more seeds"), or close.
 - **No AI-attribution in commits or the PR description.** Commits carry no agent authorship
   (house rule, RULES §2), and the PR description — being the digest — must not add a "Generated
@@ -163,7 +181,7 @@ non-compliant artifact can't ship even if the agent misses the rule.
 - **Reaping:** enable GitHub's *auto-delete head branches on merge*
   (`gh api -X PATCH repos/{owner}/{repo} -f delete_branch_on_merge=true`); the preview teardown
   (the PR-preview workflow) fires on the same close/merge. Orphan branches (a crashed night, a
-  closed-unmerged PR) are surfaced by NIGHT-SHIFT's resume check and killed by a human — no
+  closed-unmerged PR) are surfaced by AUTORESEARCH's resume check and killed by a human — no
   auto-reaper that could delete the only copy of a half-finished experiment. **Reap branches,
   never PRs:** merged/closed PRs are the audit trail.
 
@@ -175,7 +193,8 @@ non-compliant artifact can't ship even if the agent misses the rule.
 - **Multi-seed by default.** A queue entry's `seeds` drives a sweep with error bars, not a
   single-seed anecdote. Bake this into the tool ↔ experiment contract before compute-heavy work.
 - **Analysis plan precedes data.** The `kill` and `baseline` are committed in the mandate before
-  the run — no HARKing a story out of the numbers after the fact. PLAN enforces it at queue time.
+  the run — no HARKing a story out of the numbers after the fact. AUTORESEARCH enforces it at the
+  mandate gate.
 
 ## 7. How it plugs into the existing rules
 
@@ -184,8 +203,8 @@ non-compliant artifact can't ship even if the agent misses the rule.
 - Pre-registration = **provenance** (RULES §4.7): the mandate's commit predates the results' commits.
 - Long runs use **staged runners** (RULES §7.5) so a night can re-enter compute without repeating it.
 - **NEXT** reads the night documents' records and digests (not just published results), so it
-  proposes from the decision arc; its suggestions are the raw material a human turns into
-  `queued` entries via **PLAN**.
+  proposes from the decision arc; its suggestions are raw material a human may approve as
+  `queued` entries in **AUTORESEARCH**.
 - **DOCTOR** checks program structure (each night document carries a mandate + record + digest,
   every `queued` entry has a `kill`, no AI-attribution trailer in commits or PR descriptions).
 - **LINT** applies the full prose rules to night documents, including the cold-read dimension.

@@ -43,6 +43,13 @@ guide covers it, ground your answer in it — cite it or offer to start it.
 > user is supposed to make. Read the runbook first; run nothing before its step-0 orient
 > and the user's "ready".
 
+> **`AUTORESEARCH` is the single front door for a research program.** It inspects the existing
+> collection, mandate, night branch, runs, and PR, then continues the correct phase: formulate,
+> plan, run, resume, review, pivot, or close. For a new or materially changed idea, review the
+> state of play, test suitability, compare formulations, and obtain approval for a Programme Brief
+> before committing anything. Never ask the user to choose a phase-specific command and never
+> cross its program, mandate, or publication gates silently.
+
 ## Non-negotiables
 
 - **Toolchain:** `uv` (Python) and `typst` (publishing) via the `demolab` CLI. Never call

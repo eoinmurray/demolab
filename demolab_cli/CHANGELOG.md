@@ -13,6 +13,23 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-07-13
+
+### Changed
+- **`AUTORESEARCH` is now the single state-aware front door for a research program.** It discovers
+  whether a program needs formulation, a pre-registered mandate, unattended execution, resume,
+  morning review, a pivot, or closure and continues that phase without asking the user to select
+  internal workflow commands. The program, mandate, and publication gates remain intact.
+- **AUTORESEARCH now formulates an idea before registering a program.** It reviews the lab's state
+  of play and constraints, gives an explicit suitability verdict, compares conservative/balanced/
+  ambitious formulations, and presents a Programme Brief for approval. Nothing is committed
+  before that gate; blocked and wrong-workflow ideas leave no empty collection behind.
+
+### Removed
+- **Removed the separate `PLAN` and `NIGHT-SHIFT` commands.** Their planning, triage, branch,
+  execution, digest, and PR procedures now live inside `AUTORESEARCH`; natural requests such as
+  "plan tonight", "work the night", and "review last night" route to the one command.
+
 ## [1.1.12] — 2026-07-12
 
 ### Changed
