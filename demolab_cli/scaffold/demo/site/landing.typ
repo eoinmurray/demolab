@@ -15,14 +15,13 @@
       link("https://github.com/eoinmurray/demolab", "GitHub")
     })
     html.elem("p", attrs: (class: "welcome-body"), [
-      Demolab is a lab notebook for computational science that keeps coding agents on rails.
-      You say what to compute; the agent writes and runs the experiment — in Python by default,
-      though any stack works. Demolab stamps every result with the exact code version it came
-      from, reads the numbers straight from the run so nothing drifts, and typesets it all with
-      Typst — figures, live numbers, real maths — to web and PDF.
+      Demolab turns computations into a traceable scientific record. You describe what to
+      investigate; your coding agent runs the experiment and saves its parameters, figures,
+      results, and code version. Typst publishes that record to the web and PDF, reading every
+      number from the run so the writeup cannot drift from the evidence.
     ])
     html.elem("p", attrs: (class: "welcome-body"), [
-      This site is itself a demolab lab, built and published by the engine it documents.
+      This documentation site is built with demolab itself.
     ])
 
     html.elem("p", attrs: (class: "welcome-kicker"), [Get started])
