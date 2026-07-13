@@ -450,20 +450,22 @@
   // only (entry-body prose keeps the default underline). The homepage leads with the same
   // title + description header a collection page uses, so the two read as siblings.
   html.elem("div", attrs: (class: "listing"), {
-    heading(level: 1, brand.name)
-    if brand.at("description", default: none) != none {
-      html.elem("p", attrs: (class: "entry-meta"), brand.description)
-    }
-    // Byline: the lab's owner under the title. Links to contact if given (mailto for an email).
-    if brand.at("author", default: none) != none {
-      let c = brand.at("contact", default: none)
-      html.elem("p", attrs: (class: "byline"), {
-        [by ]
-        if c != none {
-          link(if "@" in c and not c.starts-with("http") { "mailto:" + c } else { c }, brand.author)
-        } else { brand.author }
-      })
-    }
+    html.elem("header", attrs: (class: "site-head"), {
+      heading(level: 1, brand.name)
+      if brand.at("description", default: none) != none {
+        html.elem("p", attrs: (class: "entry-meta"), brand.description)
+      }
+      // Byline: the lab's owner under the title. Links to contact if given (mailto for an email).
+      if brand.at("author", default: none) != none {
+        let c = brand.at("contact", default: none)
+        html.elem("p", attrs: (class: "byline"), {
+          [by ]
+          if c != none {
+            link(if "@" in c and not c.starts-with("http") { "mailto:" + c } else { c }, brand.author)
+          } else { brand.author }
+        })
+      }
+    })
     if items.len() == 0 {
       // Freshly-scaffolded repo — no writings yet. This is the first thing a (often non-technical)
       // user sees, so keep it warm and jargon-free: point them at their coding agent, not at file

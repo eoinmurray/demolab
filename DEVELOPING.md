@@ -15,9 +15,11 @@ demolab dev --demo --landing   # …and previews the marketing landing page (sit
 
 This copies the demo into `temp/demo-preview/` (a disposable lab; rebuilt fresh on every
 invocation) and serves it. **Engine edits hot-reload** — the dev server watches the package's
-`typ/` assets and `.py` files, which here *are* the working tree. **Demo-content edits don't**
-(the served copy is a snapshot): edit under `demolab_cli/scaffold/demo/`, then rerun the
-command — or serve the demo source directly when iterating on demo content itself:
+`typ/` assets and `.py` files, which here *are* the working tree. With `--landing`, edits to
+`scaffold/demo/site/landing.typ` hot-reload too: the server watches the real source and mirrors
+it into the disposable lab before rebuilding. **Other demo-content edits don't** (the served
+copy is a snapshot): edit under `demolab_cli/scaffold/demo/`, then rerun the command — or serve
+the demo source directly when iterating on demo content itself:
 
 ```sh
 DEMOLAB_ROOT=demolab_cli/scaffold/demo uv run python -m demolab_cli.devserver

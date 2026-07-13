@@ -5,6 +5,7 @@ Instead we assert the two things that silently rot: the command catalog and the 
 stay in step, and the argument parser must accept every command (with the right args for `dev`).
 """
 import io
+from argparse import Namespace
 from contextlib import redirect_stdout
 
 from demolab_cli import cli
@@ -35,6 +36,25 @@ def test_dev_arguments():
     assert dev.port == 3010 and dev.demo is True and dev.landing is True
     bare_dev = parser.parse_args(["dev"])
     assert bare_dev.port is None and bare_dev.demo is False and bare_dev.landing is False
+
+
+def test_demo_landing_passes_live_source_to_devserver(tmp_path, monkeypatch):
+    scaffold = tmp_path / "package-scaffold"
+    (scaffold / "skeleton").mkdir(parents=True)
+    (scaffold / "skeleton" / "demolab.yaml").write_text("name: Test\n")
+    (scaffold / "demo" / "site").mkdir(parents=True)
+    source = scaffold / "demo" / "site" / "landing.typ"
+    source.write_text("#let body = [landing]\n")
+    captured = {}
+
+    monkeypatch.setattr(cli._paths, "SCAFFOLD", scaffold)
+    monkeypatch.setattr(cli._paths, "require_lab_root", lambda: tmp_path)
+    monkeypatch.setattr(cli, "_mod", lambda *args, **kwargs: captured.update(kwargs) or 0)
+
+    assert cli.cmd_dev(Namespace(port=None, demo=True, landing=True)) == 0
+    scratch = tmp_path / "temp" / "demo-preview"
+    assert (scratch / "landing.typ").read_text() == "#let body = [landing]\n"
+    assert captured["env"]["DEMOLAB_LANDING_SOURCE"] == str(source.resolve())
 
 
 def test_no_command_prints_catalog():

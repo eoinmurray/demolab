@@ -82,3 +82,21 @@ def test_deck_affecting_triggers_on_slide_and_data():
     assert not devserver.deck_affecting({"/repo/writings/exp000.typ"})
     assert not devserver.deck_affecting({"/pkg/demolab_cli/typ/lib.typ"})
     assert not devserver.deck_affecting(set())
+
+
+def test_sync_landing_source_copies_updates_and_removal(tmp_path):
+    source = tmp_path / "package" / "site" / "landing.typ"
+    target = tmp_path / "preview" / "landing.typ"
+    source.parent.mkdir(parents=True)
+    source.write_text("#let body = [first]\n")
+
+    devserver.sync_landing_source(source, target)
+    assert target.read_text() == "#let body = [first]\n"
+
+    source.write_text("#let body = [updated]\n")
+    devserver.sync_landing_source(source, target)
+    assert target.read_text() == "#let body = [updated]\n"
+
+    source.unlink()
+    devserver.sync_landing_source(source, target)
+    assert not target.exists()

@@ -1,43 +1,43 @@
 /* demolab web styles — injected into each HTML page by publish/lib.typ.
    Typst HTML export ships no CSS (paged #set rules don't apply to HTML), so the
    web look lives here. Avoid `>` / `<` in selectors: they'd be escaped inside <style>.
-   Body face is Computer Modern (what the PDFs use, via New Computer Modern), loaded
-   as web fonts so the web edition matches the paged one; Charter/Georgia fall back
-   when offline. */
+   Body face is CMU Serif, the web-available Computer Modern branch closest to the PDFs'
+   New Computer Modern. The pinned web fonts keep that shared lineage without vendoring a
+   second full font family into every site; Charter/Georgia fall back when offline. */
 @font-face {
   font-family: "Computer Modern Serif";
-  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunrm.woff") format("woff");
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunrm.woff") format("woff");
   font-weight: normal;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 @font-face {
   font-family: "Computer Modern Serif";
-  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunbx.woff") format("woff");
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunbx.woff") format("woff");
   font-weight: bold;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 @font-face {
   font-family: "Computer Modern Serif";
-  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunti.woff") format("woff");
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunti.woff") format("woff");
   font-weight: normal;
   font-style: italic;
-  font-display: block;
+  font-display: swap;
 }
 @font-face {
   font-family: "Computer Modern Serif";
-  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Serif/cmunbi.woff") format("woff");
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunbi.woff") format("woff");
   font-weight: bold;
   font-style: italic;
-  font-display: block;
+  font-display: swap;
 }
 @font-face {
   font-family: "Computer Modern Typewriter";
-  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@master/font/Typewriter/cmuntt.woff") format("woff");
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Typewriter/cmuntt.woff") format("woff");
   font-weight: normal;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 /* A genuine mid-weight for the CM family: CMU ships only Roman + Bold, so there is no semibold to
    step down to. Latin Modern Roman Demi (the CM-lineage demibold) fills weight 600 — used only by
@@ -47,7 +47,7 @@
   src: url("https://cdn.jsdelivr.net/gh/sugina-dev/latin-modern-web@1.0.1/font/lmromandemi-regular-webfont.woff") format("woff");
   font-weight: 600;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 /* One deliberate scale drives the whole site:
      - two inks:  --ink (headings, body, titles, links) and --muted (all secondary text)
@@ -58,13 +58,16 @@
   --ink: #1a1a1a;
   --muted: #666;          /* every piece of secondary text, one grey */
   --rule: #e7e5df;
+  --rule-strong: #d8d5cd;
   --paper: #fff;
   --paper-tint: #fafaf7;
+  --selection: #ebe9e2;
 
   --fs-h1: 1.6rem;        /* page/entry title  (Typst level 1 → <h2>) — 28.8px */
   --fs-h2: 1.3rem;        /* section heading   (Typst level 2 → <h3>) — 23.4px */
   --fs-h3: 1.1rem;        /* subsection        (Typst level 3 → <h4>) — 19.8px */
   --fs-small: 0.85rem;    /* every piece of secondary text, one size  — 15.3px */
+  --fs-label: 0.72rem;    /* uppercase mono labels — 13px */
 
   --mono: "Computer Modern Typewriter", ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -73,25 +76,40 @@
 html { font-size: 18px; }
 body {
   max-width: 42em;
-  margin: 3rem auto;
-  padding: 0 1.25rem;
-  font: 1rem/1.65 "Computer Modern Serif", Charter, Georgia, "Times New Roman", serif;
+  margin: clamp(2rem, 7vw, 3.5rem) auto;
+  padding: 0 clamp(1rem, 4vw, 1.5rem);
+  font: 1rem/1.6 "Computer Modern Serif", Charter, Georgia, "Times New Roman", serif;
+  font-kerning: normal;
+  font-synthesis: none;
   color: var(--ink);
   background: var(--paper);
   -webkit-text-size-adjust: 100%;
 }
+::selection { color: var(--ink); background: var(--selection); }
 /* Typst's HTML export reserves <h1> and renders heading level N as <h(N+1)>: an entry/
    page title (level 1) is <h2>, a section (level 2) is <h3>, a subsection is <h4>. Style
    the emitted tags, not the Typst levels. */
-h1, h2 { font-size: var(--fs-h1); line-height: 1.15; font-weight: 700; margin: 0 0 .3rem; }
-h3 { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; margin: 2.4rem 0 .5rem; }
-h4 { font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; margin: 1.8rem 0 .35rem; }
+h1, h2 {
+  margin: 0 0 .35rem;
+  font-size: var(--fs-h1);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -.012em;
+  text-wrap: balance;
+}
+h3 { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; margin: 2.4rem 0 .5rem; text-wrap: balance; }
+h4 { font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; margin: 1.8rem 0 .35rem; text-wrap: balance; }
 /* Print-style links: ink with a hairline underline, not web blue. */
 a {
   color: var(--ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+}
+a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 1px;
 }
 /* Listing pages (home, collection, all-entries) follow pinglab: nav/index links are
    unadorned and only underline on hover. Entry-body prose keeps the default underline. */
@@ -113,8 +131,11 @@ figcaption,
   color: var(--muted);
 }
 .entry-meta { margin: .2rem 0 1.75rem; }
-/* Byline under the homepage title: the lab's owner, quiet, links to contact if set. */
-.byline { font-size: var(--fs-small); color: var(--muted); margin: -.9rem 0 1.5rem; }
+/* Byline under the homepage title: the lab's owner, quiet, links to contact if set. Its
+   default spacing also works when there is no description; the adjacent rule closes the
+   larger description margin only when that line actually exists. */
+.byline { font-size: var(--fs-small); color: var(--muted); margin: .2rem 0 1.5rem; }
+.entry-meta + .byline { margin-top: -.9rem; }
 .byline a { color: var(--muted); }
 .byline a:hover { color: var(--ink); }
 /* Home link at the top of an entry page: quiet, small, one step back to the directory. */
@@ -137,9 +158,9 @@ ol.refs .doi:hover { color: var(--ink); }
 /* Hover popover for an inline citation (Wikipedia-style): a small card echoing the reference. */
 .cite-popover {
   position: absolute; z-index: 50; display: none;
-  max-width: 24rem; padding: .6rem .8rem;
-  background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .13);
+  width: min(24rem, calc(100vw - 1rem)); padding: .6rem .8rem;
+  background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .1);
   font-size: var(--fs-small); line-height: 1.5; color: var(--ink);
 }
 .cite-popover .doi { color: var(--muted); }
@@ -168,7 +189,7 @@ ol.refs .doi:hover { color: var(--ink); }
   width: 100%; padding: 1.5rem; text-align: center;
   background: var(--paper-tint);
   border: 1px dashed #d6d3ca;
-  border-radius: 6px;
+  border-radius: 2px;
 }
 .fig-pending-mark { width: 1.7em; height: 1.2em; border: 1px solid #b9b6ad; border-radius: 2px; }
 .fig-pending-note { font-size: var(--fs-small); font-style: italic; color: var(--muted); }
@@ -180,6 +201,26 @@ ol.refs .doi:hover { color: var(--ink); }
 /* On listing pages the description sits closer to the list it heads (entry pages keep the
    airier 1.75rem before the body). */
 .listing .entry-meta { margin-bottom: 1.25rem; }
+/* Homepage brand lockup: quieter and tighter than an article title. The tagline is more
+   important than generic metadata, but still secondary to the name. Scoping this to the
+   header keeps entry and collection hierarchy unchanged. */
+.site-head {
+  margin-bottom: 1rem;
+}
+.site-head h1, .site-head h2 {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -.008em;
+}
+.site-head .entry-meta {
+  max-width: 38rem;
+  margin: .3rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.site-head .byline { margin-bottom: 0; }
+.site-head .entry-meta + .byline { margin-top: .3rem; }
 /* Breathing room at the foot of an entry page so the last line isn't flush to the edge. */
 .entry-tail { height: 6rem; }
 
@@ -191,25 +232,32 @@ ol.refs .doi:hover { color: var(--ink); }
 
 /* Landing-page building blocks for a custom landing.typ (pitch, links, command boxes) —
    used by the upstream demo's site/landing.typ; a lab's own landing.typ may reuse them. */
-.welcome { margin: 0 0 2.25rem; max-width: 36rem; line-height: 1.65; }
+.welcome { margin: 0 0 2.75rem; max-width: 36rem; }
 .welcome-body { margin: 0 0 1rem; }
-.welcome-links { margin: 0 0 1.5rem; font-size: var(--fs-small); }
+.welcome-links {
+  margin: 0 0 1.15rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
 /* The homepage is a .listing page (links unadorned by default), so re-add the underline for
    links in the landing hero — both the nav row and inline links in the body prose. */
 .welcome-links a, .welcome-body a { text-decoration: underline; }
+.welcome-links a { color: #444; }
+.welcome-links a:hover { color: var(--ink); }
 .welcome-kicker {
-  font-family: var(--mono); font-size: .72rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: .08em; margin: 3.25rem 0 .6rem;
+  font-family: var(--mono); font-size: var(--fs-label); color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin: 3rem 0 .65rem;
 }
 .welcome-cmd { margin: 0 0 .75rem; }
 .welcome-os {
-  font-family: var(--mono); font-size: .72rem; color: var(--muted);
+  font-family: var(--mono); font-size: var(--fs-label); color: var(--muted);
   text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem;
 }
 .welcome pre {
-  margin: 0; padding: .85rem 1rem; overflow-x: auto;
+  margin: 0; padding: .9rem 1rem; overflow-x: auto;
   font-family: var(--mono); font-size: .82rem; line-height: 1.5;
-  background: var(--paper-tint); border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--paper-tint); border: 1px solid var(--rule-strong); border-radius: 2px;
 }
 /* A quiet aside under a section (the "prefer to do it by hand?" line) — smaller and muted,
    so it reads as a footnote to the block above, not the next paragraph. */
@@ -232,18 +280,32 @@ ol.refs .doi:hover { color: var(--ink); }
   padding-top: .1rem;
 }
 .welcome-runbook dd { margin: 0; font-size: var(--fs-small); color: var(--muted); }
-/* Documentation tiers: label + link list per column, wrapping to fit. */
-/* Four tiers fit the 36rem .welcome column: 4 × 8rem + 3 × 1rem gaps = 35rem. */
+/* Documentation tiers: four deliberately equal columns on wide screens, then a balanced
+   two-column grid — never an orphaned 3 + 1 arrangement at intermediate widths. */
 .welcome-docs {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: 1rem; margin: 0 0 1rem;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem 1rem; margin: .15rem 0 1rem;
 }
-.welcome-docs-label { margin: 0 0 .25rem; font-size: var(--fs-small); }
+.welcome-docs-tier { border-top: 1px solid var(--rule-strong); padding-top: .55rem; }
+.welcome-docs-label {
+  margin: 0 0 .4rem;
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
 .welcome-docs-tier ul { list-style: none; padding-left: 0; margin: 0; }
-.welcome-docs-tier li { padding: .12rem 0; font-size: var(--fs-small); }
-.welcome-docs-tier a { text-decoration: underline; color: var(--muted); }
+.welcome-docs-tier li { padding: .125rem 0; font-size: var(--fs-small); line-height: 1.4; }
+.welcome-docs-tier a { text-decoration: underline; color: var(--ink); }
 .welcome-docs-tier a:hover { color: var(--ink); }
-.welcome-foot { margin: 1.25rem 0 0; font-size: var(--fs-small); color: var(--muted); }
+.welcome-foot {
+  margin: 1.75rem 0 0;
+  padding-top: .85rem;
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
 .welcome-foot a { color: var(--muted); }
 .welcome-foot a:hover { color: var(--ink); }
 
@@ -269,7 +331,7 @@ ol.refs .doi:hover { color: var(--ink); }
 .page-foot a { color: var(--muted); }
 .page-foot a:hover { color: var(--ink); }
 
-p { margin: 1rem 0; }
+p { margin: 1rem 0; text-wrap: pretty; }
 img, video { max-width: 100%; height: auto; display: block; margin: 1.5rem auto; }
 figure { margin: 1.75rem 0; text-align: center; }
 figcaption { margin-top: .5rem; text-align: left; }
@@ -293,3 +355,17 @@ pre {
   overflow-x: auto;
 }
 pre code { font-size: 1em; }
+
+@media (max-width: 42rem) {
+  body { margin-top: 2rem; margin-bottom: 2.5rem; }
+  .welcome { margin-bottom: 2rem; }
+  .welcome-kicker { margin-top: 2.5rem; }
+  .welcome-docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .welcome-runbook { display: block; padding: .6rem 0; }
+  .welcome-runbook dt { margin-bottom: .2rem; }
+  .entry-row { align-items: flex-start; gap: .5rem; }
+}
+
+@media (max-width: 22rem) {
+  .welcome-docs { grid-template-columns: 1fr; }
+}

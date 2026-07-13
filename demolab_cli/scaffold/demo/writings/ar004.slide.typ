@@ -278,7 +278,7 @@
   ],
   [
     *Typst*
-    - *Instant*, incremental compiles.
+    - *Hot-reloading*.
     - *Readable* errors with line numbers.
     - One source → *web and PDF*.
     - *Imports files*, no hardcoded numbers.

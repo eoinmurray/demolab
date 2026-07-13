@@ -292,11 +292,13 @@ def cmd_dev(args: argparse.Namespace) -> int:
     shutil.rmtree(scratch, ignore_errors=True)
     overlay(_paths.SCAFFOLD / "skeleton", scratch)
     overlay(_paths.SCAFFOLD / "demo", scratch, exclude=("site", "temp"))
+    env = {**os.environ, "DEMOLAB_ROOT": str(scratch)}
     if args.landing:
-        shutil.copy(_paths.SCAFFOLD / "demo" / "site" / "landing.typ", scratch / "landing.typ")
+        landing_source = (_paths.SCAFFOLD / "demo" / "site" / "landing.typ").resolve()
+        shutil.copy2(landing_source, scratch / "landing.typ")
+        env["DEMOLAB_LANDING_SOURCE"] = str(landing_source)
         print("→ previewing the upstream landing page too (site/landing.typ)")
     print(f"→ serving the shipped demo from a scratch copy ({scratch.relative_to(lab)})")
-    env = {**os.environ, "DEMOLAB_ROOT": str(scratch)}
     return _mod("devserver", *port_args, cwd=scratch, env=env)
 
 
