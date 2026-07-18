@@ -13,6 +13,17 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-07-18
+
+### Added
+- **AUTORESEARCH now publishes a live decision and activity trace for every night.** The trace is
+  reserved with the mandate and checkpointed throughout the shift, preserving the complete
+  user-visible conversation alongside timestamped decisions, evidence, actions, failures, costs,
+  commits, and pending work. Public checkpoints are privacy-sanitized and hash-linked to an
+  immutable private raw transcript; hidden chain-of-thought and internal reasoning are explicitly
+  excluded. The scientific Record remains the cold-readable notebook, while the trace gives a
+  collaborator a live audit trail through the PR preview.
+
 ## [2.0.1] — 2026-07-18
 
 ### Fixed

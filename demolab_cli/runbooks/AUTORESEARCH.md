@@ -159,9 +159,24 @@ Keep experiments small: one question or controlled change per entry. Allocate th
 files **or committed mandates** as occupied; reserve the article and experiment ids together in
 the mandate. Never recycle an abandoned id.
 
-Create `writings/arNNN.typ` ("Night shift — YYYY-MM-DD") with the collection and chronological
-`order:`. Its rendered order is Digest -> Mandate -> Record; leave Digest and Record empty. Build
-it, present the complete queue and operating contract, and ask the **mandate gate** question.
+Reserve two article ids together and create both documents:
+
+- `writings/arNNN.typ` ("Night shift — YYYY-MM-DD") with the collection and chronological
+  `order:`. Its rendered order is Digest -> Mandate -> Record; leave Digest and Record empty.
+- `writings/arMMM.typ` ("Activity trace — YYYY-MM-DD") as that night's live, shareable decision
+  and activity trace. Link its id from the night document's metadata and reserve it in the same
+  mandate commit so another program cannot claim it.
+
+The activity trace is not hidden chain-of-thought. It preserves the complete user-visible
+conversation and a structured audit trail of decisions, evidence, actions, tool outcomes,
+failures, costs, commits, and pending work. Give each visible message its timestamp, role,
+session/task id, and checkpoint id. Before anything enters the published trace, redact secrets,
+credentials, private infrastructure identifiers and paths; fail closed when sanitization is
+uncertain. Retain an immutable private raw transcript outside the repository and record a hash
+prefix in each public checkpoint.
+
+Build both documents, present the complete queue and operating contract, and ask the **mandate
+gate** question.
 
 On approval, commit the mandate to `main` before any run. That commit is the pre-registration and
 id-reservation anchor. If `main` advanced before the push, refresh it, re-check id reservations,
@@ -192,6 +207,17 @@ condition fires:
    detail in the commit message or a PR comment, not the scientific Record.
 6. Lint as the Record grows and commit once per experiment attempt, killed attempts included.
 
+Maintain the activity trace throughout the shift, not retrospectively at the end. Append every
+user-visible user and assistant message verbatim and chronologically; never substitute a summary
+for visible text. Exclude hidden chain-of-thought and internal reasoning. At each meaningful
+scientific milestone, append a timestamped decision entry stating the evidence considered, action
+taken, justification exposed to the collaborator, result, budget effect, and pending work. Build,
+validate, commit, and push a hash-linked checkpoint after scientific decisions, failures, protocol
+anomalies, compute dispatch or reaping, and completed experiments so the PR preview remains useful
+during the session. Logging must never delay a safety-critical action such as stopping or reaping
+compute. A read-only companion may validate or maintain the trace, but the running agent remains
+responsible for its completeness.
+
 Do not chase an anomaly mid-shift. Record it and continue. The agent may add a proposed follow-up
 to the Digest when `scope.may_propose` permits, but never runs it.
 
@@ -200,9 +226,10 @@ do not start duplicate processes. If interrupted, resume the existing branch and
 artifacts rather than allocating another night.
 
 At shift end, write a ruthless Digest: confirmed and killed counts, aborts, the anomaly deserving
-attention, budget use, and proposed follow-ups. Build and test the complete record. Push the branch
-and open one PR whose description is the Digest; engineering caveats go in PR comments. Stop at
-the **publication gate**.
+attention, budget use, and proposed follow-ups. Finalize the activity trace with its last
+checkpoint and private-source hash. Build and test the complete record. Push the branch and open
+one PR whose description is the Digest; engineering caveats go in PR comments. Stop at the
+**publication gate**.
 
 ### 6. Review — walk the scientist through the evidence
 

@@ -36,6 +36,7 @@ A research program is exactly one demolab **collection** (RULES §6.5). It conta
 | Document | Article name | Role |
 |---|---|---|
 | **Night-shift documents** | `arNNN` ("Night shift — YYYY-MM-DD") | One self-contained document per night. Carries that night's mandate, record, and digest (§2). |
+| **Activity traces** | `arNNN` ("Activity trace — YYYY-MM-DD") | One live, shareable audit document per night. Preserves the visible conversation and checkpointed decision/action history (§2.1). |
 | **Experiments** | `expNNN` | Standard demolab entries (RULES §7), one per queue item that ran. |
 
 There is **no standing `plan` and no standing `log`.** An earlier version of this contract used
@@ -87,6 +88,39 @@ commit messages and, where the reviewer needs it in context, as comments on the 
 in the Record**. This is what lets the Record cold-read (§3): a collaborator opening the document
 wants the science, not the stack traces. The rule of thumb — would it mean anything to the
 collaborating scientist? Science, into the document; plumbing, into the commits and the PR thread.
+
+### 2.1 The live decision and activity trace
+
+Every night also has one activity-trace writing, allocated and committed with the mandate and
+linked from the night document. It exists so a collaborator can follow the shift through the PR
+preview while it is happening, rather than receiving a reconstructed story in the morning.
+
+The trace preserves every **user-visible** user and assistant message verbatim and in chronological
+order, with timestamp, role, session/task id, and checkpoint id. It excludes hidden
+chain-of-thought and internal reasoning. To make the agent's reasoning auditable without claiming
+access to private model internals, it also records structured decision entries: evidence
+considered, action taken, user-visible justification, result, scientific or budget consequence,
+and pending work. Tool outcomes, scientific decisions, failures, anomalies, compute lifecycle
+events, costs, commits, and protocol corrections belong in this trace even when their concise
+scientific consequence is also recorded in the Record.
+
+The public trace is privacy-sanitized before it is written. Credentials, tokens, SSH material,
+IP addresses, private paths, environment values, and sensitive infrastructure identifiers are
+redacted; uncertain material fails closed. Keep an immutable raw transcript outside the
+repository and put only its hash prefix and custody note in each public checkpoint. The raw copy
+is audit material, not a build input and never enters Git.
+
+Checkpoint the trace at meaningful milestones: scientific decisions, failures, protocol
+anomalies, compute dispatch and reaping, completed experiments, and the end of the shift. Each
+checkpoint is timestamped, hash-linked to its predecessor, built, validated, committed, and
+pushed so the live preview advances during the session. Logging is subordinate to operational
+safety: stop or reap compute first, then checkpoint. A read-only companion may maintain or
+validate the trace, but responsibility remains with the agent executing the night.
+
+The separation is deliberate: the night Record must remain a cold-readable scientific notebook;
+the activity trace is the complete human-visible audit trail; commits and PR comments remain the
+code log. A professor can inspect the trace to see how the work was steered and justified without
+forcing terminal plumbing into the scientific narrative.
 
 **The queue slice** (in the mandate) is structured data the runbooks read — a list of entries,
 one per planned experiment (a `queue:` field in `meta`, or a fenced ```yaml block the runbooks
@@ -161,7 +195,8 @@ non-compliant artifact can't ship even if the agent misses the rule.
 - **One branch per night per program:** `night/<collection>/<arNNN>`, created from the exact
   locked-mandate commit. The immutable night id prevents a delayed or restarted shift colliding
   with another branch. Programs reserve disjoint article and experiment ids on `main` before
-  branching, so parallel nights do not claim the same entries.
+  branching, including the night's activity-trace article id, so parallel nights do not claim the
+  same entries.
 - **One commit per experiment attempt**, including killed ones — a negative result is a result,
   and per-experiment commits let you cherry-pick the two good runs out of a mixed night.
 - **The commit messages and PR comments carry the code log** — the engineering narrative kept out
