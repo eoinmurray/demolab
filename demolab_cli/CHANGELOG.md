@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.0.1] — 2026-07-18
+
+### Fixed
+- **Agent bootstrap instructions now prefer the lab's `uv` environment.** Root `AGENTS.md`
+  files direct agents to `uv run demolab docs`, reserving `uvx demolab-cli docs` for a new
+  lab with no project environment. This prevents agents in an existing checkout from running
+  a cached or released package instead of the project's installed engine.
+
 ## [2.0.0] — 2026-07-13
 
 ### Changed
