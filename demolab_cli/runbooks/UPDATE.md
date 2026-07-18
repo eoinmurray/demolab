@@ -36,6 +36,26 @@ updating the engine can't touch the user's identity — that's the point.
    uv lock --upgrade-package demolab-cli && uv sync
    ```
 
+   `--upgrade-package demolab-cli` already implies uv's targeted
+   `--refresh-package demolab-cli`; do not clear uv's whole cache. After syncing, verify that the
+   project environment, not a globally cached or `uvx`-managed copy, is active:
+
+   ```sh
+   uv run demolab version
+   uv tree --locked | rg 'demolab-cli'
+   ```
+
+   The versions must agree. If they do not, repair only this package and verify again:
+
+   ```sh
+   uv sync --reinstall-package demolab-cli
+   uv run demolab version
+   ```
+
+   Stop and report the mismatch if it persists; never paper over it with `uv cache clean`, and do
+   not use `uvx demolab-cli` to verify an existing lab because that is a separate ephemeral
+   environment.
+
 4. **Rebuild.** `demolab build` — the CLI notices the version change, refreshes `.demolab/`,
    and prints a one-line notice pointing at the changelog. `demolab test` for good measure.
 

@@ -13,6 +13,18 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.1.1] — 2026-07-18
+
+### Fixed
+- **UPDATE now verifies the project environment after upgrading `demolab-cli`.** The runbook
+  explains that uv's package upgrade already refreshes targeted cache metadata, compares the
+  active `uv run demolab` version with the lock, and uses a targeted package reinstall when they
+  disagree. It explicitly avoids global cache deletion and `uvx` verification, which operate at
+  the wrong scope for an existing lab.
+- **Release tagging is idempotent against remote tags.** The publish workflow checks the remote
+  before pushing its release tag, avoiding a false-red release when the documented manual tag was
+  already pushed.
+
 ## [2.1.0] — 2026-07-18
 
 ### Added
