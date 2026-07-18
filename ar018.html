@@ -1,0 +1,446 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Introduction</title><style>/* Alignment */
+mtable.right-align mtd,
+mtable mtd.right-align,
+mtable.left-align mtd.right-align,
+mtable.aligned mtd:nth-child(odd) {
+  justify-items: end;
+  text-align: right;
+}
+mtable.cases mtd,
+mtable.left-align mtd,
+mtable mtd.left-align,
+mtable.aligned mtd:nth-child(even),
+math:is(:not([display])) > mtable.multiline-equation mtd {
+  justify-items: start;
+  text-align: left;
+}
+mtable.cases mtd,
+mtable.aligned mtd,
+mtable mtd.flushed,
+mtable mtd.left-flush {
+  padding-left: 0;
+}
+mtable.cases mtd,
+mtable.aligned mtd,
+mtable mtd.flushed,
+mtable mtd.right-flush {
+  padding-right: 0;
+}
+
+/* Tables */
+mtable {
+  math-style: inherit;
+}
+mtd {
+  math-depth: auto-add;
+  math-style: compact;
+  math-shift: compact;
+}
+
+/* Equations */
+mtable.multiline-equation mtd {
+  math-depth: inherit;
+  math-style: inherit;
+  math-shift: inherit;
+  padding: 0;
+}
+math > mtable.multiline-equation mtr:not(:last-child) mtd {
+  padding-bottom: 0.5em;
+}
+
+/* Fractions */
+mfrac {
+  padding-inline: 0;
+  margin-inline: 0.1em;
+}
+
+/* Accents */
+mover[accent="true" i] > :first-child {
+  font-feature-settings: "dtls";
+}
+mover.dotted[accent="true" i] > :first-child {
+  font-feature-settings: "dtls" 0;
+}
+
+/* Other rules for scriptlevel, displaystyle and math-shift */
+munder > :nth-child(2),
+munderover > :nth-child(2) {
+  math-shift: compact
+}
+munder[accentunder="true" i] > :not(:first-child),
+mover[accent="true" i] > :not(:first-child) {
+  math-depth: inherit;
+  math-style: inherit;
+  math-shift: inherit;
+}</style></head><body><link rel="icon" type="image/svg+xml" href="favicon.svg"><style>/* demolab web styles — injected into each HTML page by publish/lib.typ.
+   Typst HTML export ships no CSS (paged #set rules don't apply to HTML), so the
+   web look lives here. Avoid `>` / `<` in selectors: they'd be escaped inside <style>.
+   Body face is CMU Serif, the web-available Computer Modern branch closest to the PDFs'
+   New Computer Modern. The pinned web fonts keep that shared lineage without vendoring a
+   second full font family into every site; Charter/Georgia fall back when offline. */
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunrm.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunbx.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunti.woff") format("woff");
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Serif/cmunbi.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Computer Modern Typewriter";
+  src: url("https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@333f55ec19733c28cdc43567ecf72eafd6b0af61/font/Typewriter/cmuntt.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* A genuine mid-weight for the CM family: CMU ships only Roman + Bold, so there is no semibold to
+   step down to. Latin Modern Roman Demi (the CM-lineage demibold) fills weight 600 — used only by
+   inline citations, which want emphasis without the full punch of bold. */
+@font-face {
+  font-family: "Computer Modern Serif";
+  src: url("https://cdn.jsdelivr.net/gh/sugina-dev/latin-modern-web@1.0.1/font/lmromandemi-regular-webfont.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+/* One deliberate scale drives the whole site:
+     - two inks:  --ink (headings, body, titles, links) and --muted (all secondary text)
+     - one body size (--fs-body) + a three-step heading scale (--fs-h1..h3)
+     - one secondary size (--fs-small) shared by every id, date, count, caption, meta line
+   Everything below composes those tokens — no one-off px or ad-hoc greys. */
+:root {
+  --ink: #1a1a1a;
+  --muted: #666;          /* every piece of secondary text, one grey */
+  --rule: #e7e5df;
+  --rule-strong: #d8d5cd;
+  --paper: #fff;
+  --paper-tint: #fafaf7;
+  --selection: #ebe9e2;
+
+  --fs-h1: 1.6rem;        /* page/entry title  (Typst level 1 → <h2>) — 28.8px */
+  --fs-h2: 1.3rem;        /* section heading   (Typst level 2 → <h3>) — 23.4px */
+  --fs-h3: 1.1rem;        /* subsection        (Typst level 3 → <h4>) — 19.8px */
+  --fs-small: 0.85rem;    /* every piece of secondary text, one size  — 15.3px */
+  --fs-label: 0.72rem;    /* uppercase mono labels — 13px */
+
+  --mono: "Computer Modern Typewriter", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+/* rem is anchored to the 18px body so the heading scale steps cleanly off body size. */
+html { font-size: 18px; }
+body {
+  max-width: 42em;
+  margin: clamp(2rem, 7vw, 3.5rem) auto;
+  padding: 0 clamp(1rem, 4vw, 1.5rem);
+  font: 1rem/1.6 "Computer Modern Serif", Charter, Georgia, "Times New Roman", serif;
+  font-kerning: normal;
+  font-synthesis: none;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+::selection { color: var(--ink); background: var(--selection); }
+/* Typst's HTML export reserves <h1> and renders heading level N as <h(N+1)>: an entry/
+   page title (level 1) is <h2>, a section (level 2) is <h3>, a subsection is <h4>. Style
+   the emitted tags, not the Typst levels. */
+h1, h2 {
+  margin: 0 0 .35rem;
+  font-size: var(--fs-h1);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -.012em;
+  text-wrap: balance;
+}
+h3 { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; margin: 2.4rem 0 .5rem; text-wrap: balance; }
+h4 { font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; margin: 1.8rem 0 .35rem; text-wrap: balance; }
+/* Print-style links: ink with a hairline underline, not web blue. */
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+/* Listing pages (home, collection, all-entries) follow pinglab: nav/index links are
+   unadorned and only underline on hover. Entry-body prose keeps the default underline. */
+.listing a { text-decoration: none; }
+.listing a:hover { text-decoration: underline; }
+/* ...except concrete destination links: the per-row pdf badge and the foot-line links
+   ("Browse all entries", "single pdf", the back arrows) stay underlined so they read as
+   links rather than nav chrome. Title/id links keep the clean hover-only treatment. */
+.listing .page-foot a,
+.entry-row .row-pdf { text-decoration: underline; }
+
+/* --- secondary text: one size (--fs-small), one colour (--muted) everywhere --- */
+.entry-meta,           /* id · date · status · collection under an entry/collection title */
+.coll-desc,            /* collection blurb on the homepage directory */
+.row-id, .row-meta, .row-pdf,  /* the aligned index-row columns */
+figcaption,
+.page-foot {           /* the "Browse all / back" line at the foot of a listing */
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.entry-meta { margin: .2rem 0 1.75rem; }
+/* Byline under the homepage title: the lab's owner, quiet, links to contact if set. Its
+   default spacing also works when there is no description; the adjacent rule closes the
+   larger description margin only when that line actually exists. */
+.byline { font-size: var(--fs-small); color: var(--muted); margin: .2rem 0 1.5rem; }
+.entry-meta + .byline { margin-top: -.9rem; }
+.byline a { color: var(--muted); }
+.byline a:hover { color: var(--ink); }
+/* Home link at the top of an entry page: quiet, small, one step back to the directory. */
+.home-link { display: inline-block; font-size: var(--fs-small); color: var(--muted); text-decoration: none; margin: 0 0 1.1rem; }
+.home-link:hover { color: var(--ink); text-decoration: underline; }
+
+/* Citations: inline numbers stay in the text (underline on hover); the reference list is
+   secondary text, each entry's DOI a quiet link out. */
+/* A hair of space before the bracket, owned here so authors attach `#cite` directly to the
+   preceding word (`runs#cite(2)`); nowrap + no source whitespace keeps the bracket from
+   orphaning onto the next line. */
+.cite { white-space: nowrap; margin-left: 0.15em; font-weight: 600; }
+.cite a { color: inherit; text-decoration: none; }
+.cite a:hover { text-decoration: underline; }
+ol.refs { font-size: var(--fs-small); line-height: 1.55; padding-left: 1.5rem; margin: 1rem 0; }
+ol.refs li { margin: .45rem 0; }
+ol.refs li::marker { color: var(--muted); }
+ol.refs .doi { color: var(--muted); }
+ol.refs .doi:hover { color: var(--ink); }
+/* Hover popover for an inline citation (Wikipedia-style): a small card echoing the reference. */
+.cite-popover {
+  position: absolute; z-index: 50; display: none;
+  width: min(24rem, calc(100vw - 1rem)); padding: .6rem .8rem;
+  background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .1);
+  font-size: var(--fs-small); line-height: 1.5; color: var(--ink);
+}
+.cite-popover .doi { color: var(--muted); }
+.cite-popover .doi:hover { color: var(--ink); }
+
+/* Status marker (`.status`): plain text in the meta line — `final` renders nothing (RULES §6.4),
+   so no styling is needed; it inherits the meta line's look. */
+
+/* Build-error stub: an entry that failed to compile (a missing figure, a Typst error) is served as
+   a stub page with the error in this block, so the failure is visible on its own page while the
+   rest of the site is fine. */
+.build-error { border-left: 3px solid #c0392b; background: #fcf3f2; color: #7a1f16; }
+
+/* Heading anchors: every heading carries a slug id (link to page.html#slug); a quiet # permalink
+   fades in on hover to grab that URL. */
+.hx .permalink { opacity: 0; margin-left: .3em; color: var(--muted); text-decoration: none; font-weight: 400; font-size: .85em; }
+.hx:hover .permalink, .hx:focus-within .permalink { opacity: 1; }
+.hx .permalink:hover { color: var(--ink); }
+
+/* Figure placeholder (`#pending` / `#pending-figure`): a figure whose asset isn't ready yet.
+   A tinted, dashed panel that reserves the figure's footprint so the page doesn't reflow when the
+   real plot lands — a small framed-image mark over the muted reason. aspect-ratio is set inline
+   from the helper's `ratio` arg. */
+.fig-pending {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7rem;
+  width: 100%; padding: 1.5rem; text-align: center;
+  background: var(--paper-tint);
+  border: 1px dashed #d6d3ca;
+  border-radius: 2px;
+}
+.fig-pending-mark { width: 1.7em; height: 1.2em; border: 1px solid #b9b6ad; border-radius: 2px; }
+.fig-pending-note { font-size: var(--fs-small); font-style: italic; color: var(--muted); }
+
+/* Entry meta strip: id · date · status · pdf, all inline. The pdf is a concrete destination, so it
+   keeps its underline (muted, darkening on hover) rather than the bare listing-nav treatment. */
+.entry-pdf { color: var(--muted); text-decoration: underline; }
+.entry-pdf:hover { color: var(--ink); }
+/* On listing pages the description sits closer to the list it heads (entry pages keep the
+   airier 1.75rem before the body). */
+.listing .entry-meta { margin-bottom: 1.25rem; }
+/* Homepage brand lockup: quieter and tighter than an article title. The tagline is more
+   important than generic metadata, but still secondary to the name. Scoping this to the
+   header keeps entry and collection hierarchy unchanged. */
+.site-head {
+  margin-bottom: 1rem;
+}
+.site-head h1, .site-head h2 {
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -.008em;
+}
+.site-head .entry-meta {
+  max-width: 38rem;
+  margin: .3rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.site-head .byline { margin-bottom: 0; }
+.site-head .entry-meta + .byline { margin-top: .3rem; }
+/* Breathing room at the foot of an entry page so the last line isn't flush to the edge. */
+.entry-tail { height: 6rem; }
+
+/* Empty state: a freshly-scaffolded repo (no writings) — the homepage's only content. Warm and
+   jargon-free (the first thing a non-technical user sees), led by a confident line. */
+.empty-state { margin: 1.75rem 0; line-height: 1.65; max-width: 34rem; }
+.empty-lead { font-size: 1.2rem; color: var(--ink); margin: 0 0 .6rem; }
+.empty-state p:not(.empty-lead) { color: var(--muted); }
+
+/* Landing-page building blocks for a custom landing.typ (pitch, links, command boxes) —
+   used by the upstream demo's site/landing.typ; a lab's own landing.typ may reuse them. */
+.welcome { margin: 0 0 2.75rem; max-width: 36rem; }
+.welcome-body { margin: 0 0 1rem; }
+.welcome-links {
+  margin: 0 0 1.15rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+/* The homepage is a .listing page (links unadorned by default), so re-add the underline for
+   links in the landing hero — both the nav row and inline links in the body prose. */
+.welcome-links a, .welcome-body a { text-decoration: underline; }
+.welcome-links a { color: #444; }
+.welcome-links a:hover { color: var(--ink); }
+.welcome-kicker {
+  font-family: var(--mono); font-size: var(--fs-label); color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin: 3rem 0 .65rem;
+}
+.welcome-cmd { margin: 0 0 .75rem; }
+.welcome-os {
+  font-family: var(--mono); font-size: var(--fs-label); color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem;
+}
+.welcome pre {
+  margin: 0; padding: .9rem 1rem; overflow-x: auto;
+  font-family: var(--mono); font-size: .82rem; line-height: 1.5;
+  background: var(--paper-tint); border: 1px solid var(--rule-strong); border-radius: 2px;
+}
+/* A quiet aside under a section (the "prefer to do it by hand?" line) — smaller and muted,
+   so it reads as a footnote to the block above, not the next paragraph. */
+.welcome-note { margin: 0 0 1rem; font-size: var(--fs-small); color: var(--muted); }
+.welcome-note a { color: var(--muted); text-decoration: underline; }
+.welcome-note a:hover { color: var(--ink); }
+/* The paste-into-your-agent command is a sentence, not shell — let it wrap rather than
+   clip/scroll at the .welcome column width. */
+.welcome-cmd pre { white-space: pre-wrap; }
+/* Runbook menu: NAME → what saying it does. A dl of hairline-separated rows; the name column
+   is mono (runbook names are commands) and fixed-width so descriptions align. */
+.welcome-runbooks { margin: 0 0 .75rem; }
+.welcome-runbook {
+  display: flex; gap: .75rem; padding: .45rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.welcome-runbook:last-child { border-bottom: none; }
+.welcome-runbook dt {
+  flex: 0 0 8.5rem; font-family: var(--mono); font-size: .78rem;
+  padding-top: .1rem;
+}
+.welcome-runbook dd { margin: 0; font-size: var(--fs-small); color: var(--muted); }
+/* Documentation tiers: four deliberately equal columns on wide screens, then a balanced
+   two-column grid — never an orphaned 3 + 1 arrangement at intermediate widths. */
+.welcome-docs {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem 1rem; margin: .15rem 0 1rem;
+}
+.welcome-docs-tier { border-top: 1px solid var(--rule-strong); padding-top: .55rem; }
+.welcome-docs-label {
+  margin: 0 0 .4rem;
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.welcome-docs-tier ul { list-style: none; padding-left: 0; margin: 0; }
+.welcome-docs-tier li { padding: .125rem 0; font-size: var(--fs-small); line-height: 1.4; }
+.welcome-docs-tier a { text-decoration: underline; color: var(--ink); }
+.welcome-docs-tier a:hover { color: var(--ink); }
+.welcome-foot {
+  margin: 1.75rem 0 0;
+  padding-top: .85rem;
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.welcome-foot a { color: var(--muted); }
+.welcome-foot a:hover { color: var(--ink); }
+
+/* Homepage collection directory: collection-name links, description beneath. These are the
+   page's hero items, so they sit one step above body — the middle of the home hierarchy
+   (title 28.8 → collection 20.7 → description 15.3). */
+.coll-list { list-style: none; padding-left: 0; margin: 1.25rem 0; }
+.coll-row { padding: .55rem 0; }
+.coll-title { font-size: 1.15rem; }
+.coll-desc { margin: .2rem 0 0; line-height: 1.45; }
+
+/* Index rows: mono id in a left column; title + a quiet meta sub-line (date · status · pdf)
+   stacked in the main column, so long titles wrap without orphaning the meta. */
+.entry-list { list-style: none; padding-left: 0; margin: 1.25rem 0; }
+.entry-row { display: flex; align-items: baseline; gap: .6rem; padding: .5rem 0; }
+.entry-row .row-id { flex: 0 0 auto; min-width: 3em; font-family: var(--mono); }
+.row-main { flex: 1 1 auto; min-width: 0; }
+.row-main .row-title { display: block; }
+.row-main .row-meta { display: block; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+
+/* Foot-of-listing nav line: quiet by default, links darken + underline on hover. */
+.page-foot { margin-top: 2rem; }
+.page-foot a { color: var(--muted); }
+.page-foot a:hover { color: var(--ink); }
+
+p { margin: 1rem 0; text-wrap: pretty; }
+img, video { max-width: 100%; height: auto; display: block; margin: 1.5rem auto; }
+figure { margin: 1.75rem 0; text-align: center; }
+figcaption { margin-top: .5rem; text-align: left; }
+table { border-collapse: collapse; margin: 1.25rem 0; font-size: var(--fs-small); }
+th, td { border: 1px solid var(--rule); padding: .35rem .75rem; text-align: left; }
+th { background: var(--paper-tint); font-weight: 600; }
+td:last-child, th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+math { font-size: 1.05em; }
+ul { padding-left: 1.25rem; }
+li { margin: .3rem 0; }
+hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+code, pre { font-family: var(--mono); }
+code { font-size: .9em; }
+pre {
+  font-size: .85em;
+  background: var(--paper-tint);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: .9rem 1.1rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+pre code { font-size: 1em; }
+
+@media (max-width: 42rem) {
+  body { margin-top: 2rem; margin-bottom: 2.5rem; }
+  .welcome { margin-bottom: 2rem; }
+  .welcome-kicker { margin-top: 2.5rem; }
+  .welcome-docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .welcome-runbook { display: block; padding: .6rem 0; }
+  .welcome-runbook dt { margin-bottom: .2rem; }
+  .entry-row { align-items: flex-start; gap: .5rem; }
+}
+
+@media (max-width: 22rem) {
+  .welcome-docs { grid-template-columns: 1fr; }
+}
+</style><meta name="generator" content="demolab 2.1.1"><script src="cite-popover.js" defer></script><p><a class="home-link" href="index.html">← Home</a></p><h2 id="introduction" class="hx">Introduction<a class="permalink" href="#introduction" aria-label="Link to this section">#</a></h2><div class="entry-meta">ar018 · 9 July 2026 · <a class="entry-pdf" href="pdfs/ar018.pdf">pdf</a></div><p>Here is an observation. Software engineers use coding agents constantly; scientists, far less so. That gap is not about talent or curiosity, it is about tooling: the agent arrived in a form built for shipping software, not for running experiments and writing them up. demolab is an attempt to close that gap. It is a lab notebook for computational science in which the science lives as code, an agent operates it in plain language, and one build turns the whole repository into a website and a set of PDFs. This page makes the case for it, in the same two acts as the talk it is drawn from: first the agents, then the workflow built on them.</p><h3 id="coding-agents-got-good" class="hx">Coding agents got good<a class="permalink" href="#coding-agents-got-good" aria-label="Link to this section">#</a></h3><p>A coding agent is not autocomplete. It reads a repository, runs programs, edits files, and checks its own work; it can do anything a terminal can do. The line runs autocomplete (2021), to chat (2023), to agents that do real work (2025), and only the last step made it useful for anything as unforgiving as science.</p><p>The clearest evidence is SWE-bench Verified<span class="cite">[<a href="#ref-1">1</a>, <a href="#ref-2">2</a>]</span>, a benchmark of real, human-validated GitHub issues that an agent must resolve end to end. The trajectory, shown below, is the point: at the benchmark’s 2024 launch the best systems closed about a third of the issues, and by late 2025 that figure had climbed past three quarters. A tool that was a novelty two years ago now does a large fraction of a working engineer’s tickets unaided. Many such agents exist, commercial and open, so there is no vendor lock-in.</p><figure><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTI4LjUzMzE2MjQ2NCAyMTYuMjYxMjI4MzQ2IiB3aWR0aD0iNTI4LjUzMzE2MjQ2NHB0IiBoZWlnaHQ9IjIxNi4yNjEyMjgzNDZwdCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM6aDU9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGZpbGwtcnVsZT0ibm9uemVybyIgZD0iTSAwIDB2IDIxNi4yNjEyMjgzNDZoIDUyOC41MzMxNjI0NjR2IC0yMTYuMjYxMjI4MzQ2WiAiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2IDYpIj48cGF0aCBmaWxsPSIjZWNlY2U5IiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMi4wNDI3OTMxODIgNTkuNTczOTg0MjUyKSIgZD0iTSAwIDBtIDAgMTMwLjk2MDYyOTkyMXYgLTU2LjEyNTk4NDI1MmwgNjcuMjc3OTgyNjU3IC0yNy4yMTI1OTg0MjVsIDUzLjgyMjM4NjEyNiAtMTAuMjA0NzI0NDA5bCA0MC4zNjY3ODk1OTQgLTEzLjYwNjI5OTIxM2wgNTMuODIyMzg2MTI2IC0xNS4zMDcwODY2MTRsIDgwLjczMzU3OTE4OSAtMy40MDE1NzQ4MDNsIDU5LjIwNDYyNDczOCAtNS4xMDIzNjIyMDV2IDEzMC45NjA2Mjk5MjEiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNkNGQ0ZDQiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2My42MDI2NDU2NjkgMTkwLjUzNDYxNDE3MykiIGQ9Ik0gMCAwaCA0MjUuMTk2ODUwMzk0Ii8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRkNGQ0IiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjMuNjAyNjQ1NjY5IDE0OC4wMTQ5MjkxMzQpIiBkPSJNIDAgMGggNDI1LjE5Njg1MDM5NCIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Q0ZDRkNCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYzLjYwMjY0NTY2OSAxMDUuNDk1MjQ0MDk0KSIgZD0iTSAwIDBoIDQyNS4xOTY4NTAzOTQiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNkNGQ0ZDQiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2My42MDI2NDU2NjkgNjIuOTc1NTU5MDU1KSIgZD0iTSAwIDBoIDQyNS4xOTY4NTAzOTQiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNkNGQ0ZDQiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2My42MDI2NDU2NjkgMjAuNDU1ODc0MDE2KSIgZD0iTSAwIDBoIDQyNS4xOTY4NTAzOTQiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2MC43NjggMTkwLjUzNDYxNDE3MykiIGQ9Ik0gMCAwaCA0NDMuMTE1MzY5MTcxIi8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDk4LjcxNDA3ODA0NyAxODguNDA4NjI5OTIxKSIgZD0iTSAwIDBtIDAgNC4yNTE5Njg1MDRsIDUuNjY5MjkxMzM5IC0yLjEyNTk4NDI1MmwgLTUuNjY5MjkxMzM5IC0yLjEyNTk4NDI1MiIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg1LjEzMTYwMDEyIDE4Ny42OTk5Njg1MDQpIiBkPSJNIDAgMG0gMCA1LjY2OTI5MTMzOXYgLTUuNjY5MjkxMzM5Ii8+PHBhdGggZmlsbD0ibm9uZSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzIuMjIzNjAwMTIgMTk3LjYyMTIyODM0NikiIGQ9Ik0gMCAwaCAyNS44MTZ2IDYuNjRoIC0yNS44MTZ2IC02LjY0WiAiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3Mi4yMjM1OTk5OTQgMTk3LjYyMTIyODI2OCkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgNS4yNjQpIj48dXNlIHhsaW5rOmhyZWY9IiNnMzQyN0RCNzlFMDEzRUYwNjQ0NDQ4MTA5RDI5MTcxRjYiIHg9IjAiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c3Q0E3MDdGMUJDQjE2Nzc0RjZCRUVCQkVBQ0FDRkNBMyIgeD0iMi41NzYiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c5Q0IwMTExM0VEOTlBQkM1QTVGNzVFNTAxNkMxNDk5RSIgeD0iNi44MjQiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dBRDlDODdGODU0QkRBNDJFREFCRkZCMzVFQzFGQTg0RSIgeD0iMTAuOTM2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnOTc2NjNFQzlBRUE3NEVBREEwNzQ3MjY0M0UxQkUxQjQiIHg9IjE0LjY1NiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZ0FEOUM4N0Y4NTRCREE0MkVEQUJGRkIzNUVDMUZBODRFIiB4PSIxOC4zNzYiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dGODIxNDMxQzYxQTREN0YzRUNFRkVDMDc0RTlDMEVGQyIgeD0iMjIuMDk2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L2c+PC9nPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIxOS42ODc1NjU0MzQgMTg3LjY5OTk2ODUwNCkiIGQ9Ik0gMCAwbSAwIDUuNjY5MjkxMzM5diAtNS42NjkyOTEzMzkiLz48cGF0aCBmaWxsPSJub25lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMDUuOTYzNTY1NDM0IDE5Ny42MjEyMjgzNDYpIiBkPSJNIDAgMGggMjcuNDQ4diA2LjY0aCAtMjcuNDQ4diAtNi42NFogIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjA1Ljk2MzU2NTM1NSAxOTcuNjIxMjI4MjY4KSI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgLTEgMCA1LjI2NCkiPjx1c2UgeGxpbms6aHJlZj0iI2czNDI3REI3OUUwMTNFRjA2NDQ0NDgxMDlEMjkxNzFGNiIgeD0iMCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzdDQURERTA1NjgzQTJGMjgyRTkyNzk2RUFFNzAwMkU2IiB4PSIyLjU3NiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzczN0UzMUQ2QTVFOTNFMjJFOUVENEFEMTBENDJGRTcxIiB4PSI2LjIzMiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZ0FEOUM4N0Y4NTRCREE0MkVEQUJGRkIzNUVDMUZBODRFIiB4PSIxMi41NjgiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c5NzY2M0VDOUFFQTc0RUFEQTA3NDcyNjQzRTFCRTFCNCIgeD0iMTYuMjg4IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnQUQ5Qzg3Rjg1NEJEQTQyRURBQkZGQjM1RUMxRkE4NEUiIHg9IjIwLjAwOCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZ0QwMEM5RDE2MkQxQ0JDMDlGMkY3NTUxRDU5NERCQjcyIiB4PSIyMy43MjgiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzU0LjI0MzUzMDc0OSAxODcuNjk5OTY4NTA0KSIgZD0iTSAwIDBtIDAgNS42NjkyOTEzMzl2IC01LjY2OTI5MTMzOSIvPjxwYXRoIGZpbGw9Im5vbmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM0MS4zMzU1MzA3NDkgMTk3LjYyMTIyODM0NikiIGQ9Ik0gMCAwaCAyNS44MTZ2IDYuNjRoIC0yNS44MTZ2IC02LjY0WiAiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNDEuMzM1NTMwNjIzIDE5Ny42MjEyMjgyNjgpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDUuMjY0KSI+PHVzZSB4bGluazpocmVmPSIjZzM0MjdEQjc5RTAxM0VGMDY0NDQ0ODEwOUQyOTE3MUY2IiB4PSIwIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnN0NBNzA3RjFCQ0IxNjc3NEY2QkVFQkJFQUNBQ0ZDQTMiIHg9IjIuNTc2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnOUNCMDExMTNFRDk5QUJDNUE1Rjc1RTUwMTZDMTQ5OUUiIHg9IjYuODI0IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnQUQ5Qzg3Rjg1NEJEQTQyRURBQkZGQjM1RUMxRkE4NEUiIHg9IjEwLjkzNiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzk3NjYzRUM5QUVBNzRFQURBMDc0NzI2NDNFMUJFMUI0IiB4PSIxNC42NTYiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dBRDlDODdGODU0QkRBNDJFREFCRkZCMzVFQzFGQTg0RSIgeD0iMTguMzc2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnRDAwQzlEMTYyRDFDQkMwOUYyRjc1NTFENTk0REJCNzIiIHg9IjIyLjA5NiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PC9nPjwvZz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0ODguNzk5NDk2MDYzIDE4Ny42OTk5Njg1MDQpIiBkPSJNIDAgMG0gMCA1LjY2OTI5MTMzOXYgLTUuNjY5MjkxMzM5Ii8+PHBhdGggZmlsbD0ibm9uZSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDc1LjA3NTQ5NjA2MyAxOTcuNjIxMjI4MzQ2KSIgZD0iTSAwIDBoIDI3LjQ0OHYgNi42NGggLTI3LjQ0OHYgLTYuNjRaICIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ3NS4wNzU0OTU5ODQgMTk3LjYyMTIyODI2OCkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgNS4yNjQpIj48dXNlIHhsaW5rOmhyZWY9IiNnMzQyN0RCNzlFMDEzRUYwNjQ0NDQ4MTA5RDI5MTcxRjYiIHg9IjAiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c3Q0FEREUwNTY4M0EyRjI4MkU5Mjc5NkVBRTcwMDJFNiIgeD0iMi41NzYiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c3MzdFMzFENkE1RTkzRTIyRTlFRDRBRDEwRDQyRkU3MSIgeD0iNi4yMzIiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dBRDlDODdGODU0QkRBNDJFREFCRkZCMzVFQzFGQTg0RSIgeD0iMTIuNTY4IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnOTc2NjNFQzlBRUE3NEVBREEwNzQ3MjY0M0UxQkUxQjQiIHg9IjE2LjI4OCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZ0FEOUM4N0Y4NTRCREE0MkVEQUJGRkIzNUVDMUZBODRFIiB4PSIyMC4wMDgiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dBRkM2QURFMEY0QkE1QzU4NEI4NUREMEU4NTMyNTA1QiIgeD0iMjMuNzI4IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L2c+PC9nPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYzLjYwMjY0NTY2OSA1LjM3MjAwMDkwOCkiIGQ9Ik0gMCAwbSAwIDE4Ny45OTcyNTg5MzV2IC0xODcuOTk3MjU4OTM1Ii8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjEuNDc2NjYxNDE3IDQuODcyMDAwNjkzKSIgZD0iTSAwIDBtIDQuMjUxOTY4NTA0IDUuNjY5MjkxMzM5bCAtMi4xMjU5ODQyNTIgLTUuNjY5MjkxMzM5bCAtMi4xMjU5ODQyNTIgNS42NjkyOTEzMzkiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2MC43NjggMTkwLjUzNDYxNDE3MykiIGQ9Ik0gMCAwaCA1LjY2OTI5MTMzOSIvPjxwYXRoIGZpbGw9Im5vbmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUyLjc5NjAzMTQ5NiAxODcuODYyNjE0MTczKSIgZD0iTSAwIDBoIDMuNzJ2IDUuMzQ0aCAtMy43MnYgLTUuMzQ0WiAiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1Mi43OTYwMzE0MDIgMTg3Ljg2MjYxNDA5NCkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgNS4yNjQpIj48dXNlIHhsaW5rOmhyZWY9IiNnOTc2NjNFQzlBRUE3NEVBREEwNzQ3MjY0M0UxQkUxQjQiIHg9IjAiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAuNzY4IDE0OC4wMTQ5MjkxMzQpIiBkPSJNIDAgMGggNS42NjkyOTEzMzkiLz48cGF0aCBmaWxsPSJub25lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0OS4wNzYwMzE0OTYgMTQ1LjMzODkyOTEzNCkiIGQ9Ik0gMCAwaCA3LjQ0diA1LjM1MmggLTcuNDR2IC01LjM1MlogIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDkuMDc2MDMxNDQ5IDE0NS4zMzg5MjkwODcpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDUuMjY0KSI+PHVzZSB4bGluazpocmVmPSIjZ0FEOUM4N0Y4NTRCREE0MkVEQUJGRkIzNUVDMUZBODRFIiB4PSIwIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnRDAwQzlEMTYyRDFDQkMwOUYyRjc1NTFENTk0REJCNzIiIHg9IjMuNzIiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAuNzY4IDEwNS40OTUyNDQwOTQpIiBkPSJNIDAgMGggNS42NjkyOTEzMzkiLz48cGF0aCBmaWxsPSJub25lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0OS4wNzYwMzE0OTYgMTAyLjgxOTI0NDA5NCkiIGQ9Ik0gMCAwaCA3LjQ0diA1LjM1MmggLTcuNDR2IC01LjM1MlogIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDkuMDc2MDMxNDQ5IDEwMi44MTkyNDQwNDcpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDUuMjY0KSI+PHVzZSB4bGluazpocmVmPSIjZ0QwMEM5RDE2MkQxQ0JDMDlGMkY3NTUxRDU5NERCQjcyIiB4PSIwIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnOTc2NjNFQzlBRUE3NEVBREEwNzQ3MjY0M0UxQkUxQjQiIHg9IjMuNzIiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAuNzY4IDYyLjk3NTU1OTA1NSkiIGQ9Ik0gMCAwaCA1LjY2OTI5MTMzOSIvPjxwYXRoIGZpbGw9Im5vbmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ5LjA3NjAzMTQ5NiA2MC4yOTE1NTkwNTUpIiBkPSJNIDAgMGggNy40NHYgNS4zNjhoIC03LjQ0diAtNS4zNjhaICIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ5LjA3NjAzMTQ0OSA2MC4yOTE1NTg5MjkpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDUuMjY0KSI+PHVzZSB4bGluazpocmVmPSIjZzM4RUYxMDQzOUM3MDAxOUEyQzBCMUE1NEU1ODIxOTRDIiB4PSIwIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnRDAwQzlEMTYyRDFDQkMwOUYyRjc1NTFENTk0REJCNzIiIHg9IjMuNzIiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iNCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAuNzY4IDIwLjQ1NTg3NDAxNikiIGQ9Ik0gMCAwaCA1LjY2OTI5MTMzOSIvPjxwYXRoIGZpbGw9Im5vbmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1LjM1NjAzMTQ5NiAxNy43ODM4NzQwMTYpIiBkPSJNIDAgMGggMTEuMTZ2IDUuMzQ0aCAtMTEuMTZ2IC01LjM0NFogIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDUuMzU2MDMxNDk2IDE3Ljc4Mzg3MzkzNykiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgNS4yNjQpIj48dXNlIHhsaW5rOmhyZWY9IiNnOEM1MERGQzBCODI3MkNENzMzNDFDNjU4MTFCRDBFOTIiIHg9IjAiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c5NzY2M0VDOUFFQTc0RUFEQTA3NDcyNjQzRTFCRTFCNCIgeD0iMy43MiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzk3NjYzRUM5QUVBNzRFQURBMDc0NzI2NDNFMUJFMUI0IiB4PSI3LjQ0IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L2c+PC9nPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0gMCAwaCA2MC43Njh2IDYuODk2aCAtNjAuNzY4diAtNi44OTZaICIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xLjQyZS03IC02LjNlLTgpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDUuMjY0KSI+PHVzZSB4bGluazpocmVmPSIjZzE3N0Y5RTI3M0RBMjYyRkVBRDI5NUUyMjFGN0Q5QTVFIiB4PSIwIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnODZBQkQ5Qjk4MTU3NTczQkY2ODgyQTQzRkE0MzQ3NDIiIHg9IjIuMzc2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnODZBQkQ5Qjk4MTU3NTczQkY2ODgyQTQzRkE0MzQ3NDIiIHg9IjUuNDk2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnN0NBNzA3RjFCQ0IxNjc3NEY2QkVFQkJFQUNBQ0ZDQTMiIHg9IjguNjE2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnMjBFREJFMUU5ODlGNTZBQTlGQkZENEEyRUY1QkRDMzUiIHg9IjEyLjg2NCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzg2QUJEOUI5ODE1NzU3M0JGNjg4MkE0M0ZBNDM0NzQyIiB4PSIxNi40NCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZ0YxNDkwM0Q3OUM4ODFBOUI2QUMyRUU3RDhCRUQ2RjAzIiB4PSIyMS41NiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzIwRURCRTFFOTg5RjU2QUE5RkJGRDRBMkVGNUJEQzM1IiB4PSIyNC40NzIiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c4NkFCRDlCOTgxNTc1NzNCRjY4ODJBNDNGQTQzNDc0MiIgeD0iMjguMDQ4IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnMkI2NzhFRjEwMTk0NTU4REE2REVEMENERjg3REEzRTQiIHg9IjMxLjE2OCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzlDQjAxMTEzRUQ5OUFCQzVBNUY3NUU1MDE2QzE0OTlFIiB4PSIzNS4yIiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnNzU4OThENzhBQkE3RjJGOTQwMTA0M0NBQTIxMDM1NjQiIHg9IjM3LjMxMiIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzIwRURCRTFFOTg5RjU2QUE5RkJGRDRBMkVGNUJEQzM1IiB4PSI0MS4yMjQiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2cxM0NERjY3Mzc2M0Y1REI5QzI1QTlBOTc2RURBRDBBNyIgeD0iNDQuODU2IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48dXNlIHhsaW5rOmhyZWY9IiNnQjMwQkY3NzhBQjQ5MEM5NDVDRTNCMEIwMUYyRDNERTUiIHg9IjUwLjkwNCIgeT0iMCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzdDREM1Q0Y2RThCQjQzNjE5NEUyMDNCQUM0OUE2QjNDIiB4PSI1My4yODgiIHk9IjAiIGZpbGw9IiMwMDAwMDAiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2c4QkZCOEQ3NEQxQTA5NUFEQTY0RDU2MkU4RkI1NTNCRiIgeD0iNTguMzg0IiB5PSIwIiBmaWxsPSIjMDAwMDAwIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48L2c+PC9nPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFhMWExYSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMi4wNDI3OTMxODIgNTkuNTczOTg0MjUyKSIgZD0iTSAwIDBtIDAgNzQuODM0NjQ1NjY5bCA2Ny4yNzc5ODI2NTcgLTI3LjIxMjU5ODQyNWwgNTMuODIyMzg2MTI2IC0xMC4yMDQ3MjQ0MDlsIDQwLjM2Njc4OTU5NCAtMTMuNjA2Mjk5MjEzbCA1My44MjIzODYxMjYgLTE1LjMwNzA4NjYxNGwgODAuNzMzNTc5MTg5IC0zLjQwMTU3NDgwM2wgNTkuMjA0NjI0NzM4IC01LjEwMjM2MjIwNSIvPjxwYXRoIGZpbGw9IiMxYTFhMWEiIGZpbGwtcnVsZT0ibm9uemVybyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTEwLjIwMDI3MzQ5NyAxMzIuNTY2MTEwMjM2KSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSIjMWExYTFhIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE3Ny40NzgyNTYxNTUgMTA1LjM1MzUxMTgxMSkiIGQ9Ik0gMCAwbSAxLjg0MjUxOTY4NSAwYyAtMS4wMTY2NzI4ODIgMCAtMS44NDI1MTk2ODUgMC44MjU4NDY4MDMgLTEuODQyNTE5Njg1IDEuODQyNTE5Njg1YyAwIDEuMDE2NjcyODgyIDAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IDEuODQyNTE5Njg1IDEuODQyNTE5Njg1YyAxLjAxNjY3Mjg4MiAwIDEuODQyNTE5Njg1IC0wLjgyNTg0NjgwMyAxLjg0MjUxOTY4NSAtMS44NDI1MTk2ODVjIDAgLTEuMDE2NjcyODgyIC0wLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NVogIi8+PHBhdGggZmlsbD0iIzFhMWExYSIgZmlsbC1ydWxlPSJub256ZXJvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMzEuMzAwNjQyMjggOTUuMTQ4Nzg3NDAyKSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSIjMWExYTFhIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI3MS42Njc0MzE4NzUgODEuNTQyNDg4MTg5KSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSIjMWExYTFhIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMyNS40ODk4MTgwMDEgNjYuMjM1NDAxNTc1KSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSIjMWExYTFhIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQwNi4yMjMzOTcxODkgNjIuODMzODI2NzcyKSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSIjMWExYTFhIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ2NS40MjgwMjE5MjggNTcuNzMxNDY0NTY3KSIgZD0iTSAwIDBtIDEuODQyNTE5Njg1IDBjIC0xLjAxNjY3Mjg4MiAwIC0xLjg0MjUxOTY4NSAwLjgyNTg0NjgwMyAtMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDAgMS4wMTY2NzI4ODIgMC44MjU4NDY4MDMgMS44NDI1MTk2ODUgMS44NDI1MTk2ODUgMS44NDI1MTk2ODVjIDEuMDE2NjcyODgyIDAgMS44NDI1MTk2ODUgLTAuODI1ODQ2ODAzIDEuODQyNTE5Njg1IC0xLjg0MjUxOTY4NWMgMCAtMS4wMTY2NzI4ODIgLTAuODI1ODQ2ODAzIC0xLjg0MjUxOTY4NSAtMS44NDI1MTk2ODUgLTEuODQyNTE5Njg1WiAiLz48cGF0aCBmaWxsPSJub25lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1Ny4wNTgxNzk5MDYgMTIyLjMyMzgzODExKSIgZD0iTSAwIDBtIDAgMC4zNTg1NmggMTQyLjI2MjY1ODIyOHYgLTAuMzU4NTZoIC0xNDIuMjYyNjU4MjI4diAwLjM1ODU2WiAiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMjAuNjk3MDA4ODc5IDExOS41MTUxMTgxMSkiPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgNS44MDUpIj48dXNlIHhsaW5rOmhyZWY9IiNnQzFFODE5RkRCMDI5NDA1MDVDMUQ1QTREMTg4QTUyNDgiIHg9IjAiIHk9IjAiIGZpbGw9IiMxYTFhMWEiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2dDMUU4MTlGREIwMjk0MDUwNUMxRDVBNEQxODhBNTI0OCIgeD0iNC42MjYiIHk9IjAiIGZpbGw9IiMxYTFhMWEiIGZpbGwtcnVsZT0ibm9uemVybyIvPjx1c2UgeGxpbms6aHJlZj0iI2cyMDNCODc0QjQ3OUY0NzkzMzZCRDY5REUzRjBENkVCMyIgeD0iOS4yNTIiIHk9IjAiIGZpbGw9IiMxYTFhMWEiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PHBhdGggZmlsbD0ibm9uZSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzQyLjY1NjU4MDE4NSA0NC4wNDc3Nzc2MzgpIiBkPSJNIDAgMG0gMCAwLjQzODI0aCAxNzMuODc2NTgyMjc5diAtMC40MzgyNGggLTE3My44NzY1ODIyNzl2IDAuNDM4MjRaICIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQyMC40MzczNzEzMjUgNDAuNjE0ODk3NjIyKSI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgLTEgMCA3LjA5NSkiPjx1c2UgeGxpbms6aHJlZj0iI2c1NDM2QkQ1NDRFQ0UwMzQzMjc5Mzk3NUFENDc2MERCQiIgeD0iMCIgeT0iMCIgZmlsbD0iIzFhMWExYSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzU0MzZCRDU0NEVDRTAzNDMyNzkzOTc1QUQ0NzYwREJCIiB4PSI1LjY1NCIgeT0iMCIgZmlsbD0iIzFhMWExYSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHVzZSB4bGluazpocmVmPSIjZzQ0ODcxNEYyMTU4RTUyMkE0NzUxQ0RBMDA5Q0Y3RjBEIiB4PSIxMS4zMDgiIHk9IjAiIGZpbGw9IiMxYTFhMWEiIGZpbGwtcnVsZT0ibm9uemVybyIvPjwvZz48L2c+PC9nPjxkZWZzPjxzeW1ib2wgaWQ9ImczNDI3REI3OUUwMTNFRjA2NDQ0NDgxMDlEMjkxNzFGNiIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAxLjgwOCA0LjE4NGMgMCAwLjY2NCAwLjEzNiAwLjcwNCAwLjYxNiAwLjcyOGMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuMzA0IC0wLjAwOCAtMC42NDggLTAuMDE2IC0wLjk2IC0wLjAxNmMgLTAuMjg4IDAgLTAuNzEyIDAuMDA4IC0xLjExMiAwLjAxNmMgLTAuMDQ4IC0wLjA0OCAtMC4wNDggLTAuMjE2IDAgLTAuMjY0YyAwLjY0IC0wLjAyNCAwLjc3NiAtMC4wNjQgMC43NzYgLTAuNzI4diAtMy41MzZjIDAgLTEuNDQgLTAuNDE2IC0xLjY2NCAtMC42OCAtMS42NjRjIC0wLjE1MiAwIC0wLjI2NCAwLjA5NiAtMC4zMiAwLjIxNmMgLTAuMDQ4IDAuMDk2IC0wLjEyIDAuMiAtMC4zMiAwLjJjIC0wLjExMiAwIC0wLjM1MiAtMC4xNjggLTAuMzUyIC0wLjM0NGMgMCAtMC4yODggMC40MjQgLTAuNDMyIDAuNiAtMC40MzJjIDAuMzYgMCAwLjYwOCAwLjA2NCAwLjkzNiAwLjM0NGMgMC4zNTIgMC4yOTYgMC44MTYgMC43MTIgMC44MTYgMS44NTZaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9Imc3Q0E3MDdGMUJDQjE2Nzc0RjZCRUVCQkVBQ0FDRkNBMyIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAxLjczNiAtMC4wOGMgMC4zMTIgMCAwLjY4OCAwLjE2IDEuMDggMC40OGMgMC4wNCAwLjAzMiAwLjExMiAwLjA0OCAwLjEyIC0wLjAwOGMgMC4wMjQgLTAuMiAwLjA4OCAtMC40NzIgMC4wODggLTAuNDcyYyAwLjA2NCAtMC4wMjQgMC4xMDQgLTAuMDE2IDAuMTUyIDBjIDAuMTc2IDAuMTQ0IDAuNDU2IDAuMjY0IDAuOTQ0IDAuMzJjIDAuMDQ4IDAuMDQ4IDAuMDQ4IDAuMTY4IDAgMC4yMTZjIC0wLjUxMiAwLjA0IC0wLjU4NCAwLjE5MiAtMC41ODQgMC41ODR2IDEuNTM2YyAwIDAuMjQgMC4wMzIgMC44MjQgMC4wMzIgMC44MjRjIDAgMC4wMjQgLTAuMDI0IDAuMDQ4IC0wLjA2NCAwLjA0OGMgLTAuMDQgLTAuMDA4IC0wLjE2IC0wLjAxNiAtMC4yOCAtMC4wMTZjIC0wLjI1NiAwIC0wLjU0NCAwLjAwOCAtMC44MTYgMC4wMTZjIC0wLjA0OCAtMC4wNDggLTAuMDQ4IC0wLjIxNiAwIC0wLjI2NGMgMC4zOTIgLTAuMDI0IDAuNDk2IC0wLjEyIDAuNDk2IC0wLjY0OHYgLTEuNTQ0YyAwIC0wLjE1MiAtMC4wMTYgLTAuMjE2IC0wLjEyOCAtMC4zMTJjIC0wLjI5NiAtMC4yNTYgLTAuNiAtMC4zODQgLTAuOCAtMC4zODRjIC0wLjI0IDAgLTAuNjQgMC4xMTIgLTAuNjQgMC44MjR2IDEuNDU2YyAwIDAuMjQgMC4wMzIgMC44MjQgMC4wMzIgMC44MjRjIDAgMC4wMjQgLTAuMDI0IDAuMDQ4IC0wLjA2NCAwLjA0OGMgLTAuMDQgLTAuMDA4IC0wLjE2IC0wLjAxNiAtMC4yOCAtMC4wMTZjIC0wLjI1NiAwIC0wLjU0NCAwLjAwOCAtMC44MTYgMC4wMTZjIC0wLjA0OCAtMC4wNDggLTAuMDQ4IC0wLjIxNiAwIC0wLjI2NGMgMC4zODQgLTAuMDMyIDAuNDk2IC0wLjEyIDAuNDk2IC0wLjY0diAtMS41MzZjIDAgLTAuNTUyIDAuMjQgLTEuMDg4IDEuMDMyIC0xLjA4OFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzlDQjAxMTEzRUQ5OUFCQzVBNUY3NUU1MDE2QzE0OTlFIiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDAuNzYgMC45NzZjIDAgLTAuNjY0IC0wLjA4OCAtMC43MDQgLTAuNTc2IC0wLjcyOGMgLTAuMDQ4IC0wLjA0OCAtMC4wNDggLTAuMjE2IDAgLTAuMjY0YyAwLjI4IDAuMDA4IDAuNTc2IDAuMDE2IDAuODk2IDAuMDE2YyAwLjMyIDAgMC42MjQgLTAuMDA4IDAuODg4IC0wLjAxNmMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuNDg4IDAuMDI0IC0wLjU3NiAwLjA2NCAtMC41NzYgMC43Mjh2IDMuNjg4YyAwIDAuNTIgMC4wMzIgMC44NCAwLjAzMiAwLjg0YyAwIDAuMDU2IC0wLjAzMiAwLjA4IC0wLjEwNCAwLjA4YyAtMC4yIC0wLjA4IC0wLjggLTAuMTkyIC0xLjEyIC0wLjIxNmMgLTAuMDE2IC0wLjA2NCAwIC0wLjE5MiAwLjA0OCAtMC4yNGMgMC40NjQgLTAuMDMyIDAuNTEyIC0wLjA1NiAwLjUxMiAtMC42NTZaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9ImdBRDlDODdGODU0QkRBNDJFREFCRkZCMzVFQzFGQTg0RSIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAwLjQ4OCAzLjc0NGMgMCAtMC4xNjggMC4xNTIgLTAuMzEyIDAuMzIgLTAuMzEyYyAwLjEzNiAwIDAuMzc2IDAuMTQ0IDAuMzc2IDAuMzJjIDAgMC4wNjQgLTAuMDE2IDAuMTEyIC0wLjAzMiAwLjE2OGMgLTAuMDE2IDAuMDU2IC0wLjA2NCAwLjEyOCAtMC4wNjQgMC4xOTJjIDAgMC4yIDAuMjA4IDAuNDg4IDAuNzkyIDAuNDg4YyAwLjI4OCAwIDAuNjk2IC0wLjIgMC42OTYgLTAuOTY4YyAwIC0wLjUxMiAtMC4xODQgLTAuOTI4IC0wLjY1NiAtMS40MDhsIC0wLjU5MiAtMC41ODRjIC0wLjc4NCAtMC44IC0wLjkxMiAtMS4xODQgLTAuOTEyIC0xLjY1NmMgMCAwIDAuNDA4IDAuMDE2IDAuNjY0IDAuMDE2aCAxLjRjIDAuMjU2IDAgMC42MjQgLTAuMDE2IDAuNjI0IC0wLjAxNmMgMC4xMDQgMC40MjQgMC4xODQgMS4wMjQgMC4xOTIgMS4yNjRjIC0wLjA0OCAwLjA0IC0wLjE1MiAwLjA1NiAtMC4yMzIgMC4wNGMgLTAuMTM2IC0wLjU2OCAtMC4yNzIgLTAuNzY4IC0wLjU2IC0wLjc2OGggLTEuNDI0YyAwIDAuMzg0IDAuNTUyIDAuOTI4IDAuNTkyIDAuOTY4bCAwLjgwOCAwLjc3NmMgMC40NTYgMC40NCAwLjggMC43OTIgMC44IDEuNGMgMCAwLjg2NCAtMC43MDQgMS4yMTYgLTEuMzUyIDEuMjE2YyAtMC44ODggMCAtMS40NCAtMC42NTYgLTEuNDQgLTEuMTM2WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnOTc2NjNFQzlBRUE3NEVBREEwNzQ3MjY0M0UxQkUxQjQiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMS44MjQgLTAuMDhjIDAuNjE2IDAgMS41NTIgMC42MjQgMS41NTIgMi41MDRjIDAgMC43OTIgLTAuMTkyIDEuNDcyIC0wLjU0NCAxLjkzNmMgLTAuMjA4IDAuMjggLTAuNTQ0IDAuNTIgLTAuOTc2IDAuNTJjIC0wLjc5MiAwIC0xLjU0NCAtMC45NDQgLTEuNTQ0IC0yLjUyOGMgMCAtMC44NTYgMC4yNjQgLTEuNjU2IDAuNzA0IC0yLjA5NmMgMC4yMjQgLTAuMjI0IDAuNDk2IC0wLjMzNiAwLjgwOCAtMC4zMzZaIG0gMC4wMzIgNC42OGMgMC4xMzYgMCAwLjI2NCAtMC4wNDggMC4zNiAtMC4xMzZjIDAuMjQ4IC0wLjIwOCAwLjQ2NCAtMC44MTYgMC40NjQgLTEuODg4YyAwIC0wLjczNiAtMC4wMjQgLTEuMjQgLTAuMTM2IC0xLjY0OGMgLTAuMTc2IC0wLjY1NiAtMC41NjggLTAuNzI4IC0wLjcxMiAtMC43MjhjIC0wLjc0NCAwIC0wLjgyNCAxLjM2OCAtMC44MjQgMi4wNjRjIDAgMS45NjggMC40ODggMi4zMzYgMC44NDggMi4zMzZaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9ImdGODIxNDMxQzYxQTREN0YzRUNFRkVDMDc0RTlDMEVGQyIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAzLjQ0IDEuNzUyaCAtMC42NjR2IDIuMzM2YyAwIDAuNCAwIDAuNzEyIDAuMDE2IDAuNzc2bCAtMC4wMTYgMC4wMTZoIC0wLjI1NmMgLTAuMDU2IDAgLTAuMDk2IC0wLjA0OCAtMC4xMjggLTAuMDg4YyAtMC41MDQgLTAuNjE2IC0xLjQzMiAtMS45MzYgLTIuMTY4IC0zLjA4YyAwLjAyNCAtMC4xMiAwLjA3MiAtMC4zMzYgMC4zMTIgLTAuMzM2aCAxLjYzMnYgLTAuNzM2YyAwIC0wLjM2OCAtMC4zMDQgLTAuMzY4IC0wLjY0OCAtMC4zOTJjIC0wLjA0OCAtMC4wNDggLTAuMDQ4IC0wLjIxNiAwIC0wLjI2NGMgMC4yNTYgMC4wMDggMC41NzYgMC4wMTYgMC45NDQgMC4wMTZjIDAuMzEyIDAgMC42MTYgLTAuMDA4IDAuODcyIC0wLjAxNmMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuMzkyIDAuMDMyIC0wLjU2IDAuMDE2IC0wLjU2IDAuMzkydiAwLjczNmggMC41NTJjIDAuMTEyIDAgMC4yMzIgMC4xNTIgMC4yMzIgMC4yNDhjIDAgMC4wOCAtMC4wMzIgMC4xMjggLTAuMTIgMC4xMjhaIG0gLTEuMjcyIDIuMzA0diAtMi4zMDRoIC0xLjUyOGMgMC40MDggMC42NTYgMC45NzYgMS41NTIgMS41MjggMi4zMDRaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9Imc3Q0FEREUwNTY4M0EyRjI4MkU5Mjc5NkVBRTcwMDJFNiIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAyLjM0NCAwLjM4NGMgMC4wNDggLTAuMjQ4IDAuMTM2IC0wLjQ2NCAwLjUzNiAtMC40NjRjIDAuMzA0IDAgMC41OTIgMC4xMzYgMC43NiAwLjI5NmMgLTAuMDE2IDAuMDk2IC0wLjA0OCAwLjE2OCAtMC4xMzYgMC4yMTZjIC0wLjA1NiAtMC4wNDggLTAuMTkyIC0wLjEyOCAtMC4yOTYgLTAuMTI4YyAtMC4yMzIgMCAtMC4yNCAwLjMxMiAtMC4yNCAwLjY4diAxLjE3NmMgMCAxLjEzNiAtMC42MjQgMS4zNTIgLTEuMjA4IDEuMzUyYyAtMC42NTYgMCAtMS4zMiAtMC40MzIgLTEuMzIgLTAuODg4YyAwIC0wLjE5MiAwLjA5NiAtMC4yODggMC4yOCAtMC4yODhjIDAuMjMyIDAgMC4zNzYgMC4xNjggMC4zNzYgMC4yNzJjIDAgMC4wNTYgLTAuMDA4IDAuMTEyIC0wLjAyNCAwLjE0NGMgLTAuMDA4IDAuMDI0IC0wLjAxNiAwLjA3MiAtMC4wMTYgMC4xNmMgMCAwLjI0OCAwLjMzNiAwLjMzNiAwLjY0IDAuMzM2YyAwLjI3MiAwIDAuNjQ4IC0wLjEzNiAwLjY0OCAtMS4wNGMgMCAtMC4wNTYgLTAuMDI0IC0wLjA4OCAtMC4wNDggLTAuMDk2bCAtMC42ODggLTAuMTY4YyAtMC43NjggLTAuMTkyIC0xLjMyIC0wLjYxNiAtMS4zMiAtMS4xNmMgMCAtMC42NTYgMC40NDggLTAuODY0IDEuMDA4IC0wLjg2NGMgMC4yOCAwIDAuNTIgMC4wNjQgMC44NzIgMC4zMzZsIDAuMTYgMC4xMjhaIG0gMCAxLjQ4diAtMS4wNTZjIDAgLTAuMTA0IC0wLjA0OCAtMC4xNiAtMC4xMTIgLTAuMjA4YyAtMC4yMDggLTAuMTY4IC0wLjQ4IC0wLjM1MiAtMC43MDQgLTAuMzUyYyAtMC40IDAgLTAuNTc2IDAuMzIgLTAuNTc2IDAuNTY4YyAwIDAuMzYgMC4xNjggMC43MjggMC43NiAwLjg4WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnNzM3RTMxRDZBNUU5M0UyMkU5RUQ0QUQxMEQ0MkZFNzEiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMS40NzIgMi44NjRjIC0wLjA0OCAtMC4wNTYgLTAuMDk2IC0wLjA3MiAtMC4wOTYgMGMgLTAuMDA4IDAuMjE2IC0wLjAyNCAwLjUyOCAtMC4wNjQgMC42MDhjIC0wLjAxNiAwLjA0IC0wLjAzMiAwLjA2NCAtMC4wOTYgMC4wNjRjIC0wLjIyNCAtMC4wODggLTAuNDMyIC0wLjE2IC0wLjk4NCAtMC4yMzJjIC0wLjAxNiAtMC4wNDggMCAtMC4xNzYgMC4wMTYgLTAuMjI0YyAwLjQzMiAtMC4wNCAwLjUyIC0wLjA4IDAuNTIgLTAuNTQ0diAtMS41NmMgMCAtMC42NTYgLTAuMDggLTAuNjg4IC0wLjU2IC0wLjcyOGMgLTAuMDQ4IC0wLjA0OCAtMC4wNDggLTAuMjE2IDAgLTAuMjY0YyAwLjI0IDAuMDA4IDAuNTYgMC4wMTYgMC44OCAwLjAxNmMgMC4zMiAwIDAuNTYgLTAuMDA4IDAuOCAtMC4wMTZjIDAuMDQ4IDAuMDQ4IDAuMDQ4IDAuMjE2IDAgMC4yNjRjIC0wLjQwOCAwLjA0IC0wLjQ4OCAwLjA3MiAtMC40ODggMC43Mjh2IDEuMzEyYyAwIDAuMTY4IDAuMDcyIDAuMjY0IDAuMTM2IDAuMzM2YyAwLjMwNCAwLjI5NiAwLjY2NCAwLjQ3MiAwLjk3NiAwLjQ3MmMgMC4xNiAwIDAuMzI4IC0wLjEwNCAwLjQyNCAtMC4yODhjIDAuMDggLTAuMTYgMC4wOTYgLTAuMzc2IDAuMDk2IC0wLjYxNnYgLTEuMjE2YyAwIC0wLjY1NiAtMC4wOCAtMC42ODggLTAuNDk2IC0wLjcyOGMgLTAuMDQgLTAuMDQ4IC0wLjA0IC0wLjIxNiAwIC0wLjI2NGMgMC4yNCAwLjAwOCAwLjQ5NiAwLjAxNiAwLjgxNiAwLjAxNmMgMC4zMiAwIDAuNjA4IC0wLjAwOCAwLjg0OCAtMC4wMTZjIDAuMDQgMC4wNDggMC4wNCAwLjIxNiAwIDAuMjY0YyAtMC40NDggMC4wNCAtMC41MzYgMC4wNzIgLTAuNTM2IDAuNzI4diAxLjE5MmMgMCAwLjQ0IC0wLjAzMiAwLjgyNCAtMC4yMTYgMS4wNzJjIC0wLjEzNiAwLjE3NiAtMC4zODQgMC4yNzIgLTAuNjY0IDAuMjcyYyAtMC4zOTIgMCAtMC44NCAtMC4xMDQgLTEuMzEyIC0wLjY0OFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZ0QwMEM5RDE2MkQxQ0JDMDlGMkY3NTUxRDU5NERCQjcyIiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDIuNTUyIDEuNTEyYyAwIC0wLjc2IC0wLjQgLTEuMzIgLTAuODggLTEuMzJjIC0wLjMwNCAwIC0wLjQwOCAwLjIgLTAuNTI4IDAuMzZjIC0wLjEwNCAwLjEzNiAtMC4yNCAwLjI1NiAtMC40MDggMC4yNTZjIC0wLjE1MiAwIC0wLjMwNCAtMC4xMzYgLTAuMzA0IC0wLjI5NmMgMCAtMC4zMjggMC42OCAtMC42IDEuMTM2IC0wLjZjIDAuOTkyIDAgMS42OTYgMC43MzYgMS42OTYgMS43NDRjIDAgMC43NzYgLTAuNTM2IDEuNDcyIC0xLjQzMiAxLjQ3MmMgLTAuMzQ0IDAgLTAuNjQgLTAuMDcyIC0wLjc4NCAtMC4xMjhsIDAuMTYgMS4zMzZjIDAuMjk2IC0wLjAzMiAwLjU1MiAtMC4wNzIgMC45MzYgLTAuMDcyYyAwLjI0IDAgMC41MTIgMC4wMTYgMC44NCAwLjA0OGwgMC4xMjggMC41NDRsIC0wLjA1NiAwLjAzMmMgLTAuNDU2IC0wLjA0OCAtMC44ODggLTAuMDg4IC0xLjMxMiAtMC4wODhjIC0wLjI5NiAwIC0wLjU4NCAwLjAxNiAtMC44NjQgMC4wNGwgLTAuMjcyIC0yLjMwNGMgMC40MjQgMC4xNiAwLjcyOCAwLjE5MiAxLjAxNiAwLjE5MmMgMC41MiAwIDAuOTI4IC0wLjM0NCAwLjkyOCAtMS4yMTZaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9ImdBRkM2QURFMEY0QkE1QzU4NEI4NUREMEU4NTMyNTA1QiIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAxLjE1MiAyLjc0NGMgMC4yMTYgMC43MjggMC43MjggMS41MzYgMS43OTIgMS45MzZjIDAgMC4wOTYgLTAuMDMyIDAuMTY4IC0wLjA5NiAwLjIwOGMgLTAuODA4IC0wLjI0IC0xLjMwNCAtMC41NzYgLTEuNzUyIC0xLjA5NmMgLTAuNDk2IC0wLjU3NiAtMC43NDQgLTEuMzA0IC0wLjc0NCAtMS45MzZjIDAgLTEuNjI0IDAuOTIgLTEuOTQ0IDEuNTM2IC0xLjk0NGMgMS4wNDggMCAxLjQ4IDEuMDE2IDEuNDggMS43MDRjIDAgMC42ODggLTAuMzY4IDEuMzA0IC0xLjQ1NiAxLjMwNGMgLTAuMjA4IDAgLTAuNTIgLTAuMDY0IC0wLjc2IC0wLjE3NlogbSAtMC4wNzIgLTAuMjg4YyAwLjI2NCAwLjE3NiAwLjUyOCAwLjE4NCAwLjY2NCAwLjE4NGMgMC43ODQgMCAwLjk2IC0wLjc2OCAwLjk2IC0xLjE2OGMgMCAtMC44OCAtMC4zMzYgLTEuMjggLTAuNzI4IC0xLjI4YyAtMC41MDQgMCAtMC45NiAwLjI3MiAtMC45NiAxLjY0YyAwIDAuMTg0IDAuMDE2IDAuMzkyIDAuMDY0IDAuNjI0WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnMzhFRjEwNDM5QzcwMDE5QTJDMEIxQTU0RTU4MjE5NEMiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMS4zNiA0LjI4aCAxLjQzMmMgLTAuNjI0IC0xLjU1MiAtMS4yNTYgLTMuMTEyIC0xLjggLTQuMzI4bCAwLjA2NCAtMC4wNTZsIDAuNTQ0IDAuMDI0YyAwLjQ1NiAxLjM2IDAuODk2IDIuNjg4IDEuNzkyIDQuODcybCAtMC4xMjggMC4wOTZjIC0wLjEzNiAtMC4wNCAtMC4zMTIgLTAuMDg4IC0wLjYxNiAtMC4wODhoIC0xLjY0OGMgLTAuMjcyIDAgLTAuMjU2IDAuMDggLTAuNCAwLjExMmMgLTAuMDI0IDAgLTAuMDMyIDAgLTAuMDMyIC0wLjAyNGMgLTAuMDA4IC0wLjM4NCAtMC4wOTYgLTAuODY0IC0wLjE2IC0xLjI4YyAwLjA4OCAtMC4wMjQgMC4xNjggLTAuMDMyIDAuMjU2IC0wLjAyNGMgMC4xNzYgMC42NCAwLjQ0IDAuNjk2IDAuNjk2IDAuNjk2WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnOEM1MERGQzBCODI3MkNENzMzNDFDNjU4MTFCRDBFOTIiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMi4zMDQgMC45NzZ2IDIuNzc2YyAwIDAuNDggMC4wMDggMC45NjggMC4wMjQgMS4wNzJjIDAgMC4wNCAtMC4wMTYgMC4wNCAtMC4wNDggMC4wNGMgLTAuNDQgLTAuMjcyIC0wLjg2NCAtMC40NzIgLTEuNTY4IC0wLjhjIDAuMDE2IC0wLjA4OCAwLjA0OCAtMC4xNjggMC4xMiAtMC4yMTZjIDAuMzY4IDAuMTUyIDAuNTQ0IDAuMiAwLjY5NiAwLjJjIDAuMTM2IDAgMC4xNiAtMC4xOTIgMC4xNiAtMC40NjR2IC0yLjYwOGMgMCAtMC42NjQgLTAuMjE2IC0wLjcwNCAtMC43NzYgLTAuNzI4YyAtMC4wNDggLTAuMDQ4IC0wLjA0OCAtMC4yMTYgMCAtMC4yNjRjIDAuMzkyIDAuMDA4IDAuNjggMC4wMTYgMS4xMTIgMC4wMTZjIDAuMzg0IDAgMC41NzYgLTAuMDA4IDAuOTc2IC0wLjAxNmMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuNTYgMC4wMjQgLTAuNjk2IDAuMDY0IC0wLjY5NiAwLjcyOFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzE3N0Y5RTI3M0RBMjYyRkVBRDI5NUUyMjFGN0Q5QTVFIiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDEuNTI4IDAuOTc2diAzLjIwOGMgMCAwLjY2NCAwLjEzNiAwLjcwNCAwLjY5NiAwLjcyOGMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuMzUyIC0wLjAwOCAtMC43MjggLTAuMDE2IC0xLjA0IC0wLjAxNmMgLTAuMjY0IDAgLTAuNjU2IDAuMDA4IC0xLjAzMiAwLjAxNmMgLTAuMDQ4IC0wLjA0OCAtMC4wNDggLTAuMjE2IDAgLTAuMjY0YyAwLjU2IC0wLjAyNCAwLjY5NiAtMC4wNjQgMC42OTYgLTAuNzI4diAtMy4yMDhjIDAgLTAuNjY0IC0wLjEzNiAtMC43MDQgLTAuNjk2IC0wLjcyOGMgLTAuMDQ4IC0wLjA0OCAtMC4wNDggLTAuMjE2IDAgLTAuMjY0YyAwLjM2IDAuMDA4IDAuNzUyIDAuMDE2IDEuMDQgMC4wMTZjIDAuMjg4IDAgMC42NzIgLTAuMDA4IDEuMDMyIC0wLjAxNmMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuNTYgMC4wMjQgLTAuNjk2IDAuMDY0IC0wLjY5NiAwLjcyOFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzg2QUJEOUI5ODE1NzU3M0JGNjg4MkE0M0ZBNDM0NzQyIiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDAuMzg0IDEuMTA0YyAwLjAzMiAtMC4zOTIgMC4wNTYgLTAuNzY4IDAuMDU2IC0xLjEwNGMgMC4wOCAwLjAxNiAwLjE2IDAuMDI0IDAuMiAwLjAyNGMgMC4wNTYgMCAwLjEwNCAwIDAuMTYgLTAuMDE2YyAwLjIxNiAtMC4wNTYgMC40MzIgLTAuMDg4IDAuNzI4IC0wLjA4OGMgMC40NDggMCAxLjI3MiAwLjIxNiAxLjI3MiAxLjAwOGMgMCAwLjU0NCAtMC4zOTIgMC44NjQgLTAuOTM2IDEuMDY0YyAtMC40OCAwLjE4NCAtMC44IDAuMzA0IC0wLjggMC43NDRjIDAgMC4zMjggMC4yODggMC41MTIgMC41NiAwLjUxMmMgMC4xNzYgMCAwLjY0IC0wLjA2NCAwLjc0NCAtMC43NDRjIDAuMDQ4IC0wLjA0OCAwLjIwOCAtMC4wNCAwLjI1NiAwLjAwOGMgMC4wMjQgMC4yODggMC4wNCAwLjU4NCAwLjA0OCAwLjg0OGMgLTAuMjQ4IDAuMDQgLTAuNjMyIDAuMTUyIC0xLjA0OCAwLjE1MmMgLTAuNTkyIDAgLTEuMTI4IC0wLjM4NCAtMS4xMjggLTAuODk2YyAwIC0wLjU4NCAwLjI2NCAtMC44MzIgMC44OCAtMS4wODhjIDAuNjY0IC0wLjI3MiAwLjgxNiAtMC40NCAwLjgxNiAtMC43ODRjIDAgLTAuMzkyIC0wLjM4NCAtMC41NiAtMC42OCAtMC41NmMgLTAuMzEyIDAgLTAuNDg4IDAuMTA0IC0wLjU2OCAwLjE5MmMgLTAuMTc2IDAuMTg0IC0wLjI2NCAwLjUzNiAtMC4zMTIgMC43MzZjIC0wLjA0OCAwLjA0OCAtMC4yIDAuMDQgLTAuMjQ4IC0wLjAwOFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzIwRURCRTFFOTg5RjU2QUE5RkJGRDRBMkVGNUJEQzM1IiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDMuMDg4IDAuNzQ0YyAtMC4yOTYgLTAuMzA0IC0wLjUyOCAtMC40MzIgLTAuOTkyIC0wLjQzMmMgLTAuMjg4IDAgLTAuNjI0IDAuMTY4IC0wLjg3MiAwLjU3NmMgLTAuMTYgMC4yNjQgLTAuMjU2IDAuNjMyIC0wLjI1NiAxLjA5NmwgMi4xMjggLTAuMDE2YyAwLjA5NiAwIDAuMTUyIDAuMDQ4IDAuMTUyIDAuMTM2YyAwIDAuNjcyIC0wLjI0IDEuMzkyIC0xLjM1MiAxLjM5MmMgLTAuNjk2IDAgLTEuNiAtMC42NjQgLTEuNiAtMS44OGMgMCAtMC40NDggMC4xMTIgLTAuODggMC4zNzYgLTEuMTg0YyAwLjI3MiAtMC4zMiAwLjY0OCAtMC41MTIgMS4yMjQgLTAuNTEyYyAwLjYwOCAwIDEuMDQgMC4yOCAxLjM2IDAuNjk2YyAtMC4wMjQgMC4wOCAtMC4wNzIgMC4xMiAtMC4xNjggMC4xMjhaIG0gLTIuMDk2IDEuNTEyYyAwLjE1MiAwLjkwNCAwLjcxMiAwLjk3NiAwLjkwNCAwLjk3NmMgMC4zMDQgMCAwLjY2NCAtMC4xNjggMC42NjQgLTAuODRjIDAgLTAuMDcyIC0wLjAzMiAtMC4xMTIgLTAuMTIgLTAuMTEyWiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnRjE0OTAzRDc5Qzg4MUE5QjZBQzJFRTdEOEJFRDZGMDMiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMS40MDggMi44NjRjIC0wLjAxNiAwLjMyIC0wLjAyNCAwLjUyOCAtMC4wNjQgMC42MDhjIC0wLjAxNiAwLjA0IC0wLjAzMiAwLjA2NCAtMC4wOTYgMC4wNjRjIC0wLjIyNCAtMC4wODggLTAuNDMyIC0wLjE2IC0wLjk4NCAtMC4yMzJjIC0wLjAxNiAtMC4wNDggMCAtMC4xNzYgMC4wMTYgLTAuMjI0YyAwLjQzMiAtMC4wNCAwLjUyIC0wLjA4IDAuNTIgLTAuNTQ0diAtMS41NmMgMCAtMC42NjQgLTAuMDk2IC0wLjY5NiAtMC41OTIgLTAuNzI4YyAtMC4wNDggLTAuMDQ4IC0wLjA0OCAtMC4yMTYgMCAtMC4yNjRjIDAuMjggMC4wMDggMC41OTIgMC4wMTYgMC45MTIgMC4wMTZjIDAuMzIgMCAwLjY4OCAtMC4wMDggMC45NjggLTAuMDE2YyAwLjA0OCAwLjA0OCAwLjA0OCAwLjIxNiAwIDAuMjY0YyAtMC41NiAwLjA0IC0wLjY1NiAwLjA2NCAtMC42NTYgMC43Mjh2IDEuMTEyYyAwIDAuMjA4IDAuMDk2IDAuMzkyIDAuMTkyIDAuNTM2YyAwLjA4OCAwLjEyOCAwLjI3MiAwLjM5MiAwLjM2OCAwLjM5MmMgMC4wNzIgMCAwLjE0NCAtMC4wMTYgMC4yMDggLTAuMTA0YyAwLjA1NiAtMC4wOCAwLjE1MiAtMC4xODQgMC4yODggLTAuMTg0YyAwLjE5MiAwIDAuMzc2IDAuMiAwLjM3NiAwLjRjIDAgMC4xNTIgLTAuMTQ0IDAuMzg0IC0wLjQ4IDAuMzg0YyAtMC4zNzYgMCAtMC43MDQgLTAuMzUyIC0wLjg4OCAtMC42NjRjIC0wLjA0OCAtMC4wODggLTAuMDg4IC0wLjAyNCAtMC4wODggMC4wMTZaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9ImcyQjY3OEVGMTAxOTQ1NThEQTZERUQwQ0RGODdEQTNFNCIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAwLjMyOCAxLjY0YyAwIC0wLjgxNiAwLjU0NCAtMS43MiAxLjY4IC0xLjcyYyAwLjUxMiAwIDAuOTA0IDAuMTg0IDEuMTc2IDAuNDQ4YyAwLjM2IDAuMzUyIDAuNTIgMC44NTYgMC41MiAxLjM0NGMgMCAwLjgzMiAtMC40NTYgMS44IC0xLjY4IDEuOGMgLTAuNTI4IDAgLTAuOTYgLTAuMjE2IC0xLjI1NiAtMC41NmMgLTAuMjg4IC0wLjM0NCAtMC40NCAtMC44MDggLTAuNDQgLTEuMzEyWiBtIDEuNTc2IDEuNTkyYyAwLjY4OCAwIDEuMTEyIC0wLjYyNCAxLjExMiAtMS43NzZjIDAgLTEuMDA4IC0wLjUyIC0xLjI1NiAtMC44OTYgLTEuMjU2YyAtMC44MzIgMCAtMS4xMDQgMS4wMDggLTEuMTA0IDEuNjI0YyAwIDAuNjk2IDAuMTY4IDEuNDA4IDAuODg4IDEuNDA4WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnNzU4OThENzhBQkE3RjJGOTQwMTA0M0NBQTIxMDM1NjQiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMi42IDMuMTg0YyAwLjQzMiAtMC4wMzIgMC40OCAtMC4xMjggMC4zMTIgLTAuNTM2bCAtMC42NDggLTEuNTY4YyAtMC4xMjggLTAuMzEyIC0wLjE2OCAtMC4zMTIgLTAuMjk2IDAuMDI0bCAtMC41NzYgMS41NDRjIC0wLjE0NCAwLjM4NCAtMC4xNzYgMC40OCAwLjI0OCAwLjUzNmMgMC4wNDggMC4wNDggMC4wNDggMC4yMTYgMCAwLjI2NGMgLTAuMjY0IC0wLjAwOCAtMC41NDQgLTAuMDE2IC0wLjgwOCAtMC4wMTZjIC0wLjI2NCAwIC0wLjUwNCAwLjAwOCAtMC43NDQgMC4wMTZjIC0wLjA0OCAtMC4wNDggLTAuMDQ4IC0wLjIxNiAwIC0wLjI2NGMgMC40MjQgLTAuMDQ4IDAuNDggLTAuMTc2IDAuNjQgLTAuNTg0bCAxLjAyNCAtMi41MjhjIDAuMDQ4IC0wLjEyIDAuMDk2IC0wLjE2OCAwLjIgLTAuMTY4YyAwLjA4IDAgMC4xMzYgMC4wNDggMC4xOTIgMC4xODRsIDEuMDY0IDIuNTA0YyAwLjE1MiAwLjM1MiAwLjI0IDAuNTUyIDAuNjg4IDAuNTkyYyAwLjA0OCAwLjA0OCAwLjA0OCAwLjIxNiAwIDAuMjY0YyAtMC4xNiAtMC4wMDggLTAuMzUyIC0wLjAxNiAtMC41NiAtMC4wMTZjIC0wLjI2NCAwIC0wLjUzNiAwLjAwOCAtMC43MzYgMC4wMTZjIC0wLjA0OCAtMC4wNDggLTAuMDQ4IC0wLjIxNiAwIC0wLjI2NFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzEzQ0RGNjczNzYzRjVEQjlDMjVBOUE5NzZFREFEMEE3IiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDIuNjcyIDAuNGMgMC4wNCAwLjAzMiAwLjExMiAwLjA0OCAwLjEyIC0wLjAwOGMgMC4wMjQgLTAuMTkyIDAuMDg4IC0wLjQ3MiAwLjA4OCAtMC40NzJjIDAuMDY0IC0wLjAyNCAwLjEwNCAtMC4wMTYgMC4xNTIgMGMgMC4xNzYgMC4xNDQgMC40NTYgMC4yNjQgMC45NDQgMC4zMmMgMC4wNDggMC4wNDggMC4wNDggMC4xNjggMCAwLjIxNmMgLTAuNTEyIDAuMDQgLTAuNTg0IDAuMTkyIC0wLjU4NCAwLjU4NHYgMy42MjRjIDAgMC41MiAwLjAzMiAwLjg0IDAuMDMyIDAuODRjIDAgMC4wNTYgLTAuMDMyIDAuMDggLTAuMTA0IDAuMDhjIC0wLjIgLTAuMDggLTAuOCAtMC4xOTIgLTEuMTIgLTAuMjE2YyAtMC4wMTYgLTAuMDY0IDAgLTAuMTkyIDAuMDQ4IC0wLjI0YyAwLjAyNCAwIDAuMDQ4IDAgMC4wNzIgMGMgMC4zNTIgLTAuMDI0IDAuNDQgLTAuMDI0IDAuNDQgLTAuNjU2diAtMS4wMjRjIDAgLTAuMDU2IC0wLjAxNiAtMC4wNzIgLTAuMDcyIC0wLjA3MmMgLTAuMDMyIDAgLTAuMzYgMC4xMzYgLTAuNjI0IDAuMTM2YyAtMC41MjggMCAtMC44OCAtMC4xNzYgLTEuMiAtMC40OGMgLTAuMzQ0IC0wLjM0NCAtMC41NTIgLTAuODE2IC0wLjU1MiAtMS40MDhjIDAgLTAuOTg0IDAuNDk2IC0xLjcwNCAxLjM2IC0xLjcwNGMgMC4zMTIgMCAwLjYwOCAwLjE2IDEgMC40OFogbSAwLjA4OCAwLjU5MmMgMCAtMC4xNTIgLTAuMDE2IC0wLjIxNiAtMC4xMjggLTAuMzEyYyAtMC4yOTYgLTAuMjU2IC0wLjU1MiAtMC4zODQgLTAuNzUyIC0wLjM4NGMgLTAuNDMyIDAgLTAuODggMC40NzIgLTAuODggMS40NzJjIDAgMC41NzYgMC4xMTIgMC44OTYgMC4yMzIgMS4wNjRjIDAuMjQ4IDAuMzc2IDAuNTg0IDAuNCAwLjc0NCAwLjRjIDAuMjg4IDAgMC40ODggLTAuMTA0IDAuNjQ4IC0wLjI4OGMgMC4xMTIgLTAuMTI4IDAuMTM2IC0wLjE4NCAwLjEzNiAtMC40MzJaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9ImdCMzBCRjc3OEFCNDkwQzk0NUNFM0IwQjAxRjJEM0RFNSIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAwLjM1MiAyLjAxNmMgMCAtMC4zNiAwLjAzMiAtMi4yMDggMS42OTYgLTMuNjQ4YyAwLjA4IDAuMDE2IDAuMTQ0IDAuMDcyIDAuMTY4IDAuMTM2YyAtMC4yNjQgMC4zMDQgLTEuMiAxLjQwOCAtMS4yIDMuNTEyYyAwIDIuMTA0IDAuOTQ0IDMuMjA4IDEuMiAzLjQ5NmMgLTAuMDI0IDAuMDggLTAuMDggMC4xMzYgLTAuMTY4IDAuMTQ0YyAtMC45NTIgLTAuODE2IC0xLjY5NiAtMi4xNTIgLTEuNjk2IC0zLjY0WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnN0NEQzVDRjZFOEJCNDM2MTk0RTIwM0JBQzQ5QTZCM0MiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMi45MTIgNC4xNjhjIC0wLjE0NCAwIC0wLjQyNCAwIC0wLjg1NiAwLjJjIC0wLjA4IDAuMDk2IC0wLjMxMiAwLjIgLTAuNTM2IDAuMmMgLTAuNTc2IDAgLTEuMDY0IC0wLjU2OCAtMS4wNjQgLTEuMjcyYyAwIC0wLjQwOCAwLjI0IC0wLjg3MiAwLjczNiAtMC44NzJjIDAuNjcyIDAgMS4wMjQgMC45MDQgMS4wMjQgMS40MTZjIDAgMC4wNzIgLTAuMDA4IDAuMTQ0IC0wLjAyNCAwLjJjIDAuMTUyIC0wLjA4OCAwLjQ1NiAtMC4xNjggMC42NCAtMC4xNjhjIDAuMjQgMCAwLjU1MiAwLjAzMiAwLjg1NiAwLjE1MmwgLTIuODcyIC00bCAwLjI3MiAtMC4xMmwgMy4yOCA0LjU2OGwgLTAuMjU2IDAuMTI4YyAtMC4yNDggLTAuMzM2IC0wLjg2NCAtMC40MzIgLTEuMiAtMC40MzJaIG0gMC4xMTIgLTMuMzg0YyAwIC0wLjQyNCAwLjI1NiAtMC44OCAwLjc0NCAtMC44OGMgMC42NjQgMCAxLjAxNiAwLjg4IDEuMDE2IDEuNDE2YyAwIDAuNTg0IC0wLjM2OCAwLjcyOCAtMC42ODggMC43MjhjIC0wLjU5MiAwIC0xLjA3MiAtMC42MDggLTEuMDcyIC0xLjI2NFogbSAtMi4xMzYgMi40YyAwIDAuNDY0IDAuMzI4IDEuMTM2IDAuNzIgMS4xMzZjIDAuMTQ0IDAgMC4zNDQgLTAuMDg4IDAuMzQ0IC0wLjQ4OGMgMCAtMC40NjQgLTAuMjcyIC0xLjE2IC0wLjcxMiAtMS4xNmMgLTAuMTQ0IDAgLTAuMzUyIDAuMDk2IC0wLjM1MiAwLjUxMlogbSAyLjU3NiAtMi41MmMgMCAwLjQ2NCAwLjMyOCAxLjEzNiAwLjcyIDEuMTM2YyAwLjExMiAwIDAuMzM2IC0wLjA3MiAwLjMzNiAtMC40ODhjIDAgLTAuNDQ4IC0wLjI2NCAtMS4xNiAtMC43MDQgLTEuMTZjIC0wLjE1MiAwIC0wLjM1MiAwLjA5NiAtMC4zNTIgMC41MTJaICIvPjwvc3ltYm9sPjxzeW1ib2wgaWQ9Imc4QkZCOEQ3NEQxQTA5NUFEQTY0RDU2MkU4RkI1NTNCRiIgb3ZlcmZsb3c9InZpc2libGUiPjxwYXRoIGQ9Ik0gMCAwbSAyLjAzMiAyLjAxNmMgMCAwLjM2IC0wLjAzMiAyLjIwOCAtMS42OTYgMy42NDhjIC0wLjA4IC0wLjAxNiAtMC4xNDQgLTAuMDcyIC0wLjE2OCAtMC4xMzZjIDAuMjY0IC0wLjMwNCAxLjIgLTEuNDA4IDEuMiAtMy41MTJjIDAgLTIuMTA0IC0wLjk0NCAtMy4yMDggLTEuMiAtMy40OTZjIDAuMDI0IC0wLjA4IDAuMDggLTAuMTM2IDAuMTY4IC0wLjE0NGMgMC45NTIgMC44MTYgMS42OTYgMi4xNTIgMS42OTYgMy42NFogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZ0MxRTgxOUZEQjAyOTQwNTA1QzFENUE0RDE4OEE1MjQ4IiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDIuMjMyIDUuMTEyYyAwLjM3OCAwIDAuNTY3IC0wLjIxNiAwLjU2NyAtMC42MzljIDAgLTAuNjg0IC0wLjU0OSAtMS4yMzMgLTEuMzc3IC0xLjQyMmwgMC4wNjMgLTAuMzZjIDAuMTg5IDAuMDU0IDAuMjk3IDAuMDcyIDAuNDMyIDAuMDcyYyAwLjQ2OCAwIDEuMTI1IC0wLjEzNSAxLjEyNSAtMS4yMTVjIDAgLTEuMDM1IC0wLjYxMiAtMS4yNiAtMC45NDUgLTEuMjZjIC0wLjM1MSAwIC0wLjU0IDAuMjI1IC0wLjY1NyAwLjM3OGMgLTAuMDk5IDAuMTM1IC0wLjI1MiAwLjMzMyAtMC41ODUgMC4zMzNjIC0wLjI3OSAwIC0wLjQ0MSAtMC4yMzQgLTAuNDQxIC0wLjM4N2MgMCAtMC4xODkgMC4wOTkgLTAuMzI0IDAuMjk3IC0wLjQyM2MgMC4zMjQgLTAuMTYyIDAuODAxIC0wLjI3OSAxLjI0MiAtMC4yNzljIDEuMDYyIDAgMi4yNSAwLjgzNyAyLjI1IDIuMDg4YyAwIDAuNjQ4IC0wLjQyMyAxLjIxNSAtMS4xNzkgMS4yNjljIDAuMzk2IDAuMTk4IDAuODM3IDAuNjc1IDAuODM3IDEuMjI0YyAwIDAuMzk2IC0wLjIxNiAwLjk5OSAtMS40NTggMC45OTljIC0wLjkzNiAwIC0xLjMxNCAtMC4zMTUgLTEuNjAyIC0wLjU3NmMgLTAuMTk4IC0wLjE4IC0wLjI1MiAtMC40MjMgLTAuMjUyIC0wLjU0YyAwIC0wLjEyNiAwLjA0NSAtMC4zMzMgMC4zNDIgLTAuMzMzYyAwLjM5NiAwIDAuNTA0IDAuMjA3IDAuNTU4IDAuNDk1YyAwLjA5OSAwLjU0OSAwLjQ3NyAwLjU3NiAwLjc4MyAwLjU3NlogIi8+PC9zeW1ib2w+PHN5bWJvbCBpZD0iZzIwM0I4NzRCNDc5RjQ3OTMzNkJENjlERTNGMEQ2RUIzIiBvdmVyZmxvdz0idmlzaWJsZSI+PHBhdGggZD0iTSAwIDBtIDAuNDU5IDMuNjYzYyAwIC0wLjMzMyAwLjA4MSAtMC41NTggMC4yMDcgLTAuNzJjIDAuMTUzIC0wLjE4OSAwLjQxNCAtMC4yNyAwLjcwMiAtMC4yN2MgMC43MTEgMCAxLjE5NyAwLjcxMSAxLjE5NyAxLjYwMmMgMCAwLjA1NCAwIDAuMTA4IC0wLjAwOSAwLjE2MmMgMC4xNzEgLTAuMDkgMC40NDEgLTAuMTcxIDAuNjMgLTAuMTcxYyAwLjI3IDAgMC42MjEgMC4wNjMgMC45NzIgMC4yMDdsIC0zLjI5NCAtNC41MDlsIDAuNDg2IC0wLjEwOGwgMy42OTkgNS4wNzZsIC0wLjQyMyAwLjE4OWMgLTAuMzY5IC0wLjM5NiAtMC45NzIgLTAuNDUgLTEuMzUgLTAuNDVjIC0wLjE1MyAwIC0wLjU0OSAwLjIwNyAtMC45MjcgMC4yMjVjIC0wLjE1MyAwLjE0NCAtMC4zNzggMC4xOTggLTAuNjEyIDAuMTk4YyAtMC44MDEgMCAtMS4yNzggLTAuNzExIC0xLjI3OCAtMS40MzFaIG0gMi44NzEgLTIuODQ0YyAwIC0wLjMzMyAwLjA4MSAtMC41NTggMC4yMDcgLTAuNzJjIDAuMTUzIC0wLjE4OSAwLjQxNCAtMC4yNyAwLjcwMiAtMC4yN2MgMC43MTEgMCAxLjE5NyAwLjcxMSAxLjE5NyAxLjYwMmMgMCAwLjY0OCAtMC4zOTYgMC44MTkgLTAuODI4IDAuODE5YyAtMC44MDEgMCAtMS4yNzggLTAuNzExIC0xLjI3OCAtMS40MzFaIG0gLTIuMDM0IDIuNTAyYyAwIDAuMjc5IDAuMDA5IDAuNjc1IDAuMTA4IDAuOTgxYyAwLjA5IDAuMjcgMC4yNTIgMC40NjggMC40MzIgMC40NjhjIDAuMTI2IDAgMC4zNTEgLTAuMDQ1IDAuMzUxIC0wLjUxM2MgMCAtMC4yNyAtMC4wNzIgLTAuNjIxIC0wLjIyNSAtMC44NzNjIC0wLjEyNiAtMC4yMDcgLTAuMjk3IC0wLjM2IC0wLjQ4NiAtMC4zNmMgLTAuMTUzIDAgLTAuMTggMC4xOCAtMC4xOCAwLjI5N1ogbSAyLjg3MSAtMi44NDRjIDAgMC4yNzkgMC4wMDkgMC42NzUgMC4xMDggMC45ODFjIDAuMDkgMC4yNyAwLjI1MiAwLjQ2OCAwLjQzMiAwLjQ2OGMgMC4xMjYgMCAwLjM1MSAtMC4wNDUgMC4zNTEgLTAuNTEzYyAwIC0wLjI3IC0wLjA3MiAtMC42MjEgLTAuMjI1IC0wLjg3M2MgLTAuMTI2IC0wLjIwNyAtMC4yOTcgLTAuMzYgLTAuNDg2IC0wLjM2YyAtMC4xNTMgMCAtMC4xOCAwLjE4IC0wLjE4IDAuMjk3WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnNTQzNkJENTQ0RUNFMDM0MzI3OTM5NzVBRDQ3NjBEQkIiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMi4wMjQgNS40NzhoIDIuMTQ1YyAtMC43MjYgLTEuNDk2IC0xLjk4IC0zLjg5NCAtMi44MzggLTUuNDc4bCAwLjA2NiAtMC4xMzJsIDEuMTIyIDAuMTFjIDAuNzM3IDEuODgxIDEuMzMxIDMuNTMxIDIuNzUgNi41MjNsIC0wLjA2NiAwLjA5OWggLTMuNjg1YyAtMC4zNzQgMCAtMC4zOTYgMC4xMSAtMC41OTQgMC4xNTRjIC0wLjAzMyAwIC0wLjA0NCAwIC0wLjA0NCAtMC4wMzNjIC0wLjAxMSAtMC41MjggLTAuMTMyIC0xLjU5NSAtMC4yMiAtMi4xNjdjIDAuMTQzIC0wLjA0NCAwLjI1MyAtMC4wNTUgMC4zODUgLTAuMDMzYyAwLjI0MiAwLjg4IDAuNjE2IDAuOTU3IDAuOTc5IDAuOTU3WiAiLz48L3N5bWJvbD48c3ltYm9sIGlkPSJnNDQ4NzE0RjIxNThFNTIyQTQ3NTFDREEwMDlDRjdGMEQiIG92ZXJmbG93PSJ2aXNpYmxlIj48cGF0aCBkPSJNIDAgMG0gMC41NjEgNC40NzdjIDAgLTAuNDA3IDAuMDk5IC0wLjY4MiAwLjI1MyAtMC44OGMgMC4xODcgLTAuMjMxIDAuNTA2IC0wLjMzIDAuODU4IC0wLjMzYyAwLjg2OSAwIDEuNDYzIDAuODY5IDEuNDYzIDEuOTU4YyAwIDAuMDY2IDAgMC4xMzIgLTAuMDExIDAuMTk4YyAwLjIwOSAtMC4xMSAwLjUzOSAtMC4yMDkgMC43NyAtMC4yMDljIDAuMzMgMCAwLjc1OSAwLjA3NyAxLjE4OCAwLjI1M2wgLTQuMDI2IC01LjUxMWwgMC41OTQgLTAuMTMybCA0LjUyMSA2LjIwNGwgLTAuNTE3IDAuMjMxYyAtMC40NTEgLTAuNDg0IC0xLjE4OCAtMC41NSAtMS42NSAtMC41NWMgLTAuMTg3IDAgLTAuNjcxIDAuMjUzIC0xLjEzMyAwLjI3NWMgLTAuMTg3IDAuMTc2IC0wLjQ2MiAwLjI0MiAtMC43NDggMC4yNDJjIC0wLjk3OSAwIC0xLjU2MiAtMC44NjkgLTEuNTYyIC0xLjc0OVogbSAzLjUwOSAtMy40NzZjIDAgLTAuNDA3IDAuMDk5IC0wLjY4MiAwLjI1MyAtMC44OGMgMC4xODcgLTAuMjMxIDAuNTA2IC0wLjMzIDAuODU4IC0wLjMzYyAwLjg2OSAwIDEuNDYzIDAuODY5IDEuNDYzIDEuOTU4YyAwIDAuNzkyIC0wLjQ4NCAxLjAwMSAtMS4wMTIgMS4wMDFjIC0wLjk3OSAwIC0xLjU2MiAtMC44NjkgLTEuNTYyIC0xLjc0OVogbSAtMi40ODYgMy4wNThjIDAgMC4zNDEgMC4wMTEgMC44MjUgMC4xMzIgMS4xOTljIDAuMTEgMC4zMyAwLjMwOCAwLjU3MiAwLjUyOCAwLjU3MmMgMC4xNTQgMCAwLjQyOSAtMC4wNTUgMC40MjkgLTAuNjI3YyAwIC0wLjMzIC0wLjA4OCAtMC43NTkgLTAuMjc1IC0xLjA2N2MgLTAuMTU0IC0wLjI1MyAtMC4zNjMgLTAuNDQgLTAuNTk0IC0wLjQ0YyAtMC4xODcgMCAtMC4yMiAwLjIyIC0wLjIyIDAuMzYzWiBtIDMuNTA5IC0zLjQ3NmMgMCAwLjM0MSAwLjAxMSAwLjgyNSAwLjEzMiAxLjE5OWMgMC4xMSAwLjMzIDAuMzA4IDAuNTcyIDAuNTI4IDAuNTcyYyAwLjE1NCAwIDAuNDI5IC0wLjA1NSAwLjQyOSAtMC42MjdjIDAgLTAuMzMgLTAuMDg4IC0wLjc1OSAtMC4yNzUgLTEuMDY3YyAtMC4xNTQgLTAuMjUzIC0wLjM2MyAtMC40NCAtMC41OTQgLTAuNDRjIC0wLjE4NyAwIC0wLjIyIDAuMjIgLTAuMjIgMC4zNjNaICIvPjwvc3ltYm9sPjwvZGVmcz48L3N2Zz4=" alt="Line chart of the share of SWE-bench Verified issues a coding agent resolves, rising from 33% in 2024 to 77% in late 2025." width="705" height="288" style="display: block; width: 100%"><figcaption>Figure 1: Share of real, human-validated GitHub issues a coding agent resolves end to end, on SWE-bench Verified (swebench.com), from the benchmark’s 2024 launch to late 2025. The vertical axis is percent of issues resolved; the horizontal axis is date. The resolved fraction climbs from 33% to 77% in about eighteen months. These are software bugs, not science, so the level does not transfer to research; the slope is what matters.</figcaption></figure><p>It would be dishonest to sell only the strengths. Agents do the same work faster, clear the backlog of things you never had time for, document as they go, and read a paper straight into runnable code, and they work far better over a whole repository than over a snippet. They are also confidently wrong: they invent APIs, numbers, and citations. They leave you with comprehension debt, code you shipped but do not understand. Their judgement is weak; an agent will not kill a bad experiment on its own. So the honest summary is short. A coding agent is a powerful tool that needs supervision, and a framework worth having is one that supplies the rails.</p><h3 id="what-demolab-is" class="hx">What demolab is<a class="permalink" href="#what-demolab-is" aria-label="Link to this section">#</a></h3><p>demolab is that framework. It writes code, runs programs, and documents the results, and it holds the whole thing to one loop: run, produce data, write it up, publish. One build compiles the repository into a website (with real, selectable math) and a PDF per entry plus a bound book. The discipline underneath is a single rule with teeth: nothing on the page is typed by hand. Numbers and figures come from the run, so a result cannot quietly drift from the code that produced it, and every result carries the git provenance of the run that made it. It is reproducible by default, and it stays reproducible a year later because one command rebuilds all of it.</p><p>Those properties answer real failure modes. Results drift when numbers are retyped and figures go stale; here they come from the run. Reproducibility rots until, a year on, nothing builds; here one command rebuilds everything. Code and paper drift apart into separate repositories; here the experiment and its write-up live together. And agents need rails; here they operate in plain language while the science stays yours.</p><p>A few principles hold the shape together:</p><ol><li><strong>Tools compute, experiments analyse.</strong> A clean split between the reusable science and the runner that exercises it.</li><li><strong>One experiment is a runner plus a write-up.</strong></li><li><strong>Components talk through files, never imports.</strong> A tool emits data; a runner reads it.</li><li><strong>Raw data is disposable; the record is committed.</strong></li><li><strong>Bring any stack.</strong></li><li><strong>Provenance is built in.</strong></li><li><strong>Documentation is everything.</strong></li></ol><h3 id="the-shape-of-a-repository" class="hx">The shape of a repository<a class="permalink" href="#the-shape-of-a-repository" aria-label="Link to this section">#</a></h3><p>A lab is four content directories, each with one job:</p><ul><li><code>tools/</code>: the science, as reusable models and solvers. A tool emits data (a <code>numbers.json</code> plus the data behind each figure) and stays language-agnostic.</li><li><code>experiments/</code>: the runners. One <code>expNNN.py</code> per experiment calls a tool, renders the figures, and stages a <code>numbers.json</code> of the headline metrics.</li><li><code>writings/</code>: the write-ups. One <code>.typ</code> per entry reads the run and embeds its figures and numbers. Prose articles like this one, and slide decks, live here too.</li><li><code>artifacts/</code>: the committed record, holding the figure data and a PDF per entry.</li></ul><p>The engine itself ships inside the <code>demolab-cli</code> package, a black box you never edit and update with a dependency bump. Publishing is built on <a href="https://typst.app">Typst</a>, a modern take on LaTeX: instant incremental compiles instead of slow multi-pass ones, readable errors with line numbers instead of macro soup, and one source that renders to both web and PDF instead of PDF alone. Because Typst imports files, the numbers on the page are the numbers from the run.</p><h3 id="driving-it-with-an-agent" class="hx">Driving it with an agent<a class="permalink" href="#driving-it-with-an-agent" aria-label="Link to this section">#</a></h3><p>demolab is meant to be run by a coding agent, though you can operate every command by hand. You type a name in capitals and it acts. <strong>HELP</strong> lists everything it can do. A guide name (<code>RULES</code>, <code>HOUSESTYLE</code>, <code>SLIDES</code>, <code>STRUCTURE</code>, <code>GLOSSARY</code>, <code>SUPPORT</code>) walks you through an always-on convention. A runbook name (<code>GETTING-STARTED</code>, <code>LINT</code>, <code>DOCTOR</code>, <code>FROM-PAPER</code>, <code>MIGRATE-STACK</code>, and the rest) runs an on-demand procedure step by step: read a paper into code, convert a notebook, migrate the language, update the engine. Underneath it all is an ordinary CLI, so <code>uv run python experiments/exp000.py</code> runs an experiment, <code>demolab dev</code> serves the site with live reload, and <code>demolab build</code> compiles the lot. The default stack is Python, but tools talk through files rather than imports, so you can switch to MATLAB, R, Julia, or Octave by asking, and the contract and the typesetting stay put.</p><h3 id="where-its-going" class="hx">Where it’s going<a class="permalink" href="#where-its-going" aria-label="Link to this section">#</a></h3><p>Everything above is demolab today: implemented and ready to use. Two directions define where it goes next.</p><p>The first is autoresearch. Give the agent a goal and some compute, and it runs the loop itself: goal, code, compute, read the data, document, iterate. Because the rails already exist, every attempt lands as a committed experiment and write-up with provenance and a published trail, for free. It is built, and still being tested.</p><p>The second is scale. Version one is one person’s lab notebook. The next step is a lab on a GitHub organisation: many researchers, one shared flow, with questions and answers, code review, and shared code compounding across the group. The notebook becomes the lab.</p><h3 id="references" class="hx">References<a class="permalink" href="#references" aria-label="Link to this section">#</a></h3><ol class="refs"><li id="ref-1">Jimenez CE, Yang J, Wettig A, Yao S, Pei K, Press O, Narasimhan K (2024). SWE-bench: Can Language Models Resolve Real-World GitHub Issues? <em>ICLR 2024.</em> <a class="doi" href="https://doi.org/10.48550/arXiv.2310.06770" target="_blank" rel="noopener">doi:10.48550/arXiv.2310.06770</a></li><li id="ref-2">OpenAI (2024). Introducing SWE-bench Verified. Live leaderboard at <a href="https://www.swebench.com">swebench.com</a>.</li></ol><div class="entry-tail"></div></body></html>
