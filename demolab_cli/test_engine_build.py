@@ -102,6 +102,30 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
     entry = (site / "ar018.html").read_text()
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
+    annotated = (site / "ar027.html").read_text()
+    assert 'src="https://hypothes.is/embed.js"' in annotated, "opted-in entry embeds Hypothesis"
+    assert 'src="https://hypothes.is/embed.js"' not in entry, "annotations remain opt-in"
+
+
+def test_lab_wide_hypothesis_annotations_only_touch_entries(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    with (root / "demolab.yaml").open("a", encoding="utf-8") as config:
+        config.write("\nannotations: hypothesis\n")
+    opted_out = root / "writings" / "ar018.typ"
+    opted_out.write_text(
+        opted_out.read_text(encoding="utf-8").replace("order: 1,", "order: 1,\n  annotations: none,"),
+        encoding="utf-8",
+    )
+    _build(root)
+
+    site = root / "artifacts" / "site"
+    embed = 'src="https://hypothes.is/embed.js"'
+    assert embed in (site / "ar019.html").read_text(), "root config enables normal entries"
+    assert embed not in (site / "ar018.html").read_text(), "entry metadata can opt out"
+    assert embed not in (site / "index.html").read_text(), "homepage remains annotation-free"
+    assert embed not in (site / "documentation.html").read_text(), "listings remain annotation-free"
 
 
 def test_curated_collection_lists_in_reading_order(tmp_path: Path) -> None:

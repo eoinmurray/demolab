@@ -31,7 +31,7 @@ The concrete annotated file tree is in [`STRUCTURE.md`](STRUCTURE.md); this sect
 
 **3.2 — Machine-managed staging** (gitignored, owned by the CLI — never hand-edit): `.demolab/` at the lab root holds the few engine files Typst must read from inside the lab tree (`lib.typ`, the web assets, a `VERSION` stamp); every build refreshes it when the installed engine version changes. `temp/bundle/` holds the staged bundle root (`main.typ`) plus build scratch. Local edits to either are overwritten without warning — a customisation that seems to need them is a missing config knob (see 3.3, or propose it upstream).
 
-**3.3 — Your root overrides, optional** (root files the framework reads; never overwritten by updates): `demolab.yaml` (wordmark + PDF titles + collections — also the **lab marker**: the CLI finds the lab root by walking up to it, so don't delete it) and `HOUSESTYLE.local.md` (your house-style overrides, which extend or replace the default `HOUSESTYLE.md`; an agent reads it). Every key defaults ⇒ a minimal file is fine. The root stubs (`AGENTS.md`, `CLAUDE.md`, `README.md`, `pyproject.toml`, `.gitignore`, CI) are laid down once by `demolab init` and are yours from then on.
+**3.3 — Your root overrides, optional** (root files the framework reads; never overwritten by updates): `demolab.yaml` (wordmark + PDF titles + collections + optional web annotations — also the **lab marker**: the CLI finds the lab root by walking up to it, so don't delete it) and `HOUSESTYLE.local.md` (your house-style overrides, which extend or replace the default `HOUSESTYLE.md`; an agent reads it). Every key defaults ⇒ a minimal file is fine. The root stubs (`AGENTS.md`, `CLAUDE.md`, `README.md`, `pyproject.toml`, `.gitignore`, CI) are laid down once by `demolab init` and are yours from then on.
 
 **3.4 — User content** (100% the user's — freely deletable and replaceable): `tools/*`, `experiments/*` (runners, plus `playground.py` — the Streamlit demo, exempt from the contract), `writings/*` (`.typ` writeups), `artifacts/*` (`data/` per-run figures + `numbers.json`, `pdfs/` compiled PDFs; `artifacts/site/` is a gitignored build), `temp/*` (regenerable scratch).
 
@@ -117,6 +117,14 @@ Numbers must come from the run (§5.4) — never hand-type a literal that could 
 - **Hover popovers (web only)** — hovering an inline cite shows a small Wikipedia-style card with that reference's text + DOI, pulled from the rendered list entry (so it can't drift). The PDF has no scripts: the inline `[n]` and the References section still render, just without the popover.
 
 See `ar006` for a worked example — ten references with DOIs, inline cites throughout, and the reference list at the foot of the body.
+
+**6.7 — Collaborative annotations are opt-in and web-only.** Set `annotations: hypothesis`
+in root `demolab.yaml` to embed the hosted Hypothesis client on every article and experiment,
+or put `annotations: "hypothesis"` in one writing's `meta` block to enable only that entry. An
+entry-level `annotations: none` disables a lab-wide setting. The client is never emitted into PDFs.
+Hypothesis owns annotation accounts, storage, private-group membership, anchoring, and threads;
+collaborators must choose their private group before posting if the discussion is not public. See
+demo article `ar027` for the complete setup and a live example.
 
 ## 7. Adding an experiment
 

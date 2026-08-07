@@ -31,7 +31,7 @@
 }
 
 // --- web-styles: inject the stylesheet + head meta into HTML pages (ignored in the PDF pass) ---
-#let web-styles(brand: default-brand) = context {
+#let web-styles(brand: default-brand, annotations: none) = context {
   if target() == "html" {
     html.elem("link", attrs: (rel: "icon", type: "image/svg+xml", href: "favicon.svg"))
     html.elem("style", read("/.demolab/style.css"))
@@ -42,6 +42,11 @@
     }
     // hover popovers for inline citations (no-op on pages without cites)
     html.elem("script", attrs: (src: "cite-popover.js", defer: ""))[]
+    // Optional collaborative web annotations. The hosted Hypothesis client owns accounts,
+    // private groups, storage, anchoring, and threads; demolab only opts this page into it.
+    if annotations == "hypothesis" {
+      html.elem("script", attrs: (src: "https://hypothes.is/embed.js", async: ""))[]
+    }
   }
 }
 
@@ -393,8 +398,11 @@
   html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
 }
 
-#let entry-page(meta, body, id: none, brand: default-brand) = {
-  web-styles(brand: brand)
+#let entry-page(meta, body, id: none, brand: default-brand, annotations: none) = {
+  // Entry metadata can override the lab-wide provider. `none` disables a global provider for
+  // one entry; absent metadata inherits the root demolab.yaml setting.
+  let annotation-provider = meta.at("annotations", default: annotations)
+  web-styles(brand: brand, annotations: annotation-provider)
   set text(font: "New Computer Modern", size: 11pt)
   // Restart figure numbering per entry: the whole bundle is one compile, so Typst's global
   // figure counter would otherwise carry across every document. Each entry (its page + its
