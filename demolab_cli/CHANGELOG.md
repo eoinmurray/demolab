@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **Optional collaborative inline annotations with Hypothesis.** Set `annotations: hypothesis`
+  lab-wide in `demolab.yaml` or `annotations: "hypothesis"` on one writing's `meta`; web readers
+  can highlight text and use Hypothesis threads and private groups, while PDFs remain unchanged.
+  The new `ar027` demo article documents the workflow and opts itself in as a live example.
+
 ## [2.2.1] — 2026-08-07
 
 ### Fixed

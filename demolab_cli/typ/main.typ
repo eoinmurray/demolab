@@ -24,6 +24,7 @@
 // read from it too. Absent ⇒ engine defaults + derivation-only collections.
 #let config = if manifest.has_brand_config { yaml("/demolab.yaml") } else { (:) }
 #let brand = default-brand + config
+#let annotations = config.at("annotations", default: none)
 #let collection-order = config.at("collection-order", default: ())
 #let collection-meta = config.at("collections", default: (:))
 
@@ -79,8 +80,8 @@
   }
 }
 #for e in entries {
-  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, brand: brand)]]
-  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, brand: brand))]]
+  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, brand: brand, annotations: annotations)]]
+  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, brand: brand, annotations: annotations))]]
 }
 // stub pages for entries that failed to build — a visible "this page failed" placeholder at the
 // entry's own URL (web only; excluded from listings + the book), so the rest of the site is fine.

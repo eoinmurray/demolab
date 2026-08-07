@@ -5,7 +5,8 @@
 #let has-brand = sys.inputs.at("has-brand", default: "false") == "true"
 #let config = if has-brand { yaml("/demolab.yaml") } else { (:) }
 #let brand = default-brand + config
+#let annotations = config.at("annotations", default: none)
 #import "/writings/" + entry-id + ".typ" as writing
 
 #set document(title: writing.meta.title)
-#numbered-pages(entry-page(writing.meta, writing.body, id: entry-id, brand: brand))
+#numbered-pages(entry-page(writing.meta, writing.body, id: entry-id, brand: brand, annotations: annotations))
