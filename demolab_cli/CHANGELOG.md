@@ -13,6 +13,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-08-07
+
 ### Added
 - **Optional collaborative inline annotations with Hypothesis.** Set `annotations: hypothesis`
   lab-wide in `demolab.yaml` or `annotations: "hypothesis"` on one writing's `meta`; web readers
