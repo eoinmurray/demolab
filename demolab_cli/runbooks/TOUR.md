@@ -27,7 +27,7 @@ Adapt the depth to who's asking: a new lab member wants the on-ramp, a reviewer 
 
 2. **Orient for their goal.** Ask what they're here to do, and tailor the close:
    - *Contributing?* → GETTING-STARTED's add-an-experiment flow, and RULES.
-   - *Reviewing?* → the results, then RED-TEAM.
+   - *Reviewing?* → the results, their supporting artifacts, and the relevant tests.
    - *Taking it over?* → flag anything undocumented or fragile you noticed while reading.
 
    Keep it warm and readable — this is the door into someone else's (or past-you's) thinking.

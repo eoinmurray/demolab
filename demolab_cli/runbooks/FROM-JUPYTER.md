@@ -68,10 +68,9 @@ working lab, or a bare `demolab scaffold`) and `demolab build` green before you 
    and the reproducible version is the correct one. That's a feature, not a regression.
 
 6. **Hand off.** Show the page + its PDF. State plainly **what was dropped** (scratch cells) and
-   **what was fixed** (seeds added, drifting numbers wired to the run, deps pinned). Then offer to
-   run **RED-TEAM** on the fresh experiment — a just-laundered notebook is exactly the thing to
-   adversarially check before anyone trusts it. Note: the original `.ipynb` is yours to keep or
-   delete — it's not part of the demolab record once the experiment reproduces.
+   **what was fixed** (seeds added, drifting numbers wired to the run, deps pinned). Note: the
+   original `.ipynb` is yours to keep or delete — it's not part of the demolab record once the
+   experiment reproduces.
 
 ---
 

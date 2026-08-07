@@ -6,9 +6,8 @@
 
 ## When to use
 When you want the prose and plots to read like a person — not an LLM — wrote them, and to
-conform to the house style before publishing. This is the **style** pass — one of three:
-*Doctor* audits the structural RULES, *Lint* (here) audits the prose **and the figures**, and
-*Red-team* audits whether the result is true and defensible. Run all three for a full check.
+conform to the house style before publishing. This is the **style** pass: *Doctor* audits the
+structural RULES, while *Lint* (here) audits the prose **and the figures**.
 `HOUSESTYLE.md` is the source of truth for every rule: this runbook cites it, it does not
 restate it. Scope is `writings/*.typ` (the published prose) **and the rendered figures it
 embeds** (`artifacts/data/<id>/*.svg`, `*.png`) — the plots are half of a writing and are lint

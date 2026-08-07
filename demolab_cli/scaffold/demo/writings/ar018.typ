@@ -100,7 +100,7 @@
   demolab is meant to be run by a coding agent, though you can operate every command by hand. You
   type a name in capitals and it acts. *HELP* lists everything it can do. A guide name (`RULES`,
   `HOUSESTYLE`, `SLIDES`, `STRUCTURE`, `GLOSSARY`, `SUPPORT`) walks you through an always-on
-  convention. A runbook name (`GETTING-STARTED`, `LINT`, `DOCTOR`, `FROM-PAPER`, `MIGRATE-STACK`,
+  convention. A runbook name (`GETTING-STARTED`, `LINT`, `DOCTOR`, `MIGRATE-STACK`,
   and the rest) runs an on-demand procedure step by step: read a paper into code, convert a
   notebook, migrate the language, update the engine. Underneath it all is an ordinary CLI,
   so `uv run python experiments/exp000.py` runs an experiment, `demolab dev` serves the site with live reload,

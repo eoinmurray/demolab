@@ -71,7 +71,7 @@
     selectable math), a PDF per entry, and a bound book, all reading the same committed
     numbers. There is no separate PDF pipeline to fall out of step with the web.
   + *The operator is an agent, not a build system.* You do not maintain the glue; you talk.
-    Runbooks like *LINT*, *DOCTOR*, and *RED-TEAM* are procedures a coding agent follows step
+    Runbooks like *LINT*, *DOCTOR*, and *TOUR* are procedures a coding agent follows step
     by step, and underneath them is an ordinary CLI (`demolab build`, `demolab dev`, plus
     `uv run python experiments/expNNN.py` to run one) you can drive by hand.
 

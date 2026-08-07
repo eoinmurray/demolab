@@ -39,15 +39,10 @@ Open your lab in your agent and say a runbook's name — it follows that runbook
 | **TOUR** | guided walkthrough of the lab — what's here, what it found, where to start |
 | **MIGRATE-CODE** | bring an existing codebase in, one experiment at a time |
 | **FROM-JUPYTER** | launder a Jupyter notebook into a reproducible, seeded experiment |
-| **FROM-PAPER** | scaffold experiments to reproduce a paper's key result in your stack |
 | **MIGRATE-STACK** | write your tools in MATLAB / Julia / R / Octave instead of Python |
 | **EMBED-DOCS** | drop demolab into another project as a `docs/` site |
-| **NEXT** | read your whole arc and propose the next experiments worth running |
-| **GROUND-CLAIMS** | find the source sentences behind each citation |
 | **LINT** | check your writeups against the house style |
 | **DOCTOR** | audit the repo against the conventions |
-| **RED-TEAM** | adversarially check a result holds up before you publish it |
-| **STEELMAN** | build the strongest honest case for a result, so you don't under-sell it |
 | **UPDATE** | update the engine package, leaving your content untouched |
 
 ## How it works

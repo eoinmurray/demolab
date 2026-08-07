@@ -157,6 +157,5 @@
   one, copy the shape: a runner modeled on `exp000.py`, a write-up modeled on `exp000.typ`, and a
   tool if the science is worth reusing (a genuine one-off can compute inline and stamp its own
   provenance, RULES §4.1). Or just ask the coding agent: `demolab new` prints the same advice, and
-  the _NEXT_ and _GETTING-STARTED_ runbooks walk an agent through standing up a first experiment
-  step by step.
+  the _GETTING-STARTED_ runbook walks an agent through standing up a first experiment step by step.
 ]

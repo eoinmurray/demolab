@@ -23,7 +23,7 @@ machine-managed staging. Full tree: `demolab docs STRUCTURE`.
 demolab is driven by the user typing a **name in CAPS** (SCREAMING-KEBAB):
 
 - **`HELP`** — present the menu at the bottom of this output, one line each.
-- **`<RUNBOOK>`** (e.g. `LINT`, `DOCTOR`, `NEXT`) — run `demolab docs <NAME>`, read the
+- **`<RUNBOOK>`** (e.g. `LINT`, `DOCTOR`, `TOUR`) — run `demolab docs <NAME>`, read the
   file it prints, then **start it** and drive it step by step: run a step, show the
   result, confirm before the next. Never dump the whole runbook at once.
 - **`<GUIDE>`** (e.g. `RULES`, `SLIDES`) — read it the same way, then **walk the user

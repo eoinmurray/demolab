@@ -28,11 +28,6 @@
 
   - #link(base + "/LINT.md")[*LINT*]: audit the prose _and_ the figures against the house style.
   - #link(base + "/DOCTOR.md")[*DOCTOR*]: audit the repository's structure against the rules.
-  - #link(base + "/RED-TEAM.md")[*RED-TEAM*]: attack a result's validity, hard, to surface what
-    would break it.
-  - #link(base + "/STEELMAN.md")[*STEELMAN*]: build the strongest honest case for a result.
-  - #link(base + "/GROUND-CLAIMS.md")[*GROUND-CLAIMS*]: back every claim with a run or a citation.
-  - #link(base + "/NEXT.md")[*NEXT*]: suggest what to run next.
 
   == Bringing work in
 
@@ -42,7 +37,6 @@
     in (MATLAB, R, Julia, Octave).
   - #link(base + "/FROM-JUPYTER.md")[*FROM-JUPYTER*]: convert a notebook into a tool, a runner, and
     a write-up.
-  - #link(base + "/FROM-PAPER.md")[*FROM-PAPER*]: reproduce a paper's result from scratch.
 
   == Housekeeping
 

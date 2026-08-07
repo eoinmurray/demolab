@@ -133,7 +133,7 @@ freestyling, not following this runbook.
      **scatter** of the sampled points coloured inside/outside with the quarter-circle arc, and a
      **log-x convergence curve** settling toward π. Its `README.md` states the figure contract.
    - **Bringing something in?** Existing codebase → [`MIGRATE-CODE.md`](MIGRATE-CODE.md); a
-     notebook → [`FROM-JUPYTER.md`](FROM-JUPYTER.md); a paper → [`FROM-PAPER.md`](FROM-PAPER.md).
+     notebook → [`FROM-JUPYTER.md`](FROM-JUPYTER.md).
      Land the **first** experiment via that runbook (same live-page payoff as below), and set
      the expectation that the rest migrates incrementally, later.
    - **Stack, in passing:** Python (`uv`) is the default — don't ask, just note it. If their
@@ -208,8 +208,7 @@ freestyling, not following this runbook.
      runbook and then every guide as a **numbered list, one per line with its one-line
      description** (don't hand-summarise from memory or trim to a favourite few — the whole
      point is they see everything demolab can do next). Runbooks
-     first (**NEXT** to pick the next experiment, **TOUR**, **MIGRATE-CODE**, **FROM-JUPYTER**,
-     **FROM-PAPER**, **LINT**, **DOCTOR**, **RED-TEAM**, **UPDATE**, …), then the guides
+     first (**TOUR**, **MIGRATE-CODE**, **FROM-JUPYTER**, **LINT**, **DOCTOR**, **UPDATE**, …), then the guides
      (**RULES**, **HOUSESTYLE**, **STRUCTURE**, **GLOSSARY**, …). Tell them: **HELP** re-shows
      this menu anytime, and typing any name in it starts that job.
    - **Ask me anything about the repo** — how it works, where something lives, why a convention
@@ -244,8 +243,8 @@ data and the landing site's source — read it for file shapes, never overlay it
   - **Missing a prerequisite?** — if `uv` or `typst` doesn't resolve, ask them to install it
     themselves and wait; skip entirely if both already resolve. `[1]`
   - **What should your first experiment be?** — open but shaped: their idea · field → three
-    numbered starters · bring in code/notebook/paper (→ `MIGRATE-CODE` / `FROM-JUPYTER` /
-    `FROM-PAPER`). No idea / no field? Fall back to the **Monte Carlo π** starter so no one
+    numbered starters · bring in code/notebook (→ `MIGRATE-CODE` / `FROM-JUPYTER`).
+    No idea / no field? Fall back to the **Monte Carlo π** starter so no one
     freezes here — this is the one question with a safety net, not a hard no-default. `[2]`
   - **Publish to GitHub Pages?** — free unless the repo is private; default yes, if no skip (it
     works locally). `[5]`

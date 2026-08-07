@@ -13,6 +13,11 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Removed
+- **Retired five overlapping runbooks:** `FROM-PAPER`, `NEXT`, `GROUND-CLAIMS`, `RED-TEAM`, and
+  `STEELMAN`. Their command routing, onboarding references, demo documentation, and published demo
+  artifacts have been removed with them.
+
 ## [2.2.0] — 2026-08-07
 
 ### Added
@@ -326,7 +331,7 @@ the runbook shows the entries between your version and the latest.
   last night + queue the next pre-registered experiments), **NIGHT-SHIFT** (work the queue on a
   branch, open a PR whose description is the digest) — plus the **AUTORESEARCH-RULES** guide
   they cite. DOCTOR gains a one-plan-one-log / every-queued-entry-has-a-kill check; LINT exempts
-  the `log` from the prose rules; NEXT reads the `log`'s decision arc. Opt-in and additive:
+  the `log` from the prose rules. Opt-in and additive:
   nothing changes for a lab that doesn't create a `plan` article.
 - **Per-PR site previews (`deploy.yml` rewrite + new `preview.yml`).** `demolab deploy-setup` now
   installs two workflows. Production (`deploy.yml`) switched from the GitHub-Actions Pages flow
@@ -662,8 +667,8 @@ Initial versioned release — the engine after its foundational build-out.
   The demo lives in `demolab-engine/scaffold/` and doubles as the smoke-test fixture.
 - **One-line installers** — `install.sh` (macOS/Linux) and `install.ps1` (Windows), served from the
   project landing page at demolab.eoinmurray.info.
-- **14 agent runbooks** — getting-started, tour, migrate-code, from-jupyter, from-paper,
-  migrate-stack, embed-docs, next, ground-claims, lint, doctor, red-team, steelman, update — plus a
+- **Agent runbooks** — getting-started, tour, migrate-code, from-jupyter,
+  migrate-stack, embed-docs, lint, doctor, and update — plus a
   `HELP` index, each triggerable by bare name.
 - **Citations** — `#cite(...)` inline numbered cites + `#reference-list(...)` with DOI links, and
   Wikipedia-style hover popovers on the web (DOIs open in a new tab).

@@ -237,9 +237,9 @@ non-compliant artifact can't ship even if the agent misses the rule.
   can't drift from what ran.
 - Pre-registration = **provenance** (RULES §4.7): the mandate's commit predates the results' commits.
 - Long runs use **staged runners** (RULES §7.5) so a night can re-enter compute without repeating it.
-- **NEXT** reads the night documents' records and digests (not just published results), so it
-  proposes from the decision arc; its suggestions are raw material a human may approve as
-  `queued` entries in **AUTORESEARCH**.
+- **AUTORESEARCH** reads the night documents' records and digests (not just published results),
+  so each review continues from the decision arc and may propose `queued` entries for human
+  approval.
 - **DOCTOR** checks program structure (each night document carries a mandate + record + digest,
   every `queued` entry has a `kill`, no AI-attribution trailer in commits or PR descriptions).
 - **LINT** applies the full prose rules to night documents, including the cold-read dimension.

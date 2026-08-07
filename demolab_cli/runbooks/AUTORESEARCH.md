@@ -92,7 +92,7 @@ Give one explicit verdict:
 - **SUITABLE** — ready to formulate as a program;
 - **NEEDS REFINEMENT** — promising, but an outcome, baseline, contrast, or scope is still vague;
 - **BLOCKED** — required evidence or infrastructure is unavailable;
-- **WRONG WORKFLOW** — this is better handled as a one-off experiment, `FROM-PAPER`,
+- **WRONG WORKFLOW** — this is better handled as a one-off experiment,
   `LITERATURE-SEARCH`, or another named workflow.
 
 Do not force every interesting thought into AUTORESEARCH merely because it owns a capitalized
