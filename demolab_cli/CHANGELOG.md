@@ -13,6 +13,21 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-08-07
+
+### Added
+- **Build one entry PDF with `demolab build <id>`.** The targeted build uses the same page
+  surface, branding, root, and artifact paths as the complete publication, while deliberately
+  leaving the website and combined book untouched.
+
+### Fixed
+- **PDF builds are reproducible instead of changing metadata on every run.** Every Typst compile
+  now uses a documented `2000-01-01T00:00:00Z` creation timestamp by default and respects an
+  explicit `SOURCE_DATE_EPOCH` override. PDFs are marked binary in new labs and this source repo.
+- **`demolab dev` no longer dirties committed publication PDFs.** Live preview still builds the
+  complete ignored website, including its PDF links, but no longer mirrors those preview PDFs into
+  `artifacts/pdfs/`; an explicit `demolab build` remains the publication step.
+
 ## [2.1.1] — 2026-07-18
 
 ### Fixed

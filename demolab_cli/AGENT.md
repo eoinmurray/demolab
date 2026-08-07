@@ -71,7 +71,8 @@ guide covers it, ground your answer in it — cite it or offer to start it.
 `demolab` lists them all. The loop: `uv run python experiments/expNNN.py` (run an experiment
 end-to-end — run the runner directly, there's no `demolab run` wrapper) · `demolab dev`
 (live-preview server — have the *user* run it in their own terminal) · `demolab build`
-(site + PDFs) · `demolab test`. Reference data ships in the package:
+(complete site + PDFs) · `demolab build <id>` (one entry PDF) · `demolab test`. Preview
+PDFs stay in the ignored site tree; run the complete build before publishing. Reference data ships in the package:
 `demolab docs STARTERS` (canonical first experiments — model file shapes on them, never copy
 blindly; `monte-carlo-pi` is the default) and `demolab docs DEMO` (the published docs site's
 source).

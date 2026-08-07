@@ -38,6 +38,12 @@ def test_dev_arguments():
     assert bare_dev.port is None and bare_dev.demo is False and bare_dev.landing is False
 
 
+def test_build_accepts_optional_entry():
+    parser = cli._build_parser()
+    assert parser.parse_args(["build"]).entry is None
+    assert parser.parse_args(["build", "exp007"]).entry == "exp007"
+
+
 def test_demo_landing_passes_live_source_to_devserver(tmp_path, monkeypatch):
     scaffold = tmp_path / "package-scaffold"
     (scaffold / "skeleton").mkdir(parents=True)

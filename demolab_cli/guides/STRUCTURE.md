@@ -67,7 +67,7 @@ lives in the installed `demolab-cli` package (site-packages), reached via `demol
 
 **S5 — The package vs your stuff.** The engine is the installed `demolab-cli` package — you never hand-edit it, and updating it is a dependency bump (§3.1). The gitignored `.demolab/` staging dir is the CLI's, not yours (§3.2). Everything else in the tree is yours: `tools/`, `experiments/`, `writings/`, `artifacts/`, `demolab.yaml`, and the root stubs `demolab init` laid down (§3.3).
 
-**S6 — Where the build goes.** `demolab build` globs `writings/*.typ` into `temp/bundle/index.json`, stages the engine's `main.typ` beside it, and compiles it to three targets in one pass: the web site → `artifacts/site/`, per-entry PDFs + `book.pdf` → `artifacts/site/pdfs/` (mirrored to `artifacts/pdfs/`). On an empty (freshly-initialised) tree the build still succeeds — it emits a single `index.html` with a friendly empty state, and skips `all.html`/collection pages/`book.pdf`. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
+**S6 — Where the build goes.** `demolab build` globs `writings/*.typ` into `temp/bundle/index.json`, stages the engine's `main.typ` beside it, and compiles it to three targets in one pass: the web site → `artifacts/site/`, per-entry PDFs + `book.pdf` → `artifacts/site/pdfs/` (mirrored to `artifacts/pdfs/`). `demolab build <id>` instead updates only `artifacts/pdfs/<id>.pdf`; `demolab dev` keeps preview PDFs in the ignored site tree and never mirrors them. On an empty (freshly-initialised) tree the complete build still succeeds — it emits a single `index.html` with a friendly empty state, and skips `all.html`/collection pages/`book.pdf`. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
 
 ## Scaffolding
 
