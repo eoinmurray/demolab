@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.2.1] — 2026-08-07
+
+### Fixed
+- **Lab agent instructions no longer suggest the bootstrap-only `uvx` fallback.** Every
+  scaffolded lab now directs agents unambiguously to its project environment with
+  `uv run demolab docs`, preventing sessions from falsely claiming that `demolab` is not
+  on `PATH` and running a cached or released package instead.
+
 ### Removed
 - **Retired five overlapping runbooks:** `FROM-PAPER`, `NEXT`, `GROUND-CLAIMS`, `RED-TEAM`, and
   `STEELMAN`. Their command routing, onboarding references, demo documentation, and published demo

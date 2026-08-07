@@ -125,3 +125,9 @@ def test_root_templates_reference_package_world():
         assert "demolab-engine" not in text, f"{name} references the dead vendored-engine layout"
     assert "demolab-cli" in (root / "pyproject.toml").read_text(encoding="utf-8")
     assert ".demolab/" in (root / "gitignore").read_text(encoding="utf-8")
+
+
+def test_agent_instructions_use_project_environment():
+    text = (_paths.SCAFFOLD / "root" / "AGENTS.md").read_text(encoding="utf-8")
+    assert "uv run demolab docs" in text
+    assert "uvx demolab-cli docs" not in text
