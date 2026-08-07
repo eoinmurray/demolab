@@ -42,6 +42,7 @@ ROOT = Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd
 WRITINGS = ROOT / "writings"
 BUILD = ROOT / "temp" / "bundle"           # scratch: staged main.typ + manifest + deck PDFs
 MAIN = BUILD / "main.typ"                  # staged copy of the packaged typ/main.typ
+ENTRY_MAIN = BUILD / "entry.typ"           # staged single-entry PDF wrapper
 MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ reads
 DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedded as assets
 SITE = ROOT / "artifacts" / "site"         # bundle output (HTML + mp4 + pdfs/), gitignored
@@ -60,6 +61,13 @@ def _find_typst() -> str:
 
 
 TYPST = _find_typst()
+DEFAULT_CREATION_TIMESTAMP = "946684800"  # 2000-01-01T00:00:00Z
+
+
+def typst_compile(*args: str) -> list[str]:
+    """A reproducible Typst compile command shared by every PDF-producing path."""
+    timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
+    return [TYPST, "compile", "--creation-timestamp", timestamp, *args]
 
 
 def stage() -> None:
@@ -69,6 +77,7 @@ def stage() -> None:
     _paths.stage(ROOT)
     BUILD.mkdir(parents=True, exist_ok=True)
     shutil.copy2(_paths.TYP / "main.typ", MAIN)
+    shutil.copy2(_paths.TYP / "entry.typ", ENTRY_MAIN)
 
 
 def discover():
@@ -141,8 +150,8 @@ def compile_decks(deck_ids: list[str]) -> list[str]:
     good = []
     for d in deck_ids:
         proc = subprocess.run(
-            [TYPST, "compile", "--root", str(ROOT),
-             str(WRITINGS / f"{d}.slide.typ"), str(DECKS / f"{d}.pdf")],
+            typst_compile("--root", str(ROOT),
+                          str(WRITINGS / f"{d}.slide.typ"), str(DECKS / f"{d}.pdf")),
             capture_output=True, text=True,
         )
         if proc.returncode == 0:
@@ -179,8 +188,8 @@ def compile_bundle(ids: list[str], deck_ids: list[str]) -> dict:
     while True:
         write_manifest(ids, deck_ids, broken=broken)
         proc = subprocess.run(
-            [TYPST, "compile", "--format", "bundle", "--features", "bundle,html",
-             "--root", str(ROOT), str(MAIN), str(SITE) + "/"],
+            typst_compile("--format", "bundle", "--features", "bundle,html",
+                          "--root", str(ROOT), str(MAIN), str(SITE) + "/"),
             capture_output=True, text=True,
         )
         if proc.returncode == 0:
@@ -230,6 +239,26 @@ def _warn_if_content_misplaced(ids: list[str]) -> None:
           file=sys.stderr)
 
 
+def compile_entry(entry_id: str, ids: list[str]) -> None:
+    """Compile one ordinary writing directly to its committed standalone PDF."""
+    if entry_id not in ids:
+        slide = WRITINGS / f"{entry_id}.slide.typ"
+        detail = " (it is a slide deck; use `demolab slides`)" if slide.exists() else ""
+        raise SystemExit(f"error: no buildable entry named {entry_id!r}{detail}")
+    PDFS.mkdir(parents=True, exist_ok=True)
+    proc = subprocess.run(
+        typst_compile("--root", str(ROOT), "--input", f"entry={entry_id}",
+                      "--input", f"has-brand={str((ROOT / 'demolab.yaml').exists()).lower()}",
+                      str(ENTRY_MAIN), str(PDFS / f"{entry_id}.pdf")),
+        capture_output=True, text=True,
+    )
+    if proc.returncode != 0:
+        sys.stderr.write(proc.stdout + proc.stderr)
+        raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
+    print(f"built {entry_id} -> {PDFS.relative_to(ROOT)}/{entry_id}.pdf"
+          " (site and book not updated)", flush=True)
+
+
 def main() -> None:
     # --generate-only writes the manifest + deck PDFs without compiling the bundle: a hand
     # tool for inspecting what the compiler will see. (Dev serving is devserver.py, which runs
@@ -240,9 +269,16 @@ def main() -> None:
     # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
     # those PDFs exist (a full build ran first); a bare `demolab build` never skips.
     skip_decks = "--skip-decks" in sys.argv
+    no_mirror = "--no-mirror" in sys.argv
+    entry_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+    if len(entry_args) > 1:
+        raise SystemExit("error: build accepts at most one entry id")
     stage()
     ids = discover()
     _warn_if_content_misplaced(ids)
+    if entry_args:
+        compile_entry(entry_args[0], ids)
+        return
     deck_ids = discover_decks()
     # Zero writings is a valid state (a freshly `demolab scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
@@ -263,9 +299,10 @@ def main() -> None:
     broken = compile_bundle(ids, good_decks)
     good = [i for i in ids if i not in broken]
     # mirror the compiled PDFs (entries, book, and decks) to the committed artifacts/pdfs/
-    PDFS.mkdir(parents=True, exist_ok=True)
-    for pdf in sorted((SITE / "pdfs").glob("*.pdf")):
-        shutil.copy(pdf, PDFS / pdf.name)
+    if not no_mirror:
+        PDFS.mkdir(parents=True, exist_ok=True)
+        for pdf in sorted((SITE / "pdfs").glob("*.pdf")):
+            shutil.copy(pdf, PDFS / pdf.name)
     # The verbose detail (which ids built / stubbed, where the PDFs mirror) goes on its own line;
     # the CONCISE summary is printed LAST, because the dev-server watch loop echoes only build.py's
     # final stdout line on each rebuild. So a `demolab dev` session shows a terse one-liner, while a
@@ -273,7 +310,8 @@ def main() -> None:
     print(f"  entries: {', '.join(good)}"
           + (f"  ·  decks: {', '.join(good_decks)}" if good_decks else "")
           + (f"  ·  ⚠ stubbed: {', '.join(sorted(broken))}" if broken else "")
-          + f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/")
+          + (f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/" if not no_mirror
+             else "  ·  preview PDFs left untracked"))
     summary = f"built {len(good)} entries" + (f" + {len(good_decks)} decks" if good_decks else "")
     if broken:
         summary += f", {len(broken)} stubbed"

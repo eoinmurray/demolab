@@ -13,7 +13,7 @@ defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 **1.1 — Python via `uv`.** Never call `python` / `python3` directly. Deps are pinned in the root `pyproject.toml` / `uv.lock`; run scripts with `uv run python <script>` (e.g. `uv run python tools/neuron/tool.py lif`); `uv sync` after pulling.
 
-**1.2 — Publishing via `typst`.** Use the `typst` CLI (an installed prerequisite, alongside `uv`). It compiles the site + PDFs (`demolab build` / `demolab dev`); the bundle build passes `--features bundle,html` (experimental, deliberately used here). No Node/`bun` — demolab publishes entirely with Typst.
+**1.2 — Publishing via `typst`.** Use the `typst` CLI (an installed prerequisite, alongside `uv`). It compiles the site + PDFs (`demolab build` / `demolab dev`); the bundle build passes `--features bundle,html` (experimental, deliberately used here). Typst receives a deterministic creation timestamp (`SOURCE_DATE_EPOCH` overrides the engine default), so unchanged PDFs stay byte-identical within a stable toolchain. No Node/`bun` — demolab publishes entirely with Typst.
 
 **1.3 — Prefer `demolab`.** Common commands are exposed through the `demolab` CLI — prefer `demolab <name>` (run `demolab` to list them). To check the toolchain *and* that the repo obeys these conventions, run the *Doctor the repo* runbook (*"doctor the repo"*).
 
@@ -76,6 +76,11 @@ The concrete annotated file tree is in [`STRUCTURE.md`](STRUCTURE.md); this sect
 - **Web** — `artifacts/site/`: `index.html` (entries grouped by collection, §6.5), `all.html` (every entry, newest first), and an HTML page per entry (figures inline, videos play, math as MathML, styled by the engine's stylesheet).
 - **Per-entry PDFs** — `artifacts/site/pdfs/<id>.pdf`.
 - **Book** — `artifacts/site/pdfs/book.pdf`: every entry, with a table of contents.
+
+For a PDF-only editing loop, `demolab build <id>` updates just
+`artifacts/pdfs/<id>.pdf`; it deliberately leaves the site and `book.pdf` untouched.
+`demolab dev` refreshes the complete ignored preview site without mirroring preview PDFs into
+the tracked publication directory. Run bare `demolab build` before publishing.
 
 **5.3 — What's committed.** PDFs are mirrored to the committed, shareable `artifacts/pdfs/`. `artifacts/site/` is a gitignored build output (CI regenerates + deploys it to Pages). CI does **not** run the experiments, so `artifacts/data/` **must** be committed — that record, not the ephemeral `temp/`, is what reaches the site.
 

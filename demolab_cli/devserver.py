@@ -172,6 +172,7 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
     DEMOLAB_ROOT pins the child to this server's ROOT (which may itself be an override —
     `demolab dev --demo` serves a materialised scratch lab)."""
     cmd = [sys.executable, "-m", "demolab_cli.build"]
+    cmd.append("--no-mirror")
     if skip_decks:
         cmd.append("--skip-decks")
     try:

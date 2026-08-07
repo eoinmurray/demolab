@@ -7,6 +7,7 @@ HTTP request, no build) that an IPv4-only server gets wrong on Windows.
 """
 import socket
 import threading
+from types import SimpleNamespace
 
 from demolab_cli import devserver
 
@@ -82,6 +83,18 @@ def test_deck_affecting_triggers_on_slide_and_data():
     assert not devserver.deck_affecting({"/repo/writings/exp000.typ"})
     assert not devserver.deck_affecting({"/pkg/demolab_cli/typ/lib.typ"})
     assert not devserver.deck_affecting(set())
+
+
+def test_dev_build_never_mirrors_preview_pdfs(monkeypatch):
+    captured = {}
+
+    def run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        return SimpleNamespace(returncode=0, stdout="built\n", stderr="")
+
+    monkeypatch.setattr(devserver.subprocess, "run", run)
+    assert devserver.build() == (True, "built")
+    assert "--no-mirror" in captured["cmd"]
 
 
 def test_sync_landing_source_copies_updates_and_removal(tmp_path):

@@ -303,7 +303,8 @@ def cmd_dev(args: argparse.Namespace) -> int:
 
 
 def cmd_build(args: argparse.Namespace) -> int:
-    return _mod("build", cwd=_paths.require_lab_root())
+    entry_args = [args.entry] if args.entry else []
+    return _mod("build", *entry_args, cwd=_paths.require_lab_root())
 
 
 def cmd_slides(args: argparse.Namespace) -> int:
@@ -379,6 +380,9 @@ def _build_parser() -> argparse.ArgumentParser:
             sp.add_argument("--demo", action="store_true", help="serve the shipped demo instead of your lab")
             sp.add_argument("--landing", action="store_true",
                             help="with --demo: preview the upstream landing page too")
+        elif name == "build":
+            sp.add_argument("entry", nargs="?",
+                            help="build only this entry PDF; omit for the complete publication")
     return p
 
 

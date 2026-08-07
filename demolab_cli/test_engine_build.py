@@ -9,6 +9,7 @@ empty-state homepage rather than erroring.
 
 Needs the `typst` CLI on PATH (same as `demolab build`); skipped if it's missing.
 """
+import hashlib
 import os
 import re
 import shutil
@@ -18,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from demolab_cli import _paths
+from demolab_cli import _paths, build
 
 SCAFFOLD = _paths.SCAFFOLD
 
@@ -40,12 +41,42 @@ def _assemble(root: Path, *, demo: bool) -> None:
                         ignore=shutil.ignore_patterns("landing.typ", "temp", "site"))
 
 
-def _build(root: Path) -> None:
+def _build(root: Path, entry: str | None = None) -> None:
     subprocess.run(
-        [sys.executable, "-m", "demolab_cli.build"],
+        [sys.executable, "-m", "demolab_cli.build", *([entry] if entry else [])],
         env={**os.environ, "DEMOLAB_ROOT": str(root)},
         check=True,
     )
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_complete_build_is_pdf_reproducible(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    _build(root)
+    first = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
+    _build(root)
+    second = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
+    assert second == first
+
+
+def test_targeted_build_writes_only_selected_pdf(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    shutil.rmtree(root / "artifacts" / "pdfs", ignore_errors=True)
+    _build(root, "ar018")
+    assert sorted(p.name for p in (root / "artifacts" / "pdfs").glob("*.pdf")) == ["ar018.pdf"]
+    assert not (root / "artifacts" / "site").exists()
+
+
+def test_source_date_epoch_overrides_default(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
+    assert build.typst_compile("input.typ")[3] == "1234567890"
 
 
 def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
