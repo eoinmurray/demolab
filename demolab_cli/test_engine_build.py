@@ -83,6 +83,11 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     root = tmp_path / "repo"
     root.mkdir()
     _assemble(root, demo=True)
+    # The docs treatment is article-only even when an experiment shares the collection.
+    (root / "writings" / "exp099.typ").write_text(
+        '#let meta = (title: "Theme boundary", date: "2026-08-14", collection: "theme-demo")\n'
+        '#let body = [An experiment keeps the standard presentation.]\n'
+    )
     _build(root)
 
     site = root / "artifacts" / "site"
@@ -102,6 +107,19 @@ def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
     assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
     entry = (site / "ar018.html").read_text()
     assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
+    assert 'class="theme-docs"' not in entry, "ordinary collections retain the journal theme"
+    collection = (site / "documentation.html").read_text()
+    assert 'class="listing theme-docs"' not in collection, "ordinary collection listing stays neutral"
+    themed_entry = (site / "ar028.html").read_text()
+    assert 'class="theme-docs"' in themed_entry, "collection theme follows articles onto the web"
+    assert 'class="docs-toc"' in themed_entry, "developer-docs demo includes an on-page TOC"
+    assert 'href="#api-reference"' in themed_entry, "TOC links to generated heading anchors"
+    assert "class latticecache.Cache" in themed_entry, "demo includes a representative API reference"
+    themed_experiment = (site / "exp099.html").read_text()
+    assert 'class="theme-docs"' not in themed_experiment, "experiments stay on the standard theme"
+    themed_collection = (site / "theme-demo.html").read_text()
+    assert 'class="listing theme-docs"' not in themed_collection, "collection listings stay neutral"
+    assert 'class="theme-docs"' not in index, "collection theme does not leak onto the homepage"
     annotated = (site / "ar027.html").read_text()
     assert 'src="https://hypothes.is/embed.js"' in annotated, "opted-in entry embeds Hypothesis"
     assert 'src="https://hypothes.is/embed.js"' not in entry, "annotations remain opt-in"

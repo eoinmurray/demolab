@@ -190,6 +190,11 @@
 #let title-case(slug) = slug.split("-").map(w => if w.len() > 0 { upper(w.slice(0, 1)) + w.slice(1) } else { w }).join(" ")
 #let collection-label(slug, meta) = meta.at(slug, default: (:)).at("label", default: title-case(slug))
 #let collection-description(slug, meta) = meta.at(slug, default: (:)).at("description", default: none)
+#let collection-theme(slug, meta) = meta.at(slug, default: (:)).at("theme", default: none)
+#let theme-class(theme, base: none) = {
+  let classes = if base == none { () } else { (base,) }
+  (classes + if theme == none { () } else { ("theme-" + str(theme),) }).join(" ")
+}
 #let collection-rank(slug, order) = {
   let i = order.position(s => s == slug)
   if i == none { order.len() } else { i }
@@ -398,11 +403,19 @@
   html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
 }
 
-#let entry-page(meta, body, id: none, brand: default-brand, annotations: none) = {
+#let entry-page(meta, body, id: none, kind: "article", brand: default-brand, annotations: none, collection-meta: (:)) = {
   // Entry metadata can override the lab-wide provider. `none` disables a global provider for
   // one entry; absent metadata inherits the root demolab.yaml setting.
   let annotation-provider = meta.at("annotations", default: annotations)
   web-styles(brand: brand, annotations: annotation-provider)
+  // Collection themes are a light, web-only treatment for articles. Experiments, collection
+  // listings, PDFs, and the combined book deliberately retain the standard lab presentation.
+  let theme = collection-theme(meta.at("collection", default: "uncategorized"), collection-meta)
+  context {
+    if target() == "html" and kind == "article" and theme != none {
+      html.elem("div", attrs: (class: theme-class(theme), "aria-hidden": "true"))[]
+    }
+  }
   set text(font: "New Computer Modern", size: 11pt)
   // Restart figure numbering per entry: the whole bundle is one compile, so Typst's global
   // figure counter would otherwise carry across every document. Each entry (its page + its

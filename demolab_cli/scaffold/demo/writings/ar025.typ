@@ -51,7 +51,10 @@
   work: an unregistered slug is simply title-cased for display (`neuron-models` becomes
   "Neuron Models"). The `collections:` map in `demolab.yaml` upgrades that: per slug, a
   `label` (the display name) and a `description` (shown under the label on the homepage
-  and at the top of the collection's own page).
+  and at the top of the collection's own page). A collection can also set `theme: docs`
+  to give only its article web pages a light developer-documentation treatment. Collection
+  listings, experiment pages, standalone PDFs, and the combined book keep the standard lab
+  design. `docs` is currently the only built-in theme.
 
   `collection-order:` is a list of slugs setting the homepage order. Collections you leave
   out of the list still appear; they trail after the listed ones. Two special cases:
@@ -90,11 +93,15 @@
   contents-title: Demolab — contents
   description: A lab notebook for computational science — reproducible results, published and citable.
 
-  collection-order: [documentation, slides]
+  collection-order: [documentation, theme-demo, slides]
   collections:
     documentation:
       label: Documentation
       description: "How demolab works, in reading order: what it is and why, setting up, the contract, the mechanics of experiments and writeups, and running the lab day to day."
+    theme-demo:
+      label: Developer docs theme
+      description: "A single-page showroom for the optional developer-documentation collection theme."
+      theme: docs
     slides:
       label: Talks & slides
       description: Deck PDFs from talks — paged-only, linked as PDF.

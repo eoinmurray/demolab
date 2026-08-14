@@ -109,6 +109,19 @@ Numbers must come from the run (§5.4) — never hand-type a literal that could 
 
 **6.5a — Curated reading order.** An optional integer `order:` in a writing's `meta` marks its collection as *curated*: that collection's page lists entries by `order` ascending (unranked entries trail, in id order) instead of the default status-then-newest sort. Use it when a collection should read as a sequence — a documentation arc, a course, a serial — and leave it off for a chronological log of results. If you rank one entry in a collection, rank them all; a half-ranked collection reads as an accident.
 
+**6.5b — Developer-documentation articles.** A registered collection may set `theme: docs` to give its **article web pages only** demolab's built-in developer-documentation treatment: technical sans/mono typography, cool slate surfaces, documentation tables, code panels, and API-reference accents. The collection listing, experiment pages in the same collection, per-entry PDFs, and combined book retain the standard lab design. `docs` is currently the only built-in theme:
+
+```yaml
+collection-order: [python-sdk]
+collections:
+  python-sdk:
+    label: Python SDK
+    description: Guides and API reference for the Python package.
+    theme: docs
+```
+
+The theme styles ordinary Typst headings, prose, code, and tables automatically. A documentation article may add HTML-only `docs-toc`, `docs-note`, and `api-signature` elements for the richer components demonstrated by the shipped `ar028` example; keep a meaningful plain Typst structure around them so the article remains useful in PDF form.
+
 **6.6 — Citations & references.** Cite prior work with two `lib.typ` helpers, so numbering, linking, and the web popover all come for free — never hand-type a bracket or a manual list (HOUSESTYLE H24). Import both: `#import "/.demolab/lib.typ": cite, reference-list`.
 
 - **Inline** — `#cite(1, 2)` renders `[1, 2]`. The numbers are **author-managed** (you pass them), so there's no `.bib` file to keep in sync. On the web each number links to its entry.

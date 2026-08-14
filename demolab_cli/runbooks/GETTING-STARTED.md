@@ -182,8 +182,10 @@ freestyling, not following this runbook.
    tagline, book/PDF title (defaults from the name), and **author + contact** (offer to pull
    from git config — they render as a byline under the homepage title and an
    `<meta name="author">`; contact, if given, links the byline). The engine defaults any key
-   you omit and updates never touch it; `demolab dev` hot-reloads, so they watch it change. Deeper
-   theming (`style.css`, `favicon.svg`) lives inside the engine package — leave it as advanced.
+   you omit and updates never touch it; `demolab dev` hot-reloads, so they watch it change. If an
+   article collection is developer documentation, offer its built-in `theme: docs` treatment
+   (RULES §6.5b); it affects only that collection's article web pages. Deeper theming
+   (`style.css`, `favicon.svg`) lives inside the engine package — leave it as advanced.
 
 5. **Publish to GitHub Pages?** *"Free, unless the repo is private."* Default yes; if no, skip —
    it all works locally. If yes: create + push a GitHub repo (`gh`), run `demolab deploy-setup`

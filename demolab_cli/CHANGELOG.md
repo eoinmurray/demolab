@@ -13,6 +13,16 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-08-14
+
+### Added
+- **Collection articles can opt into a developer-documentation web theme.** Add `theme: docs`
+  to a collection in `demolab.yaml`; its article pages receive a technical sans/mono type system,
+  linked table-of-contents support, code and API-reference surfaces, and documentation-oriented
+  tables. Collection listings, experiments, PDFs, and the combined book retain the standard lab
+  presentation. The shipped demo includes a fictional Python SDK guide and API reference as a
+  complete worked example.
+
 ## [2.3.0] — 2026-08-07
 
 ### Added

@@ -80,8 +80,8 @@
   }
 }
 #for e in entries {
-  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, brand: brand, annotations: annotations)]]
-  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, brand: brand, annotations: annotations))]]
+  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta)]]
+  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta))]]
 }
 // stub pages for entries that failed to build — a visible "this page failed" placeholder at the
 // entry's own URL (web only; excluded from listings + the book), so the rest of the site is fine.

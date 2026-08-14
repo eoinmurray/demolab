@@ -10,13 +10,13 @@ RULES' `§N.M`) and listed alphabetically. Section references like `§4.3` point
 
 **G3 — Black box.** The installed `demolab-cli` package (the build engine, runbooks, guides, scaffold) plus the machine-managed `.demolab/` staging dir it materialises at the lab root. Pure upstream, never hand-edited; *"update demolab"* is a dependency bump (§3.1). Your customisation lives *outside* it, in `demolab.yaml` and your content.
 
-**G4 — Brand config.** The optional root `demolab.yaml`: wordmark, PDF titles, and the collection registry. Absent ⇒ engine defaults (§3.3, §6.5).
+**G4 — Brand config.** The optional root `demolab.yaml`: wordmark, PDF titles, and the collection registry (including optional web themes). Absent ⇒ engine defaults (§3.3, §6.5).
 
 **G5 — Bundle.** The Typst multi-document output from one compile: the site, per-entry PDFs, and the book, all emitted together by `main.typ` (§5.2).
 
 **G6 — Coding agent.** The AI assistant (Claude Code, Cursor, aider, …) that reads this repo and operates it: runs the toolchain, wires files, follows runbooks.
 
-**G7 — Collection.** A group of entries sharing a `collection:` slug in their `meta`. Entries are grouped by collection on the homepage; a slug title-cases by default, and `demolab.yaml` can give it a label/description/order (§6.5).
+**G7 — Collection.** A group of entries sharing a `collection:` slug in their `meta`. Entries are grouped by collection on the homepage; a slug title-cases by default, and `demolab.yaml` can give it a label/description/order plus an optional article web theme (§6.5).
 
 **G8 — Contract.** The file-based interface between a tool and an experiment: a tool writes a fixed set of files (§4.3), a runner reads them by running the tool's CLI (§4.5). It's language-neutral (§1.4).
 

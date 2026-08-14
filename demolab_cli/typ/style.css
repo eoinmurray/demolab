@@ -356,6 +356,105 @@ pre {
 }
 pre code { font-size: 1em; }
 
+/* Built-in article treatment: developer documentation. A collection opts its articles in
+   with `theme: docs` in demolab.yaml. This stays close to demolab's default spacing and
+   structure while using the neutral sans/mono pairing, cool slate surfaces, and blue accent
+   readers expect from contemporary technical references.
+   Collection listings, experiments, PDFs, and the combined book remain unchanged. */
+body:has(.theme-docs) {
+  max-width: 46em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #172033;
+  --ink: #172033;
+  --muted: #64748b;
+  --rule: #e2e8f0;
+  --rule-strong: #cbd5e1;
+  --paper-tint: #f8fafc;
+  --selection: #dbeafe;
+  --docs-accent: #315faa;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+body:has(.theme-docs) h1,
+body:has(.theme-docs) h2,
+body:has(.theme-docs) h3,
+body:has(.theme-docs) h4,
+body:has(.theme-docs) h5,
+body:has(.theme-docs) h6 {
+  color: #111827;
+  font-family: inherit;
+  letter-spacing: -.018em;
+}
+body:has(.theme-docs) h5 {
+  margin: 1.6rem 0 .4rem;
+  font-size: .95rem;
+  line-height: 1.35;
+}
+body:has(.theme-docs) h6 {
+  margin: 1.35rem 0 .35rem;
+  font-size: .9rem;
+  line-height: 1.35;
+}
+body:has(.theme-docs) a { color: var(--docs-accent); text-decoration-color: #9db4da; }
+body:has(.theme-docs) .home-link,
+body:has(.theme-docs) .entry-meta,
+body:has(.theme-docs) .page-foot { color: var(--muted); }
+body:has(.theme-docs) code {
+  padding: .08em .28em;
+  border-radius: 3px;
+  color: #334155;
+  background: #f1f5f9;
+  font-family: var(--mono);
+  font-size: .86em;
+}
+body:has(.theme-docs) pre {
+  border-color: #d0d7de;
+  border-radius: 6px;
+  color: #e2e8f0;
+  background: #172033;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+}
+body:has(.theme-docs) pre code { padding: 0; color: inherit; background: transparent; font-size: 1em; }
+body:has(.theme-docs) table { width: 100%; font-size: .88rem; }
+body:has(.theme-docs) th,
+body:has(.theme-docs) td { border-color: var(--rule); padding: .55rem .7rem; vertical-align: top; }
+body:has(.theme-docs) th { color: #334155; background: #f1f5f9; }
+body:has(.theme-docs) td { color: #334155; }
+body:has(.theme-docs) td:last-child,
+body:has(.theme-docs) th:last-child { text-align: left; font-variant-numeric: normal; }
+.docs-toc {
+  margin: 1.5rem 0 2rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper-tint);
+}
+.docs-toc-title { margin: 0 0 .35rem; color: #334155; font-size: .88rem; font-weight: 650; }
+.docs-toc ul { columns: 2; margin: 0; padding-left: 1.15rem; }
+.docs-toc li { margin: .15rem 0; color: var(--muted); font-size: .9rem; }
+.docs-note {
+  margin: 1.25rem 0;
+  padding: .75rem 1rem;
+  border-left: 3px solid var(--docs-accent);
+  color: #334155;
+  background: #eff6ff;
+}
+.api-signature {
+  margin: .8rem 0 1rem;
+  padding: .75rem .9rem;
+  overflow-x: auto;
+  border: 1px solid #dbe3ee;
+  border-left: 3px solid #93add3;
+  border-radius: 4px;
+  color: #1e3a5f;
+  background: #f8fafc;
+  font-family: var(--mono);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+.api-signature code { padding: 0; color: inherit; background: transparent; font-size: 1em; }
+
 @media (max-width: 42rem) {
   body { margin-top: 2rem; margin-bottom: 2.5rem; }
   .welcome { margin-bottom: 2rem; }
@@ -364,6 +463,7 @@ pre code { font-size: 1em; }
   .welcome-runbook { display: block; padding: .6rem 0; }
   .welcome-runbook dt { margin-bottom: .2rem; }
   .entry-row { align-items: flex-start; gap: .5rem; }
+  .docs-toc ul { columns: 1; }
 }
 
 @media (max-width: 22rem) {
