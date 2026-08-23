@@ -17,7 +17,6 @@ PACKAGE = Path(__file__).resolve().parent
 TYP = PACKAGE / "typ"
 SCAFFOLD = PACKAGE / "scaffold"
 DEPLOY = PACKAGE / "deploy"
-RUNBOOKS = PACKAGE / "runbooks"
 GUIDES = PACKAGE / "guides"
 VERSION = (PACKAGE / "VERSION").read_text().strip()
 

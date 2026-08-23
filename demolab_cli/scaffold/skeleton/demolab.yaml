@@ -1,16 +1,11 @@
-# demolab config — every key is optional, but keep the file: it is also the lab marker
-# (the `demolab` command finds the lab root by walking up to it, like git finding .git).
-# Edit it to rebrand or curate collections; the engine fills in anything you omit
-# (branding → defaults; a collection's label → its title-cased slug). Updates never touch
-# this file.
+# demolab config — every key is optional, but keep the file: it marks the project root.
 name: Demolab
 book-title: Demolab — the book
 contents-title: Demolab — contents
 # One-line tagline shown under the title on the homepage.
-description: A lab notebook for computational science — reproducible results, published and citable.
+description: A Typst presentation published as a website with optional PDFs.
 # The lab's owner — shown as a byline under the homepage title and as <meta name="author">.
-# The getting-started runbook offers to fill this from your git config. Contact is optional;
-# if set, the byline links to it (mailto for an email, else a plain link).
+# Contact is optional; if set, the byline links to it.
 # author: Your Name
 # contact: you@example.com
 
@@ -18,7 +13,7 @@ description: A lab notebook for computational science — reproducible results, 
 # left untouched, and PDF-only slide decks are omitted from the site.
 # pdfs: false
 
-# Optional collaborative inline comments on web articles and experiments. Readers select text
+# Optional collaborative inline comments on web pages. Readers select text
 # and discuss it through Hypothesis accounts and groups; PDFs are unchanged. Set this lab-wide,
 # or omit it here and add `annotations: "hypothesis"` to selected writings' `meta` blocks.
 # annotations: hypothesis
@@ -28,26 +23,16 @@ description: A lab notebook for computational science — reproducible results, 
 # directory, below the title/tagline/byline above. Delete the file to get the directory back.
 # See demolab-engine/scaffold/demo/site/landing.typ for a worked example.
 
-# Homepage collections. Entries are grouped by their `collection:` meta field; this
+# Homepage collections. Writings are grouped by their `collection:` meta field; this
 # registry gives each collection a display label + description and sets the order. A
 # collection with no entry here still works — its slug is just title-cased. Add
 # `theme: docs` to a collection whose articles should have a light developer-documentation
-# web treatment. Collection listings, experiments, and PDFs retain the standard design.
-collection-order: [documentation, neuron-models, mujoco, streamlit, slides]
+# web treatment. Collection listings and PDFs retain the standard design.
+collection-order: [notes, slides]
 collections:
-  documentation:
-    label: Documentation
-    description: "How demolab works: getting started, the always-on guides that set the conventions, and the on-demand runbooks the agent runs."
-    # theme: docs
-  neuron-models:
-    label: Neuron models
-    description: Integrate-and-fire neurons and the membrane biophysics behind them.
-  mujoco:
-    label: MuJoCo physics
-    description: Rigid-body simulations rendered to video.
-  streamlit:
-    label: Interactive
-    description: Live, slider-driven demos.
+  notes:
+    label: Notes
+    description: The presentation's main writings.
   slides:
     label: Talks & slides
     description: Deck PDFs from talks — paged-only, linked as PDF.

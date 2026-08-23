@@ -51,7 +51,7 @@
 }
 
 // --- video: plays in HTML, omitted from PDF (a note points to the web edition) ---
-// The mp4 is emitted as a bundle asset by build.py, referenced here by basename.
+// Files under assets/ are emitted by build.py and referenced here by relative path.
 #let video(src, caption: none) = context {
   if target() == "html" {
     html.elem("video", attrs: (src: src, controls: "", style: "max-width:100%;width:640px"))[]
@@ -107,24 +107,6 @@
   supplement: [Figure],
 )
 
-// --- numbers-table: a parameter/metric table straight from a numbers.json entry ---
-// so a writing's numbers come from the run and cannot drift.
-#let numbers-table(entry, title: none) = {
-  let cfg = entry.at("config", default: (:))
-  let params = cfg.pairs().filter(p => not (p.at(0) in ("_provenance", "command")))
-  let metrics = entry.pairs().filter(p => p.at(0) != "config")
-  let rows = params + metrics
-  block(breakable: false)[
-    #if title != none [#strong(title)]
-    #table(
-      columns: (auto, auto),
-      align: (left, right),
-      table.header([*Parameter*], [*Value*]),
-      ..rows.map(p => ([#raw(p.at(0))], [#p.at(1)])).flatten(),
-    )
-  ]
-}
-
 // --- citations: inline numbered cites + a DOI reference list ---
 // Author-managed numbering (you pass the numbers), so it's dependency-free and works the same
 // in the bundle's HTML and PDF. `#cite(1, 2)` renders "[1, 2]" (links to the refs on the web);
@@ -163,24 +145,6 @@
         #r.text#if r.at("doi", default: none) != none [ #link("https://doi.org/" + r.doi)[doi:#r.doi]]
       ]))
     }
-  }
-}
-
-// --- provenance-footer: the git commit stamp the run wrote into numbers.json ---
-#let provenance-footer(cfg) = {
-  let prov = cfg.at("_provenance", default: none)
-  if prov != none and prov.at("commit", default: none) != none {
-    // separator: a CSS-styled <hr> on the web, a drawn rule in the PDF (v()/line()
-    // are paged-only — Typst warns if they run during HTML export)
-    context {
-      if target() == "html" { html.elem("hr") } else {
-        v(1.2em)
-        line(length: 100%, stroke: 0.5pt + gray)
-      }
-    }
-    text(size: 8pt, fill: rgb("#555555"))[
-      Generated from commit #raw(prov.commit.slice(0, 7))#if prov.dirty [ (uncommitted changes)] · #human-date(prov.at("generated_at", default: "").slice(0, 10))
-    ]
   }
 }
 
@@ -227,7 +191,7 @@
 #let collect-items(entries, decks, pdfs-enabled: true) = {
   entries.map(e => (
     id: e.id,
-    kind: e.kind, // "experiment" | "article"
+    kind: e.kind,
     title: e.meta.title,
     date: e.meta.date,
     status: e.meta.at("status", default: "final"),
@@ -304,7 +268,7 @@
 // A collection where any item carries `order:` is *curated*: it lists in reading order
 // (by that rank) instead of the status/newest sort, so a documentation arc reads in sequence.
 #let grouped-entry-lists(items, show-collection: false, collection-meta: (:)) = {
-  let groups = (("article", "Articles"), ("experiment", "Experiments"), ("deck", "Slides"))
+  let groups = (("page", "Writings"), ("deck", "Slides"))
   let curated = is-curated(items)
   for (k, title) in groups {
     let g = items.filter(x => x.kind == k)
@@ -405,7 +369,7 @@
   html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
 }
 
-#let entry-page(meta, body, id: none, kind: "article", brand: default-brand, annotations: none, collection-meta: (:), pdfs-enabled: true) = {
+#let entry-page(meta, body, id: none, kind: "page", brand: default-brand, annotations: none, collection-meta: (:), pdfs-enabled: true) = {
   // Entry metadata can override the lab-wide provider. `none` disables a global provider for
   // one entry; absent metadata inherits the root demolab.yaml setting.
   let annotation-provider = meta.at("annotations", default: annotations)
@@ -414,7 +378,7 @@
   // listings, PDFs, and the combined book deliberately retain the standard lab presentation.
   let theme = collection-theme(meta.at("collection", default: "uncategorized"), collection-meta)
   context {
-    if target() == "html" and kind == "article" and theme != none {
+    if target() == "html" and theme != none {
       html.elem("div", attrs: (class: theme-class(theme), "aria-hidden": "true"))[]
     }
   }
@@ -540,9 +504,7 @@
       html.elem("div", attrs: (class: "empty-state"), {
         html.elem("p", attrs: (class: "empty-lead"), [Your lab is ready.])
         html.elem("p", [
-          Nothing is published here yet. This is where your experiments and writeups will appear.
-          Ask your coding agent to help you set up your first one — or to load a worked example, so
-          you can see how it all fits together.
+          Nothing is published here yet. Add a Typst file under writings/ and it will appear here.
         ])
       })
     } else if landing != none {

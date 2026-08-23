@@ -13,6 +13,20 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-08-23
+
+### Changed
+- **Demolab is now a presentation system.** It directly publishes
+  `writings/ + assets/ → artifacts/` as a static website with optional PDFs. Writings use
+  ordinary filenames and may read images, media, downloads, and JSON from `assets/`.
+- **The CLI is reduced to seven commands:** `init`, `docs`, `version`, `deploy-setup`, `dev`,
+  `build`, and `clean`. Standalone decks are compiled by the normal build.
+
+### Removed
+- The tool/runner contract, experiment scaffolding, provenance helpers, starters, playground,
+  science dependencies, and all agent runbooks have been retired. Demolab no longer runs code,
+  validates results, or orchestrates research.
+
 ## [2.5.0] — 2026-08-23
 
 ### Added

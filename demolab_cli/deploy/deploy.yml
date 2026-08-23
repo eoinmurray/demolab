@@ -1,5 +1,5 @@
 # Opt-in Pages workflow — production deploy. demolab ships with NO active deploy workflow;
-# `demolab deploy-setup` (or the getting-started runbook) copies this file plus preview.yml
+# `demolab deploy-setup` copies this file plus preview.yml
 # into .github/workflows/ once the user chooses to publish. Both are engine templates —
 # rerun `demolab deploy-setup` after an engine update to refresh them.
 #

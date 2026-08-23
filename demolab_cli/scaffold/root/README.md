@@ -1,28 +1,14 @@
-# My lab
-
-A [demolab](https://github.com/eoinmurray/demolab) lab notebook: Python experiments produce
-per-run artifacts; Typst publishes them as a website, per-entry PDFs, and a book.
-
-## Working here
+# My presentation
 
 ```sh
-uv sync              # install dependencies + the `demolab` command
-demolab dev          # live-preview the site at http://localhost:3000
-uv run python experiments/exp000.py   # run an experiment end-to-end
-demolab build        # build the site + optional PDFs into artifacts/
+uv sync
+uv run demolab dev
+uv run demolab build
 ```
 
-Run `demolab` for the full command list. If you work with a coding agent, it reads
-[AGENTS.md](AGENTS.md) and drives the runbooks (`demolab docs`) — typing `HELP` in an agent
-chat shows the menu.
+- `writings/` contains Typst pages.
+- `assets/` contains images, media, downloads, and data.
+- `demolab.yaml` configures the presentation.
+- `artifacts/` contains generated output.
 
-## Layout
-
-- `experiments/` — runners that stage `artifacts/data/<id>/` (figures + numbers)
-- `writings/` — the write-ups (`<id>.typ`), published by `demolab build`
-- `tools/` — reusable science shared by experiments
-- `artifacts/` — the committed record: `data/` per run, optional `pdfs/` deliverables
-- `demolab.yaml` — branding + collections (also marks this directory as a lab)
-
-The engine ships in the `demolab-cli` package — nothing to vendor or maintain here.
-Updating: `uv lock --upgrade-package demolab-cli && uv sync`.
+Run `uv run demolab docs AUTHORING` for the writing format.

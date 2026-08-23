@@ -5,14 +5,10 @@
 name: Demolab
 book-title: Demolab — the book
 contents-title: Demolab — contents
-description: A lab notebook for computational science — reproducible results, published and citable.
+description: Typst writings and assets, published as a website with optional PDFs.
 
-collection-order: [documentation, theme-demo]
+collection-order: [guide]
 collections:
-  documentation:
-    label: Documentation
-    description: "How demolab works, in reading order: what it is and why, setting up, the contract, the mechanics of experiments and writeups, and running the lab day to day."
-  theme-demo:
-    label: Developer docs theme
-    description: "A single-page showroom for the optional developer-documentation collection theme."
-    theme: docs
+  guide:
+    label: Guide
+    description: "The complete presentation system, in three short pages."

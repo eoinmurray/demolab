@@ -1,12 +1,11 @@
 # The demolab-cli package: the demolab engine, distributed on PyPI. A lab installs it as a
 # normal dependency (its own pyproject lists demolab-cli; `uv sync` provides the `demolab`
 # command), and `uvx demolab-cli init` lays a fresh lab down. The engine has zero runtime
-# dependencies — the science deps below (dev group) exist only to run the shipped demo and
-# the test suite in this repo.
+# dependencies; pytest is used only by this repository's engine suite.
 [project]
 name = "demolab-cli"
 dynamic = ["version"]
-description = "Lab notebook for computational science: Python tools produce per-run artifacts; Typst publishes them as a web bundle, per-entry PDFs, and a book."
+description = "A small Typst presentation system for websites and optional PDFs."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
@@ -50,18 +49,12 @@ exclude = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-# Engine tests always run; tools/ + experiments/ are collected when this checkout is being
-# used as a lab (scaffolded content, absent on a clean engine-only tree). The scaffold's
-# demo content carries its own tool tests — those run inside a materialised lab, never
-# from the package dir (their imports assume the lab root is on sys.path).
-testpaths = ["demolab_cli", "tools", "experiments"]
+# Engine tests only; user presentations contain no Python test contract.
+testpaths = ["demolab_cli"]
 norecursedirs = [".*", "build", "dist", "*.egg", "venv", "scaffold"]
 
-# Test + starter/skeleton deps only — the package itself is pure stdlib. numpy/matplotlib
-# back the skeleton's plotting helper and the monte-carlo-pi starter; pytest runs the suite.
+# The package itself is pure stdlib; pytest runs the engine suite.
 [dependency-groups]
 dev = [
-    "numpy>=1.26",
-    "matplotlib>=3.8",
     "pytest>=9.1.1",
 ]

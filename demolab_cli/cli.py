@@ -4,13 +4,9 @@
 The engine lives in this package (site-packages); a lab is a plain directory of user
 content marked by its demolab.yaml. Every command finds the lab by walking up from the
 cwd, like git finding its root — so it works from any subdirectory. `demolab init` starts
-a new lab; `demolab docs` lists the runbooks + guides that ship in the package (agents
-read them by path). Run `demolab` with no arguments for the command list.
-
-The CLI itself is pure stdlib. Engine scripts (build/dev/slides) run on the current
-interpreter; the commands that need the lab's third-party deps (playground/test) and
-`install` go through `uv`, which guarantees the venv is present. Experiment runners are no
-longer wrapped by a `run` command — run them directly with `uv run python experiments/expNNN.py`.
+a new presentation; `demolab docs` lists the authoring guides that ship in the package.
+Run `demolab` with no arguments for the command list. The CLI is pure stdlib Python;
+Typst performs the rendering.
 """
 from __future__ import annotations
 
@@ -29,28 +25,14 @@ from demolab_cli.overlay import overlay
 # subcommands both read this, so the two can't drift.
 GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
     ("start here", [
-        ("init", "✨ Start a new lab in the current directory (root files + structure + git init)"),
-        ("docs", "📚 List the runbooks + guides; `demolab docs <NAME>` prints one's path (--print to cat it)"),
-    ]),
-    ("setup", [
-        ("install", "🛠  Install Python dependencies (uv sync)"),
+        ("init", "✨ Start a presentation in the current directory"),
+        ("docs", "📚 List the authoring guides; `demolab docs <NAME>` prints one"),
         ("version", "🔖 Print the demolab engine version"),
-    ]),
-    ("scaffolding", [
-        ("scaffold", "🏗  (Re)lay the working-tree structure (writings/ experiments/ tools/ artifacts/ + config) — non-destructive"),
         ("deploy-setup", "🚀 Opt in to GitHub Pages — copy the deploy + preview workflows into .github/workflows/"),
-    ]),
-    ("the loop", [
-        ("new", "✨ How to start a new experiment (hint — ask your coding agent)"),
     ]),
     ("publishing", [
         ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (--demo serves the shipped demo, add --landing for its landing page; PORT overrides the auto-picked 3000)"),
         ("build", "📦 Build the publication → artifacts/site/ (web) + optional artifacts/pdfs/"),
-        ("slides", "🎞  Compile standalone Typst decks (writings/*.typ with no meta+body) to artifacts/pdfs/"),
-        ("playground", "🎛  Launch the interactive Streamlit demo (http://localhost:8501)"),
-    ]),
-    ("quality & housekeeping", [
-        ("test", "🧪 Run the Python test suite (pytest)"),
         ("clean", "🧹 Delete regenerable build output (temp/, artifacts/site/)"),
     ]),
 ]
@@ -100,8 +82,8 @@ def cmd_init(args: argparse.Namespace) -> int:
         sys.exit("demolab init: this is the demolab-cli source repo — it is not a lab to initialise.")
     existing = _paths.find_lab_root(target)
     if existing is not None and not args.force:
-        sys.exit(f"demolab init: already inside a lab ({existing}) — use `demolab scaffold` to repair "
-                 "its structure, or --force to lay a new lab over this directory anyway.")
+        sys.exit(f"demolab init: already inside a presentation ({existing}); use --force "
+                 "to lay a new presentation over this directory anyway.")
     # A lab is born in an EMPTY directory — never sprayed over existing content (imagine
     # running this in $HOME). Version-control droppings don't count as content.
     stray = sorted(p.name for p in target.iterdir() if p.name not in (".git", ".DS_Store"))
@@ -119,19 +101,14 @@ def cmd_init(args: argparse.Namespace) -> int:
         (target / name).write_text(text, encoding="utf-8")
     # Stored without the dot so packaging tools never treat it as an ignore file for the wheel.
     shutil.copy2(root_src / "gitignore", target / ".gitignore")
-    ci_src = root_src / "github" / "workflows" / "tests.yml"
-    ci_dst = target / ".github" / "workflows" / "tests.yml"
-    ci_dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ci_src, ci_dst)
     # The content structure (demolab.yaml — the lab marker — HOUSESTYLE.local.md, empty dirs).
     overlay(_paths.SCAFFOLD / "skeleton", target, keep_existing=True)
     _paths.stage(target)
     _git_init(target)
-    print(f"✓ Your lab is ready. (demolab {_paths.VERSION})\n")
+    print(f"✓ Your presentation is ready. (demolab {_paths.VERSION})\n")
     print("  In one terminal tab, the live preview:")
     print("      uv run demolab dev")
-    print("\n  In another, your coding agent — paste:")
-    print('      "Run `uv run demolab docs GETTING-STARTED` and follow it strictly, step by step."')
+    print("\n  Add a .typ file under writings/; see `uv run demolab docs AUTHORING`.")
     return 0
 
 
@@ -148,30 +125,25 @@ def _git_init(target: Path) -> None:
         return
     subprocess.run(["git", "init", "--quiet"], cwd=target, check=False)
     subprocess.run(["git", "add", "-A"], cwd=target, check=False)
-    commit = subprocess.run(["git", "commit", "--quiet", "-m", "Start my lab with demolab"],
+    commit = subprocess.run(["git", "commit", "--quiet", "-m", "Start my presentation with demolab"],
                             cwd=target, capture_output=True, text=True)
     if commit.returncode != 0:
         print("  (git initialised; make the first commit yourself — `git commit` needs your identity)")
 
 
 def _doc_files() -> dict[str, Path]:
-    """Every runbook + guide shipped in the package, by stem, plus the agent manual, the
-    CHANGELOG, and the reference-data dirs (the published docs site + the starters — read as
-    models, never overlaid by hand)."""
+    """Every guide shipped in the package, plus the manual, changelog, and demo."""
     docs: dict[str, Path] = {}
-    for d in (_paths.RUNBOOKS, _paths.GUIDES):
-        for p in sorted(d.glob("*.md")):
-            docs[p.stem] = p
+    for p in sorted(_paths.GUIDES.glob("*.md")):
+        docs[p.stem] = p
     docs["AGENT"] = _paths.PACKAGE / "AGENT.md"
     docs["CHANGELOG"] = _paths.PACKAGE / "CHANGELOG.md"
     docs["DEMO"] = _paths.SCAFFOLD / "demo"
-    docs["STARTERS"] = _paths.SCAFFOLD / "starters"
     return docs
 
 
 def _doc_summary(p: Path) -> str:
-    """The doc's one-liner: the first blockquote or paragraph after its heading (runbooks
-    open with a summary blockquote; guides with a lead paragraph), joined across lines,
+    """The doc's one-liner: the first paragraph after its heading, joined across lines,
     clipped to one sentence, and capped — the menu should be dense, not truncated mid-word."""
     block: list[str] = []
     for line in p.read_text(encoding="utf-8").splitlines():
@@ -196,7 +168,7 @@ def cmd_docs(args: argparse.Namespace) -> int:
     if args.name:
         key = args.name.upper().replace(" ", "-")
         if key not in docs:
-            print(f"demolab docs: no runbook or guide named {args.name!r}. Run `demolab docs` for the list.",
+            print(f"demolab docs: no guide named {args.name!r}. Run `demolab docs` for the list.",
                   file=sys.stderr)
             return 2
         if args.print and docs[key].is_file():
@@ -207,45 +179,27 @@ def cmd_docs(args: argparse.Namespace) -> int:
     # Bare `demolab docs` IS the agent's orientation: the full manual, then the menu —
     # one command, complete operating context, always in step with the installed engine.
     print((_paths.PACKAGE / "AGENT.md").read_text(encoding="utf-8"))
-    print("## The menu — runbooks are step-by-step procedures, guides are reference.")
-    print("## `demolab docs <NAME>` prints the file's path; read it and follow it.\n")
-    for title, base in (("runbooks", _paths.RUNBOOKS), ("guides", _paths.GUIDES)):
-        names = [n for n, p in docs.items() if p.parent == base]
-        width = max(len(n) for n in names)
-        print(f"  {title}")
-        for n in names:
-            print(f"    {n:<{width}}  {_doc_summary(docs[n])}")
-        print()
+    print("## Guides")
+    print("## `demolab docs <NAME>` prints a guide's path.\n")
+    names = [n for n, p in docs.items() if p.parent == _paths.GUIDES]
+    width = max(len(n) for n in names)
+    for n in names:
+        print(f"    {n:<{width}}  {_doc_summary(docs[n])}")
+    print()
     print("  reference")
     print("    AGENT      this manual (the text above)")
     print("    CHANGELOG  what changed in each engine version")
-    print("    DEMO       the published docs site's source (writeup examples), never copy by hand")
-    print("    STARTERS   canonical first-experiment references (e.g. monte-carlo-pi)")
+    print("    DEMO       the published demo's source")
     return 0
 
 
 # ── setup ──────────────────────────────────────────────────────────────────
-def cmd_install(args: argparse.Namespace) -> int:
-    return _run("uv", "sync", cwd=_paths.require_lab_root())
-
-
 def cmd_version(args: argparse.Namespace) -> int:
     print(_paths.VERSION)
     return 0
 
 
 # ── scaffolding ────────────────────────────────────────────────────────────
-def cmd_scaffold(args: argparse.Namespace) -> int:
-    # Repair/extend an existing lab, or lay the bare structure into the cwd (writing
-    # demolab.yaml makes it a lab). Never clobbers an existing file.
-    target = _paths.find_lab_root() or Path.cwd()
-    overlay(_paths.SCAFFOLD / "skeleton", target, keep_existing=True)
-    print("✓ scaffolded the folder structure. Add a writeup in writings/ and run 'demolab build'.")
-    print("  (building a first experiment? ask your agent to follow GETTING-STARTED, or read a")
-    print("   reference with 'demolab docs STARTERS' — e.g. monte-carlo-pi.)")
-    return 0
-
-
 def cmd_deploy_setup(args: argparse.Namespace) -> int:
     lab = _paths.require_lab_root()
     dst = lab / ".github" / "workflows"
@@ -264,17 +218,6 @@ def cmd_deploy_setup(args: argparse.Namespace) -> int:
 
 
 # ── the loop ───────────────────────────────────────────────────────────────
-def cmd_new(args: argparse.Namespace) -> int:
-    print("Experiments aren't scaffolded from a template — ask your coding agent.")
-    print("It models a *working* skeleton on an existing pair:")
-    print("  experiments/expNNN.py  — a runner with real COMMANDS that stages artifacts/data/expNNN/")
-    print("  writings/expNNN.typ    — a #let meta + #let body that read that bundle via json()/image()")
-    print()
-    print('Try: "scaffold a new experiment expNNN that computes <thing>"')
-    print("See AGENTS.md (entry point) and `demolab docs RULES` (how to add one).")
-    return 0
-
-
 # ── publishing ─────────────────────────────────────────────────────────────
 def cmd_dev(args: argparse.Namespace) -> int:
     port_args = [str(args.port)] if args.port else []
@@ -307,10 +250,6 @@ def cmd_build(args: argparse.Namespace) -> int:
     return _mod("build", *entry_args, cwd=_paths.require_lab_root())
 
 
-def cmd_slides(args: argparse.Namespace) -> int:
-    return _mod("slides", cwd=_paths.require_lab_root())
-
-
 def cmd_playground(args: argparse.Namespace) -> int:
     return _run("uv", "run", "streamlit", "run", "experiments/playground.py",
                 cwd=_paths.require_lab_root())
@@ -336,22 +275,16 @@ def cmd_clean(args: argparse.Namespace) -> int:
 HANDLERS = {
     "init": cmd_init,
     "docs": cmd_docs,
-    "install": cmd_install,
     "version": cmd_version,
-    "scaffold": cmd_scaffold,
     "deploy-setup": cmd_deploy_setup,
-    "new": cmd_new,
     "dev": cmd_dev,
     "build": cmd_build,
-    "slides": cmd_slides,
-    "playground": cmd_playground,
-    "test": cmd_test,
     "clean": cmd_clean,
 }
 
 
 def _print_catalog() -> None:
-    print("demolab — lab command runner. Usage: demolab <command> [args]\n")
+    print("demolab — presentation command runner. Usage: demolab <command> [args]\n")
     width = max(len(name) for _, cmds in GROUPS for name, _ in cmds)
     for title, cmds in GROUPS:
         print(f"  {title}")
@@ -359,12 +292,12 @@ def _print_catalog() -> None:
             print(f"    {name:<{width}}  {desc}")
         print()
     if _paths.find_lab_root() is None:
-        print("  (you're not inside a lab — start one with `demolab init` in an empty directory)")
+        print("  (you're not inside a presentation — start one with `demolab init`)")
 
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="demolab", add_help=True,
-                                description="The lab's command runner (the demolab-cli package).")
+                                description="The presentation command runner (demolab-cli).")
     sub = p.add_subparsers(dest="command", metavar="<command>")
     help_by_name = {name: desc for _, cmds in GROUPS for name, desc in cmds}
     for name in HANDLERS:
@@ -373,7 +306,7 @@ def _build_parser() -> argparse.ArgumentParser:
             sp.add_argument("--force", action="store_true",
                             help="init into a non-empty directory / inside an existing lab (overwrites colliding root files)")
         elif name == "docs":
-            sp.add_argument("name", nargs="?", help="runbook or guide name, e.g. GETTING-STARTED, RULES, CHANGELOG")
+            sp.add_argument("name", nargs="?", help="guide name, e.g. AUTHORING, RULES, CHANGELOG")
             sp.add_argument("--print", action="store_true", help="print the document instead of its path")
         elif name == "dev":
             sp.add_argument("port", nargs="?", type=int, help="port to serve on (default: first free from 3000)")

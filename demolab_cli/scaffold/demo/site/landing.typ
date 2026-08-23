@@ -1,102 +1,21 @@
-// The upstream landing page (demolab.eoinmurray.info) — a custom homepage body rendered
-// instead of the collection directory (see lib.typ index-page). Lives under site/, kept
-// separate from the writeups the rest of the demo dir holds; the Pages deploy
-// (.github/workflows/landing.yml) copies it to the repo root before building. Any lab can do
-// the same: a root landing.typ exporting `#let body` takes over the homepage below the brand header.
-//
-// Web-only markup: the homepage is only emitted as HTML, so html.elem is safe here.
-// The .welcome-* classes live in the engine's style.css (staged at /.demolab/style.css) — reuse or ignore them.
-#let body = {
-  html.elem("div", attrs: (class: "welcome"), {
-    // Hero: the problem, the pitch, and the proof — this very site is a demolab lab.
-    html.elem("p", attrs: (class: "welcome-links"), {
-      link("documentation.html", "Documentation")
-      [ · ]
-      link("https://github.com/eoinmurray/demolab", "GitHub")
-    })
-    html.elem("p", attrs: (class: "welcome-body"), [
-      Demolab turns computations into a traceable scientific record. You describe what to
-      investigate; your coding agent runs the experiment and saves its parameters, figures,
-      results, and code version. Typst publishes that record to the web and PDF, reading every
-      number from the run so the writeup cannot drift from the evidence.
+#import "/.demolab/lib.typ": *
+
+#let body = html.elem("main", attrs: (class: "welcome"), {
+  html.elem("section", attrs: (class: "welcome-hero"), {
+    html.elem("p", attrs: (class: "welcome-kicker"), "Typst presentation system")
+    html.elem("h1", "Write pages. Publish a site.")
+    html.elem("p", attrs: (class: "welcome-lead"), [
+      Demolab turns Typst writings and ordinary assets into a static website with optional PDFs.
     ])
-    html.elem("p", attrs: (class: "welcome-body"), [
-      This documentation site is built with demolab itself.
-    ])
-
-    html.elem("p", attrs: (class: "welcome-kicker"), [Get started])
-    html.elem("p", attrs: (class: "welcome-body"), {
-      [Install ]
-      link("https://docs.astral.sh/uv/getting-started/installation/", "uv")
-      [ and ]
-      link("https://github.com/typst/typst#installation", "typst")
-      [, then open your coding agent in an empty folder and paste:]
-    })
-    html.elem("div", attrs: (class: "welcome-cmd"), {
-      html.elem("pre", "Run `uvx demolab-cli init` here, then follow its GETTING-STARTED runbook strictly.")
-    })
-    html.elem("p", attrs: (class: "welcome-note"), {
-      [Prefer to set it up by hand? See ]
-      link("ar017.html", "Getting started")
-      [.]
-    })
-
-    html.elem("p", attrs: (class: "welcome-kicker"), [Documentation])
-    // The four tiers mirror the documentation collection's curated reading order
-    // (each writing's meta `order:`): evaluate → start → understand/build → operate.
-    html.elem("div", attrs: (class: "welcome-docs"), {
-      for (tier, entries) in (
-        (
-          [Start],
-          (
-            ("ar018.html", "Introduction"),
-            ("ar019.html", "Why demolab"),
-            ("ar017.html", "Getting started"),
-          ),
-        ),
-        (
-          [Concepts],
-          (
-            ("ar012.html", "The vocabulary"),
-            ("ar013.html", "The folder structure"),
-            ("ar016.html", "The contract"),
-            ("ar026.html", "Using another language"),
-          ),
-        ),
-        (
-          [Build],
-          (
-            ("ar023.html", "Anatomy of an experiment"),
-            ("ar024.html", "Writing a writeup"),
-            ("ar015.html", "Writing style"),
-            ("ar014.html", "Authoring slides"),
-          ),
-        ),
-        (
-          [Operate],
-          (
-            ("ar010.html", "Runbooks"),
-            ("ar022.html", "The command line"),
-            ("ar025.html", "Configuring your lab"),
-            ("ar020.html", "Publishing your lab"),
-            ("ar021.html", "Updating the engine"),
-            ("ar011.html", "Getting help"),
-          ),
-        ),
-      ) {
-        html.elem("div", attrs: (class: "welcome-docs-tier"), {
-          html.elem("p", attrs: (class: "welcome-docs-label"), tier)
-          html.elem("ul", {
-            for (href, label) in entries {
-              html.elem("li", link(href, label))
-            }
-          })
-        })
-      }
-    })
-
-    html.elem("p", attrs: (class: "welcome-foot"), {
-      link("https://github.com/eoinmurray/demolab/blob/main/LICENSE", "Open source, MIT licensed.")
-    })
+    html.elem("pre", "uvx demolab-cli init\nuv sync\nuv run demolab dev")
   })
-}
+  html.elem("section", attrs: (class: "welcome-section"), {
+    html.elem("h2", "One small pipeline")
+    html.elem("p", [
+      Put pages in `writings/`, inputs in `assets/`, and run `demolab build`. Collections,
+      citations, themes, video, decks, and deployment are presentation features—not a research
+      framework.
+    ])
+    html.elem("p", link("welcome.html", "Read the three-page guide →"))
+  })
+})

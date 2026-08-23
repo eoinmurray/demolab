@@ -1,65 +1,25 @@
 # Demolab
 
-**A lab notebook for computational science — reproducible results, published and citable, run by a coding agent instead of a build system.**
-
-> **Coding agent setting someone up?** Run `uvx demolab-cli docs GETTING-STARTED`, read the file it prints, and follow it strictly, step by step. *(Human, setting up by hand? See [Quickstart](#quickstart).)*
-
-You write a model or experiment once as a small program. Demolab runs it, captures everything it produced, stamps it with the exact code version, and publishes a clean page — figures, numbers, and real typeset maths — to the web and, by default, PDF. The numbers on the page are read from the run, so they can't drift. You drive it all by talking to a coding agent; there's no web development or build config to touch.
-
-## Quickstart
-
-Open your coding agent in an empty folder and paste:
-
-> Run `uvx demolab-cli init` here, then follow its GETTING-STARTED runbook strictly.
-
-It lays your lab down, walks you through the toolchain (`uv`, `typst`) and your first experiment, one step at a time.
-
-<details>
-<summary><b>Set it up by hand instead?</b></summary>
-
-Install [`uv`](https://docs.astral.sh/uv/) and [`typst`](https://typst.app) (`brew install uv typst`), then:
+Demolab is a small presentation system for Typst. Put pages under `writings/`, static inputs under
+`assets/`, and publish a website with optional PDFs.
 
 ```sh
-mkdir my-lab && cd my-lab
-uvx demolab-cli init   # lab structure + git init — yours from the first commit
-uv sync                # installs the deps and the `demolab` command
+mkdir my-presentation && cd my-presentation
+uvx demolab-cli init
+uv sync
+uv run demolab dev
 ```
 
-Then write your first experiment — ask your agent to follow GETTING-STARTED, or model one on a shipped reference (`demolab docs STARTERS` prints the dir; `monte-carlo-pi` is the canonical starter). `demolab dev` serves the site as you go. The engine lives in the `demolab-cli` package — updating it is `uv lock --upgrade-package demolab-cli && uv sync`.
+Each writing exports `meta` and `body`; its filename becomes its URL. Collections, themes,
+citations, video, a custom landing page, and standalone decks are available without an application
+server or JavaScript build chain. Set `pdfs: false` in `demolab.yaml` for web-only output.
 
-</details>
+Demolab 3 deliberately does not run experiments, track provenance, validate numbers, or orchestrate
+research. Version 2 remains available for existing computational-lab projects.
 
-## What to ask your agent
-
-Open your lab in your agent and say a runbook's name — it follows that runbook one step at a time. `demolab docs` lists them all (each is a plain file shipped in the package; `demolab docs <NAME>` prints its path). In this repo they live under [`demolab_cli/runbooks/`](demolab_cli/runbooks/).
-
-| Say… | …and it will |
-|------|--------------|
-| **GETTING-STARTED** | set you up end to end: scaffold, your first experiment live on a page, brand, publish |
-| **TOUR** | guided walkthrough of the lab — what's here, what it found, where to start |
-| **MIGRATE-CODE** | bring an existing codebase in, one experiment at a time |
-| **FROM-JUPYTER** | launder a Jupyter notebook into a reproducible, seeded experiment |
-| **MIGRATE-STACK** | write your tools in MATLAB / Julia / R / Octave instead of Python |
-| **EMBED-DOCS** | drop demolab into another project as a `docs/` site |
-| **LINT** | check your writeups against the house style |
-| **DOCTOR** | audit the repo against the conventions |
-| **UPDATE** | update the engine package, leaving your content untouched |
-
-## How it works
-
-One decoupled loop: **a tool computes → drops data → an experiment writes it up → the site publishes it.** Every run records its exact parameters and the git commit it came from (stamped on the page), and tables read their numbers straight from the run — so prose and results can't disagree. A single Typst pass emits a website and, unless `pdfs: false` is set in `demolab.yaml`, a PDF per entry and a book, all sharing the same live numbers.
-
-The detail lives in the guides (in a lab: `demolab docs <NAME>`; in this repo, the files under `demolab_cli/guides/`):
-
-- **[RULES.md](demolab_cli/guides/RULES.md)** — the tool ↔ experiment contract, schemas, provenance, and how to add things.
-- **[STRUCTURE.md](demolab_cli/guides/STRUCTURE.md)** — the annotated file tree.
-- **[HOUSESTYLE.md](demolab_cli/guides/HOUSESTYLE.md)** — prose, maths, and figure style.
-- **[AGENTS.md](AGENTS.md)** — the agent entry point.
-
-## Commands
-
-`demolab` shows them all. The everyday ones: `init`, `docs`, `install`, `scaffold`, `dev`, `build`, `test`. Run an experiment end-to-end directly: `uv run python experiments/expNNN.py` (there's no `demolab run` wrapper).
+Run `demolab docs` for the complete guide menu. Source documentation lives under
+[`demolab_cli/guides/`](demolab_cli/guides/).
 
 ## License
 
-[MIT](LICENSE) — free to use, fork, and adapt for your own lab.
+[MIT](LICENSE)

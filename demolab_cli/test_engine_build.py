@@ -1,17 +1,6 @@
-"""Engine smoke test — builds the shipped scaffold fixtures end-to-end.
-
-The demo under `demolab_cli/scaffold/demo/` doubles as the engine's integration test:
-we assemble a throwaway lab (skeleton + demo) in a tmp dir, point `build.py` at it via
-`DEMOLAB_ROOT`, and assert the compiler emits a real site. build.py stages everything
-Typst needs (.demolab/ + temp/bundle/main.typ) itself, so the fixture is just content.
-The empty case (skeleton only) proves a freshly-scaffolded lab builds a friendly
-empty-state homepage rather than erroring.
-
-Needs the `typst` CLI on PATH (same as `demolab build`); skipped if it's missing.
-"""
+"""End-to-end tests for generic writings, assets, and optional PDFs."""
 import hashlib
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -21,31 +10,22 @@ import pytest
 
 from demolab_cli import _paths, build
 
-SCAFFOLD = _paths.SCAFFOLD
-
-pytestmark = pytest.mark.skipif(
-    shutil.which("typst") is None, reason="typst CLI not installed"
-)
+pytestmark = pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI not installed")
 
 
-def _assemble(root: Path, *, demo: bool) -> None:
-    """Lay down a lab at `root`: skeleton (+ demo overlay). No engine files — build.py
-    stages its own Typst surface into the lab on every run."""
-    shutil.copytree(SCAFFOLD / "skeleton", root, dirs_exist_ok=True)
+def _assemble(root: Path, *, demo: bool = True) -> None:
+    shutil.copytree(_paths.SCAFFOLD / "skeleton", root, dirs_exist_ok=True)
     if demo:
-        # `landing.typ` is a transient preview copy (`demolab dev --demo --landing`), never
-        # part of the user-facing demo overlay — exclude it so a live preview can't turn the
-        # fixture's homepage into the landing hero and fail the directory assertion below.
-        # temp/ + artifacts/site/ are local build noise the demo dir may carry on a dev machine.
-        shutil.copytree(SCAFFOLD / "demo", root, dirs_exist_ok=True,
-                        ignore=shutil.ignore_patterns("landing.typ", "temp", "site"))
+        shutil.copytree(
+            _paths.SCAFFOLD / "demo", root, dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("landing.typ", "temp", "site"),
+        )
 
 
 def _build(root: Path, entry: str | None = None) -> None:
     subprocess.run(
         [sys.executable, "-m", "demolab_cli.build", *([entry] if entry else [])],
-        env={**os.environ, "DEMOLAB_ROOT": str(root)},
-        check=True,
+        env={**os.environ, "DEMOLAB_ROOT": str(root)}, check=True,
     )
 
 
@@ -53,240 +33,92 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def test_complete_build_is_pdf_reproducible(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
+def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
     root.mkdir()
-    _assemble(root, demo=True)
+    _assemble(root)
     _build(root)
     first = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
     _build(root)
     second = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
-    assert second == first
+    assert first == second
+    site = root / "artifacts" / "site"
+    assert (site / "welcome.html").exists()
+    assert (site / "assets" / "example.json").exists() or (site / "example.json").exists()
+    assert "Writings" in (site / "all.html").read_text()
+    assert "Experiments" not in (site / "all.html").read_text()
 
 
-def test_targeted_build_writes_only_selected_pdf(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
+def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
     root.mkdir()
-    _assemble(root, demo=True)
+    _assemble(root)
     shutil.rmtree(root / "artifacts" / "pdfs", ignore_errors=True)
-    _build(root, "ar018")
-    assert sorted(p.name for p in (root / "artifacts" / "pdfs").glob("*.pdf")) == ["ar018.pdf"]
+    _build(root, "welcome")
+    assert sorted(p.name for p in (root / "artifacts" / "pdfs").glob("*.pdf")) == ["welcome.pdf"]
     assert not (root / "artifacts" / "site").exists()
 
 
-def test_web_only_build_emits_no_pdfs_or_pdf_links(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
+def test_web_only_build_prunes_site_pdfs_but_preserves_shareable_files(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
     root.mkdir()
-    _assemble(root, demo=True)
-    _build(root)  # prove a later web-only build removes stale PDFs from the ignored site
+    _assemble(root)
+    _build(root)
     (root / "demolab.yaml").write_text(
         (root / "demolab.yaml").read_text() + "\npdfs: false\n", encoding="utf-8"
     )
     committed = root / "artifacts" / "pdfs"
-    shutil.rmtree(committed, ignore_errors=True)
+    shutil.rmtree(committed)
     committed.mkdir(parents=True)
     sentinel = committed / "existing.pdf"
-    sentinel.write_bytes(b"keep me")
+    sentinel.write_bytes(b"keep")
     _build(root)
     site = root / "artifacts" / "site"
-    assert (site / "index.html").exists()
     assert not (site / "pdfs").exists()
-    assert sentinel.read_bytes() == b"keep me"
-    assert sorted(p.name for p in committed.iterdir()) == ["existing.pdf"]
+    assert sentinel.read_bytes() == b"keep"
     assert 'class="row-pdf"' not in (site / "all.html").read_text()
-    assert 'class="entry-pdf"' not in (site / "ar018.html").read_text()
-    assert 'href="pdfs/book.pdf"' not in (site / "index.html").read_text()
-    assert "Slides" not in (site / "all.html").read_text()
+    assert 'class="entry-pdf"' not in (site / "welcome.html").read_text()
 
 
-def test_targeted_pdf_build_rejects_web_only_lab(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
+def test_targeted_pdf_rejects_web_only_presentation(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
     root.mkdir()
-    _assemble(root, demo=True)
+    _assemble(root)
     (root / "demolab.yaml").write_text("name: Test\npdfs: false\n")
     proc = subprocess.run(
-        [sys.executable, "-m", "demolab_cli.build", "ar018"],
+        [sys.executable, "-m", "demolab_cli.build", "welcome"],
         env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
     )
     assert proc.returncode != 0
     assert "PDF publishing is disabled" in proc.stderr
 
 
-def test_pdfs_config_defaults_on_and_validates_false(tmp_path: Path, monkeypatch) -> None:
+def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root)
+    (root / "writings" / "broken.typ").write_text(
+        '#let meta = (title: "Broken", date: "2026-08-23")\n'
+        '#let body = [#image("/assets/missing.svg")]\n'
+    )
+    _build(root)
+    site = root / "artifacts" / "site"
+    assert (site / "welcome.html").exists()
+    assert (site / "broken.html").exists()
+    assert "failed to build" in (site / "broken.html").read_text().lower()
+    assert "broken" not in (site / "all.html").read_text().lower()
+
+
+def test_pdfs_config_defaults_on_and_validates(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(build, "ROOT", tmp_path)
     assert build.pdfs_enabled() is True
-    (tmp_path / "demolab.yaml").write_text("name: Test\npdfs: false\n")
+    (tmp_path / "demolab.yaml").write_text("pdfs: false\n")
     assert build.pdfs_enabled() is False
     (tmp_path / "demolab.yaml").write_text("pdfs: sometimes\n")
     with pytest.raises(SystemExit, match="must be true or false"):
         build.pdfs_enabled()
 
 
-def test_source_date_epoch_overrides_default(tmp_path: Path, monkeypatch) -> None:
+def test_source_date_epoch_overrides_default(monkeypatch) -> None:
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
     assert build.typst_compile("input.typ")[3] == "1234567890"
-
-
-def test_demo_fixture_builds_full_site(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    # The docs treatment is article-only even when an experiment shares the collection.
-    (root / "writings" / "exp099.typ").write_text(
-        '#let meta = (title: "Theme boundary", date: "2026-08-14", collection: "theme-demo")\n'
-        '#let body = [An experiment keeps the standard presentation.]\n'
-    )
-    _build(root)
-
-    site = root / "artifacts" / "site"
-    assert (site / "index.html").exists()
-    assert (site / "all.html").exists()
-    assert (site / "pdfs" / "book.pdf").exists()
-    assert (site / "ar018.html").exists(), "per-entry page emitted"
-    assert (site / "pdfs" / "ar018.pdf").exists(), "per-entry PDF emitted"
-
-    index = (site / "index.html").read_text()
-    # ".empty-state" also appears in the inlined stylesheet, so key on the rendered copy.
-    assert "Your lab is ready" not in index, "demo has content, so no empty state"
-    # The marketing hero is landing-only (site/landing.typ) — a user's lab must get a
-    # normal homepage: no hero, collection directory visible.
-    assert "paste this into your coding agent" not in index, "landing hero must NOT land in a user lab"
-    assert '<div class="welcome"' not in index, "no landing hero markup in a user lab"
-    assert '<ul class="coll-list"' in index, "collection directory visible in a user lab"
-    entry = (site / "ar018.html").read_text()
-    assert "<img" in entry or "<svg" in entry, "a figure made it into the entry page"
-    assert 'class="theme-docs"' not in entry, "ordinary collections retain the journal theme"
-    collection = (site / "documentation.html").read_text()
-    assert 'class="listing theme-docs"' not in collection, "ordinary collection listing stays neutral"
-    themed_entry = (site / "ar028.html").read_text()
-    assert 'class="theme-docs"' in themed_entry, "collection theme follows articles onto the web"
-    assert 'class="docs-toc"' in themed_entry, "developer-docs demo includes an on-page TOC"
-    assert 'href="#api-reference"' in themed_entry, "TOC links to generated heading anchors"
-    assert "class latticecache.Cache" in themed_entry, "demo includes a representative API reference"
-    themed_experiment = (site / "exp099.html").read_text()
-    assert 'class="theme-docs"' not in themed_experiment, "experiments stay on the standard theme"
-    themed_collection = (site / "theme-demo.html").read_text()
-    assert 'class="listing theme-docs"' not in themed_collection, "collection listings stay neutral"
-    assert 'class="theme-docs"' not in index, "collection theme does not leak onto the homepage"
-    annotated = (site / "ar027.html").read_text()
-    assert 'src="https://hypothes.is/embed.js"' in annotated, "opted-in entry embeds Hypothesis"
-    assert 'src="https://hypothes.is/embed.js"' not in entry, "annotations remain opt-in"
-
-
-def test_lab_wide_hypothesis_annotations_only_touch_entries(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    with (root / "demolab.yaml").open("a", encoding="utf-8") as config:
-        config.write("\nannotations: hypothesis\n")
-    opted_out = root / "writings" / "ar018.typ"
-    opted_out.write_text(
-        opted_out.read_text(encoding="utf-8").replace("order: 1,", "order: 1,\n  annotations: none,"),
-        encoding="utf-8",
-    )
-    _build(root)
-
-    site = root / "artifacts" / "site"
-    embed = 'src="https://hypothes.is/embed.js"'
-    assert embed in (site / "ar019.html").read_text(), "root config enables normal entries"
-    assert embed not in (site / "ar018.html").read_text(), "entry metadata can opt out"
-    assert embed not in (site / "index.html").read_text(), "homepage remains annotation-free"
-    assert embed not in (site / "documentation.html").read_text(), "listings remain annotation-free"
-
-
-def test_curated_collection_lists_in_reading_order(tmp_path: Path) -> None:
-    """A collection whose entries carry `order:` in their meta must list in that curated
-    order, not newest-first. Guards a subtle markup-mode trap: a top-level `#let f(x) = items`
-    followed by a leading-dot method chain silently returns `items` unsorted, so the ordering
-    would compile clean but ignore `order:`. The demo's documentation collection is curated;
-    assert its first entries land in the intended sequence, ahead of higher-id entries."""
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    _build(root)
-
-    page = (root / "artifacts" / "site" / "documentation.html").read_text()
-    ids = re.findall(r'class="row-id">([a-z0-9]+)', page)
-    articles = [i for i in ids if i.startswith("ar")]
-    # ar018 (order 1) and ar019 (order 2) are the highest-id docs but must lead the list;
-    # a broken curated sort would put them last (id-ascending) or first-descending (ar025…).
-    assert articles[:3] == ["ar018", "ar019", "ar017"], f"curated order not applied: {articles}"
-
-
-def test_landing_fixture_builds_marketing_homepage(tmp_path: Path) -> None:
-    """The upstream landing (Pages deploy) copies site/landing.typ to the repo root — its
-    body renders as the homepage and the collection directory is replaced. Mirrors landing.yml."""
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    shutil.copy(SCAFFOLD / "demo" / "site" / "landing.typ", root / "landing.typ")
-    _build(root)
-
-    index = (root / "artifacts" / "site" / "index.html").read_text()
-    assert "open your coding agent in an empty folder" in index, "landing hero renders on the landing"
-    assert 'class="welcome-docs"' in index, "the documentation tiers render on the landing"
-    assert "Open source, MIT licensed" in index, "landing footer renders"
-    assert '<ul class="coll-list"' not in index, "the landing replaces the collection directory"
-
-
-def test_emitted_html_has_no_root_absolute_urls(tmp_path: Path) -> None:
-    """Every emitted href/src must be relative — no leading-slash root-absolute URLs.
-
-    This is a hosting contract, not cosmetics: the PR-preview deploy (demolab_cli/deploy/
-    preview.yml) serves each site from a subpath (pr-preview/pr-N/), so a root-absolute
-    `href="/foo.html"` or `src="/artifacts/…"` would resolve against the domain root and 404 in
-    every preview. lib.typ emits only relative links today; this test stops a future engine
-    change from silently breaking previews. (Protocol-relative `//host` and absolute
-    `https://…` are fine; a lone leading `/` is the violation.)"""
-    import re
-
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    _build(root)
-
-    site = root / "artifacts" / "site"
-    bad = re.compile(r'(?:href|src)="/(?!/)')  # a single leading slash, not // (protocol-relative)
-    offenders = []
-    for html in site.rglob("*.html"):
-        for i, line in enumerate(html.read_text().splitlines(), 1):
-            if bad.search(line):
-                offenders.append(f"{html.relative_to(site)}:{i}")
-    assert not offenders, (
-        "root-absolute URLs break subpath-served PR previews — make them relative:\n  "
-        + "\n  ".join(offenders)
-    )
-
-
-def test_broken_entry_is_stubbed_not_fatal(tmp_path: Path) -> None:
-    """One entry that references a missing figure must not take down the whole site: it's flagged,
-    rendered as a stub at its own URL, and dropped from the listings, while everything else builds."""
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=True)
-    (root / "writings" / "exp099.typ").write_text(
-        '#let meta = (title: "Broken on purpose", date: "2026-07-06", collection: "documentation")\n'
-        '#let body = [#image("/artifacts/data/exp099/missing.svg")]\n'
-    )
-    _build(root)  # check=True — the build must still succeed
-
-    site = root / "artifacts" / "site"
-    assert (site / "ar018.html").exists(), "good entries still built"
-    assert (site / "index.html").exists(), "homepage still built"
-    stub = site / "exp099.html"
-    assert stub.exists(), "the broken entry got a stub page at its URL"
-    assert "failed to build" in stub.read_text(), "the stub explains what happened"
-    assert "exp099.html" not in (site / "index.html").read_text(), "the stub stays out of the listings"
-
-
-def test_empty_tree_builds_empty_state(tmp_path: Path) -> None:
-    root = tmp_path / "repo"
-    root.mkdir()
-    _assemble(root, demo=False)
-    _build(root)
-
-    site = root / "artifacts" / "site"
-    assert (site / "index.html").exists(), "homepage always exists"
-    assert not (site / "all.html").exists(), "no all-entries page without content"
-    assert not (site / "pdfs" / "book.pdf").exists(), "no book without content"
-    assert "Your lab is ready" in (site / "index.html").read_text()

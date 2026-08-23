@@ -9,7 +9,7 @@ the rest (imports, documents, assets) in plain Typst — there is no generated s
 
 One `typst compile --format bundle --features bundle,html temp/bundle/main.typ` emits,
 into artifacts/site/:
-  index.html            — homepage index of experiments + articles
+  index.html            — homepage index of writings
   <id>.html             — per-entry web page (figures inline, video plays)
   <id>.mp4              — video assets
   pdfs/<id>.pdf         — per-entry individual PDF
@@ -40,6 +40,7 @@ from demolab_cli import _paths
 # empty-state build rather than an import-time error.
 ROOT = Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd()).resolve()
 WRITINGS = ROOT / "writings"
+ASSETS = ROOT / "assets"
 BUILD = ROOT / "temp" / "bundle"           # scratch: staged main.typ + manifest + deck PDFs
 MAIN = BUILD / "main.typ"                  # staged copy of the packaged typ/main.typ
 ENTRY_MAIN = BUILD / "entry.typ"           # staged single-entry PDF wrapper
@@ -130,17 +131,15 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
                    *, publish_pdfs: bool = True) -> None:
     """Write temp/bundle/index.json — the id/asset lists the staged main.typ reads.
 
-    This is the only place per-entry knowledge is assembled, and it's pure data (no Typst
-    source): the entry ids + kind, each entry's mp4 filenames (globbed here because Typst
-    can't list a directory), and the deck ids. An entry in `broken` (id -> error text) carries an
+    This is the only place per-writing knowledge is assembled, and it's pure data (no Typst
+    source): writing ids, static asset paths, and deck ids. An entry in `broken` carries an
     `error` field and loads no assets — main.typ renders it as a stub instead of importing it."""
     broken = broken or {}
     entries = []
     for i in ids:
         entry = {
             "id": i,
-            "kind": "experiment" if i.startswith("exp") else "article",
-            "videos": [] if i in broken else [v.name for v in sorted((ROOT / "artifacts" / "data" / i).glob("*.mp4"))],
+            "kind": "page",
         }
         if i in broken:
             entry["error"] = broken[i]
@@ -151,6 +150,7 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
     manifest = {
         "entries": entries,
         "decks": [{"id": d} for d in deck_ids],
+        "assets": [p.relative_to(ASSETS).as_posix() for p in sorted(ASSETS.rglob("*")) if p.is_file()],
         "pdfs_enabled": publish_pdfs,
         "has_brand_config": (ROOT / "demolab.yaml").exists(),
         "has_landing": (ROOT / "landing.typ").exists(),
@@ -226,39 +226,6 @@ def compile_bundle(ids: list[str], deck_ids: list[str], *, publish_pdfs: bool = 
               + broken[bad].splitlines()[0], flush=True)
 
 
-def _warn_if_content_misplaced(ids: list[str]) -> None:
-    """Tripwire for the classic agent slip: creating experiments/ or writings/ one level ABOVE
-    the lab — a patch applied from the workspace root instead of the lab root. build.py globs
-    from the lab root (found by its demolab.yaml marker, not the bare cwd), so misplaced files are
-    simply invisible: the build quietly renders the empty-state homepage and gives no signal that
-    the work landed in the wrong place. So when the root has no content, peek at the parent dir; if
-    the stray dirs are sitting there with real files, say so loudly and point at the fix.
-
-    A warning, not an error: an empty scaffold is a valid state, and a nested/monorepo layout could
-    put an unrelated experiments/ in the parent — we don't want a false positive to block a build.
-    ASCII only: this output is often captured by an agent harness on Windows (CP1252), where a
-    stray non-ASCII byte would crash the pipe (see devserver.py)."""
-    # A populated lab has writings (ids) or a top-level experiment runner. helpers/*.py in a bare
-    # scaffold live in a subdir, so a non-recursive experiments/*.py glob stays empty until there's
-    # a real runner — no false "has content" on a fresh scaffold.
-    if ids or any((ROOT / "experiments").glob("*.py")):
-        return
-    stray = [d for d, pat in ((ROOT.parent / "writings", "*.typ"),
-                              (ROOT.parent / "experiments", "*.py"))
-             if d.is_dir() and any(d.glob(pat))]
-    if not stray:
-        return
-    print("WARNING: this lab has no content at its root, but found populated content OUTSIDE the",
-          file=sys.stderr)
-    print(f"         lab root ({ROOT}) — the build cannot see these:", file=sys.stderr)
-    for d in stray:
-        print(f"           {d}", file=sys.stderr)
-    print("         This usually means files were created from the workspace root instead of the",
-          file=sys.stderr)
-    print(f"         lab root. Move them into {ROOT} (writings/, experiments/) and rebuild.",
-          file=sys.stderr)
-
-
 def compile_entry(entry_id: str, ids: list[str]) -> None:
     """Compile one ordinary writing directly to its committed standalone PDF."""
     if entry_id not in ids:
@@ -296,7 +263,6 @@ def main() -> None:
     stage()
     ids = discover()
     publish_pdfs = pdfs_enabled()
-    _warn_if_content_misplaced(ids)
     if entry_args:
         if not publish_pdfs:
             raise SystemExit("error: PDF publishing is disabled by demolab.yaml (pdfs: false)")

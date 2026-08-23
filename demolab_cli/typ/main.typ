@@ -54,10 +54,9 @@
 })
 
 // --- bundle assets ---
-// every mp4 an experiment produced (filenames discovered by build.py, carried in the
-// manifest), referenced by basename from the writing's #video(...)
-#for e in manifest.entries {
-  for v in e.videos { asset(v, read("/artifacts/data/" + e.id + "/" + v, encoding: none)) }
+// Static files under assets/ are copied into the site at the same relative path.
+#for path in manifest.at("assets", default: ()) {
+  asset(path, read("/assets/" + path, encoding: none))
 }
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {

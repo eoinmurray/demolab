@@ -66,9 +66,8 @@ def test_init_lays_down_a_lab(fresh_dir):
     for name in ("AGENTS.md", "CLAUDE.md", "README.md", "pyproject.toml", ".gitignore",
                  "demolab.yaml", "HOUSESTYLE.local.md"):
         assert (fresh_dir / name).is_file(), name
-    assert (fresh_dir / ".github" / "workflows" / "tests.yml").is_file()
     assert (fresh_dir / ".demolab" / "lib.typ").is_file()
-    for d in ("writings", "experiments", "tools", "artifacts"):
+    for d in ("writings", "assets"):
         assert (fresh_dir / d).is_dir(), d
     # project name derives from the directory
     assert 'name = "lab"' in (fresh_dir / "pyproject.toml").read_text(encoding="utf-8")
