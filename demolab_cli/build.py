@@ -1,4 +1,4 @@
-"""Discover writings/*.typ, write a JSON manifest, and compile all three targets.
+"""Discover writings/*.typ, write a JSON manifest, and compile the configured targets.
 
 build.py does only what Typst can't: it globs the filesystem (Typst has no directory
 listing) and orchestrates the compiler. It stages the engine's Typst surface into the lab
@@ -16,8 +16,8 @@ into artifacts/site/:
   pdfs/book.pdf         — every entry concatenated into one PDF (book mode)
 
 The site (artifacts/site/) is a self-contained build output (gitignored, deployed to
-Pages). The PDFs are also mirrored to the committed artifacts/pdfs/ as shareable
-deliverables.
+Pages). Unless `pdfs: false` is set in demolab.yaml, PDFs are also mirrored to the
+committed artifacts/pdfs/ as shareable deliverables.
 
 Each writings/<id>.typ exposes `#let meta = (...)` and `#let body = [...]`.
 Entries not yet in that convention are skipped (incremental migration).
@@ -47,6 +47,24 @@ MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ re
 DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedded as assets
 SITE = ROOT / "artifacts" / "site"         # bundle output (HTML + mp4 + pdfs/), gitignored
 PDFS = ROOT / "artifacts" / "pdfs"         # committed copy of the PDFs (shareable)
+
+
+def pdfs_enabled() -> bool:
+    """Whether this lab publishes PDFs (default: yes).
+
+    demolab.yaml intentionally has no Python YAML dependency. This reads the one supported
+    top-level boolean directly; Typst remains the authority for the rest of the config.
+    """
+    config = ROOT / "demolab.yaml"
+    if not config.is_file():
+        return True
+    text = config.read_text(encoding="utf-8")
+    match = re.search(r"(?m)^pdfs:\s*(true|false)\s*(?:#.*)?$", text)
+    if match:
+        return match.group(1) == "true"
+    if re.search(r"(?m)^pdfs\s*:", text):
+        raise SystemExit("error: demolab.yaml 'pdfs' must be true or false")
+    return True
 
 
 def _find_typst() -> str:
@@ -108,7 +126,8 @@ def discover_decks():
     return [p.name.removesuffix(".slide.typ") for p in sorted(WRITINGS.glob("*.slide.typ"))]
 
 
-def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = None) -> None:
+def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = None,
+                   *, publish_pdfs: bool = True) -> None:
     """Write temp/bundle/index.json — the id/asset lists the staged main.typ reads.
 
     This is the only place per-entry knowledge is assembled, and it's pure data (no Typst
@@ -132,6 +151,7 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
     manifest = {
         "entries": entries,
         "decks": [{"id": d} for d in deck_ids],
+        "pdfs_enabled": publish_pdfs,
         "has_brand_config": (ROOT / "demolab.yaml").exists(),
         "has_landing": (ROOT / "landing.typ").exists(),
     }
@@ -180,13 +200,13 @@ def _error_excerpt(err: str, lines: int = 8) -> str:
     return err.strip() or "build failed"
 
 
-def compile_bundle(ids: list[str], deck_ids: list[str]) -> dict:
+def compile_bundle(ids: list[str], deck_ids: list[str], *, publish_pdfs: bool = True) -> dict:
     """Compile the whole bundle. If an entry fails (a missing figure, a Typst error), flag it and
     retry, so it renders as a stub page instead of taking the rest of the site down with it. Returns
     the {id: error} map of entries that were stubbed."""
     broken: dict = {}
     while True:
-        write_manifest(ids, deck_ids, broken=broken)
+        write_manifest(ids, deck_ids, broken=broken, publish_pdfs=publish_pdfs)
         proc = subprocess.run(
             typst_compile("--format", "bundle", "--features", "bundle,html",
                           "--root", str(ROOT), str(MAIN), str(SITE) + "/"),
@@ -275,11 +295,14 @@ def main() -> None:
         raise SystemExit("error: build accepts at most one entry id")
     stage()
     ids = discover()
+    publish_pdfs = pdfs_enabled()
     _warn_if_content_misplaced(ids)
     if entry_args:
+        if not publish_pdfs:
+            raise SystemExit("error: PDF publishing is disabled by demolab.yaml (pdfs: false)")
         compile_entry(entry_args[0], ids)
         return
-    deck_ids = discover_decks()
+    deck_ids = discover_decks() if publish_pdfs else []
     # Zero writings is a valid state (a freshly `demolab scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
     # Compile decks first so their PDFs exist for the asset embeds in main.typ (skip reuses the
@@ -288,18 +311,23 @@ def main() -> None:
         good_decks = [d for d in deck_ids if (DECKS / f"{d}.pdf").exists()]
     else:
         good_decks = compile_decks(deck_ids)
-    write_manifest(ids, good_decks)
+    write_manifest(ids, good_decks, publish_pdfs=publish_pdfs)
     SITE.mkdir(parents=True, exist_ok=True)
+    if not publish_pdfs:
+        # Bundle compilation updates named outputs but does not prune outputs from an earlier
+        # build. The site tree is regenerable, so remove stale PDFs before a web-only compile;
+        # the committed artifacts/pdfs/ record remains deliberately untouched.
+        shutil.rmtree(SITE / "pdfs", ignore_errors=True)
     if generate_only:
         print(f"wrote manifest for {len(ids)} entries: {', '.join(ids)}"
               + (f" + {len(good_decks)} decks: {', '.join(good_decks)}" if good_decks else ""))
         return
     # One bad entry (a missing figure, a Typst error) becomes a stub page instead of failing the
     # whole site — compile_bundle flags it and retries.
-    broken = compile_bundle(ids, good_decks)
+    broken = compile_bundle(ids, good_decks, publish_pdfs=publish_pdfs)
     good = [i for i in ids if i not in broken]
     # mirror the compiled PDFs (entries, book, and decks) to the committed artifacts/pdfs/
-    if not no_mirror:
+    if publish_pdfs and not no_mirror:
         PDFS.mkdir(parents=True, exist_ok=True)
         for pdf in sorted((SITE / "pdfs").glob("*.pdf")):
             shutil.copy(pdf, PDFS / pdf.name)
@@ -310,8 +338,9 @@ def main() -> None:
     print(f"  entries: {', '.join(good)}"
           + (f"  ·  decks: {', '.join(good_decks)}" if good_decks else "")
           + (f"  ·  ⚠ stubbed: {', '.join(sorted(broken))}" if broken else "")
-          + (f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/" if not no_mirror
-             else "  ·  preview PDFs left untracked"))
+          + (f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/" if publish_pdfs and not no_mirror
+             else "  ·  preview PDFs left untracked" if publish_pdfs
+             else "  ·  PDF publishing disabled"))
     summary = f"built {len(good)} entries" + (f" + {len(good_decks)} decks" if good_decks else "")
     if broken:
         summary += f", {len(broken)} stubbed"

@@ -10,9 +10,9 @@ RULES' `§N.M`) and listed alphabetically. Section references like `§4.3` point
 
 **G3 — Black box.** The installed `demolab-cli` package (the build engine, runbooks, guides, scaffold) plus the machine-managed `.demolab/` staging dir it materialises at the lab root. Pure upstream, never hand-edited; *"update demolab"* is a dependency bump (§3.1). Your customisation lives *outside* it, in `demolab.yaml` and your content.
 
-**G4 — Brand config.** The optional root `demolab.yaml`: wordmark, PDF titles, and the collection registry (including optional web themes). Absent ⇒ engine defaults (§3.3, §6.5).
+**G4 — Lab config.** The optional root `demolab.yaml`: branding, collection registry, web themes, and the `pdfs` publishing switch. Absent keys use engine defaults (§3.3, §6.5).
 
-**G5 — Bundle.** The Typst multi-document output from one compile: the site, per-entry PDFs, and the book, all emitted together by `main.typ` (§5.2).
+**G5 — Bundle.** The Typst multi-document output from one compile: always the site and, unless disabled, per-entry PDFs and the book, all emitted by `main.typ` (§5.2).
 
 **G6 — Coding agent.** The AI assistant (Claude Code, Cursor, aider, …) that reads this repo and operates it: runs the toolchain, wires files, follows runbooks.
 

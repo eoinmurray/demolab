@@ -30,7 +30,7 @@ my-lab/
 │   └── arNNN.slide.typ       a deck — Touying slides → standalone PDF      [G9]
 ├── artifacts/              the committed record of every run              [§5]
 │   ├── data/<id>/            figures + numbers.json + run.sh (+ any mp4) — the publisher-neutral record  [§5.1, G18]
-│   ├── pdfs/                 compiled PDFs (per entry + book.pdf) — shareable                    [§5.3]
+│   ├── pdfs/                 optional compiled PDFs (per entry + book.pdf) — shareable           [§5.3]
 │   └── site/                 the built web site — GITIGNORED (CI rebuilds + deploys it)          [§5.3]
 ├── demolab.yaml            branding + collections config — and the LAB MARKER the CLI walks up to  [§3.3, §6.5, G4]
 ├── HOUSESTYLE.local.md     optional — your house-style overrides (extend/replace)  [§3.3]
@@ -67,7 +67,7 @@ lives in the installed `demolab-cli` package (site-packages), reached via `demol
 
 **S5 — The package vs your stuff.** The engine is the installed `demolab-cli` package — you never hand-edit it, and updating it is a dependency bump (§3.1). The gitignored `.demolab/` staging dir is the CLI's, not yours (§3.2). Everything else in the tree is yours: `tools/`, `experiments/`, `writings/`, `artifacts/`, `demolab.yaml`, and the root stubs `demolab init` laid down (§3.3).
 
-**S6 — Where the build goes.** `demolab build` globs `writings/*.typ` into `temp/bundle/index.json`, stages the engine's `main.typ` beside it, and compiles it to three targets in one pass: the web site → `artifacts/site/`, per-entry PDFs + `book.pdf` → `artifacts/site/pdfs/` (mirrored to `artifacts/pdfs/`). `demolab build <id>` instead updates only `artifacts/pdfs/<id>.pdf`; `demolab dev` keeps preview PDFs in the ignored site tree and never mirrors them. On an empty (freshly-initialised) tree the complete build still succeeds — it emits a single `index.html` with a friendly empty state, and skips `all.html`/collection pages/`book.pdf`. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
+**S6 — Where the build goes.** `demolab build` globs `writings/*.typ` into `temp/bundle/index.json`, stages the engine's `main.typ` beside it, and compiles the web site → `artifacts/site/`. By default it also emits per-entry PDFs + `book.pdf` under `artifacts/site/pdfs/` and mirrors them to `artifacts/pdfs/`; `pdfs: false` in `demolab.yaml` makes the build web-only and omits PDF-only decks. `demolab build <id>` updates only `artifacts/pdfs/<id>.pdf` when PDFs are enabled; `demolab dev` never mirrors preview PDFs. On an empty tree the build emits a friendly `index.html` and skips the other documents. CI deploys `artifacts/site/` to GitHub Pages (§5.2, §5.3).
 
 ## Scaffolding
 

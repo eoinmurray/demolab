@@ -19,6 +19,8 @@ def is_bundle_entry(source: str) -> bool:
 
 
 def main() -> None:
+    if not build.pdfs_enabled():
+        raise SystemExit("error: PDF publishing is disabled by demolab.yaml (pdfs: false)")
     build.stage()  # a deck may import /.demolab/lib.typ (video, data-file, …)
     build.PDFS.mkdir(parents=True, exist_ok=True)
     found = failed = False

@@ -3,7 +3,7 @@
 You are operating a **demolab lab**: an agent-operated lab notebook for computational
 science. The loop: a tool computes → drops data under `artifacts/data/<id>/` → an
 experiment writes it up in `writings/<id>.typ` → `demolab build` publishes it all as a
-website, per-entry PDFs, and a book. Every number on a page is read from the run that
+website, plus per-entry PDFs and a book unless the lab opts out. Every number on a page is read from the run that
 produced it — nothing is hand-typed, so prose and results can't drift.
 
 This manual ships inside the `demolab-cli` package and is printed by `demolab docs`, so it
@@ -13,7 +13,7 @@ short.
 ## The layout, in one breath
 
 `tools/` (reusable science), `experiments/` (runners), `writings/` (the .typ writeups),
-`artifacts/` (the committed record: `data/` + `pdfs/`; `site/` is a gitignored build),
+`artifacts/` (the committed record: `data/` + optional `pdfs/`; `site/` is a gitignored build),
 `demolab.yaml` (branding — and the lab-root marker every `demolab` command walks up to).
 The engine lives in the installed package, not the lab; the gitignored `.demolab/` dir is
 machine-managed staging. Full tree: `demolab docs STRUCTURE`.
@@ -71,7 +71,7 @@ guide covers it, ground your answer in it — cite it or offer to start it.
 `demolab` lists them all. The loop: `uv run python experiments/expNNN.py` (run an experiment
 end-to-end — run the runner directly, there's no `demolab run` wrapper) · `demolab dev`
 (live-preview server — have the *user* run it in their own terminal) · `demolab build`
-(complete site + PDFs) · `demolab build <id>` (one entry PDF) · `demolab test`. Preview
+(site + optional PDFs) · `demolab build <id>` (one entry PDF, when enabled) · `demolab test`. Preview
 PDFs stay in the ignored site tree; run the complete build before publishing. Reference data ships in the package:
 `demolab docs STARTERS` (canonical first experiments — model file shapes on them, never copy
 blindly; `monte-carlo-pi` is the default) and `demolab docs DEMO` (the published docs site's

@@ -224,7 +224,7 @@
 // Flatten entries + decks into one uniform list of link rows. Decks (paged-only) link to
 // their PDF and fall into the `slides` collection unless their meta says otherwise;
 // entries link to their HTML page.
-#let collect-items(entries, decks) = {
+#let collect-items(entries, decks, pdfs-enabled: true) = {
   entries.map(e => (
     id: e.id,
     kind: e.kind, // "experiment" | "article"
@@ -234,7 +234,7 @@
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
     href: e.id + ".html",
-    pdf: "pdfs/" + e.id + ".pdf",
+    pdf: if pdfs-enabled { "pdfs/" + e.id + ".pdf" } else { none },
     deck: false,
   )) + decks.map(d => (
     id: d.id,
@@ -279,8 +279,10 @@
               human-date(it.date)
               if show-collection [ · #collection-label(it.coll, collection-meta)]
               if it.status != "final" [ · #status-badge(it.status)]
-              [ · ]
-              html.elem("a", attrs: (class: "row-pdf", href: it.pdf), "pdf")
+              if it.pdf != none {
+                [ · ]
+                html.elem("a", attrs: (class: "row-pdf", href: it.pdf), "pdf")
+              }
             })
           })
         })
@@ -289,7 +291,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#human-date(it.date)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != "final" [ · #status-badge(it.status)] · #link(it.pdf)[pdf]]]
+        #text(fill: gray, size: 9pt)[#human-date(it.date)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != "final" [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -403,7 +405,7 @@
   html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
 }
 
-#let entry-page(meta, body, id: none, kind: "article", brand: default-brand, annotations: none, collection-meta: (:)) = {
+#let entry-page(meta, body, id: none, kind: "article", brand: default-brand, annotations: none, collection-meta: (:), pdfs-enabled: true) = {
   // Entry metadata can override the lab-wide provider. `none` disables a global provider for
   // one entry; absent metadata inherits the root demolab.yaml setting.
   let annotation-provider = meta.at("annotations", default: annotations)
@@ -474,7 +476,7 @@
   ).filter(x => x != none)
   let meta-line = meta-bits.join(" · ")
   let status = meta.at("status", default: "final")
-  let pdf-href = if id != none { "pdfs/" + id + ".pdf" } else { none }
+  let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
       html.elem("div", attrs: (class: "entry-meta"), {
@@ -505,11 +507,11 @@
 // `landing`; it replaces the collection directory below the brand header — a full custom
 // landing page. Used by the upstream demo site; absent on a normal lab. The landing body
 // owns its markup (html.elem); the .welcome-* classes in style.css are there to reuse.
-#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), landing: none) = {
+#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), landing: none, pdfs-enabled: true) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
-  let items = collect-items(entries, decks)
+  let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
   let colls = items.map(it => it.coll).dedup().sorted(key: c => collection-rank(c, collection-order))
   // .listing scopes the pinglab treatment: nav/index links unadorned, underline on hover
   // only (entry-body prose keeps the default underline). The homepage leads with the same
@@ -549,9 +551,11 @@
       collection-index(colls, collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
         link("all.html", "Browse all entries")
-        [ · also available as a ]
-        link("pdfs/book.pdf", "single pdf")
-        [.]
+        if pdfs-enabled {
+          [ · also available as a ]
+          link("pdfs/book.pdf", "single pdf")
+          [.]
+        }
       })
     }
   })
@@ -575,11 +579,11 @@
 
 // The flat everything index — every entry + deck, newest first, each tagged with its
 // collection. Linked from the homepage.
-#let all-page(entries, decks: (), brand: default-brand, collection-meta: (:)) = {
+#let all-page(entries, decks: (), brand: default-brand, collection-meta: (:), pdfs-enabled: true) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false)
-  let items = collect-items(entries, decks)
+  let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
   html.elem("div", attrs: (class: "listing"), {
     heading(level: 1, [All entries])
     grouped-entry-lists(items)

@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-08-23
+
+### Added
+- **PDF publishing can be disabled for web-only labs.** Set `pdfs: false` in
+  `demolab.yaml` to omit per-entry PDFs, the combined book, PDF links, and PDF-only slide
+  decks. Existing files under `artifacts/pdfs/` are preserved; the default remains enabled.
+
 ## [2.4.0] — 2026-08-14
 
 ### Added

@@ -45,7 +45,7 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("publishing", [
         ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (--demo serves the shipped demo, add --landing for its landing page; PORT overrides the auto-picked 3000)"),
-        ("build", "📦 Build the whole bundle → artifacts/site/ (web) + artifacts/pdfs/ (PDFs + book)"),
+        ("build", "📦 Build the publication → artifacts/site/ (web) + optional artifacts/pdfs/"),
         ("slides", "🎞  Compile standalone Typst decks (writings/*.typ with no meta+body) to artifacts/pdfs/"),
         ("playground", "🎛  Launch the interactive Streamlit demo (http://localhost:8501)"),
     ]),

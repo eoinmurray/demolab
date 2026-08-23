@@ -74,6 +74,54 @@ def test_targeted_build_writes_only_selected_pdf(tmp_path: Path) -> None:
     assert not (root / "artifacts" / "site").exists()
 
 
+def test_web_only_build_emits_no_pdfs_or_pdf_links(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    _build(root)  # prove a later web-only build removes stale PDFs from the ignored site
+    (root / "demolab.yaml").write_text(
+        (root / "demolab.yaml").read_text() + "\npdfs: false\n", encoding="utf-8"
+    )
+    committed = root / "artifacts" / "pdfs"
+    shutil.rmtree(committed, ignore_errors=True)
+    committed.mkdir(parents=True)
+    sentinel = committed / "existing.pdf"
+    sentinel.write_bytes(b"keep me")
+    _build(root)
+    site = root / "artifacts" / "site"
+    assert (site / "index.html").exists()
+    assert not (site / "pdfs").exists()
+    assert sentinel.read_bytes() == b"keep me"
+    assert sorted(p.name for p in committed.iterdir()) == ["existing.pdf"]
+    assert 'class="row-pdf"' not in (site / "all.html").read_text()
+    assert 'class="entry-pdf"' not in (site / "ar018.html").read_text()
+    assert 'href="pdfs/book.pdf"' not in (site / "index.html").read_text()
+    assert "Slides" not in (site / "all.html").read_text()
+
+
+def test_targeted_pdf_build_rejects_web_only_lab(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _assemble(root, demo=True)
+    (root / "demolab.yaml").write_text("name: Test\npdfs: false\n")
+    proc = subprocess.run(
+        [sys.executable, "-m", "demolab_cli.build", "ar018"],
+        env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
+    )
+    assert proc.returncode != 0
+    assert "PDF publishing is disabled" in proc.stderr
+
+
+def test_pdfs_config_defaults_on_and_validates_false(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(build, "ROOT", tmp_path)
+    assert build.pdfs_enabled() is True
+    (tmp_path / "demolab.yaml").write_text("name: Test\npdfs: false\n")
+    assert build.pdfs_enabled() is False
+    (tmp_path / "demolab.yaml").write_text("pdfs: sometimes\n")
+    with pytest.raises(SystemExit, match="must be true or false"):
+        build.pdfs_enabled()
+
+
 def test_source_date_epoch_overrides_default(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
     assert build.typst_compile("input.typ")[3] == "1234567890"

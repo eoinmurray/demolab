@@ -9,7 +9,7 @@ per-run artifacts; Typst publishes them as a website, per-entry PDFs, and a book
 uv sync              # install dependencies + the `demolab` command
 demolab dev          # live-preview the site at http://localhost:3000
 uv run python experiments/exp000.py   # run an experiment end-to-end
-demolab build        # build the site + PDFs into artifacts/
+demolab build        # build the site + optional PDFs into artifacts/
 ```
 
 Run `demolab` for the full command list. If you work with a coding agent, it reads
@@ -21,7 +21,7 @@ chat shows the menu.
 - `experiments/` — runners that stage `artifacts/data/<id>/` (figures + numbers)
 - `writings/` — the write-ups (`<id>.typ`), published by `demolab build`
 - `tools/` — reusable science shared by experiments
-- `artifacts/` — the committed record: `data/` per run, `pdfs/` compiled deliverables
+- `artifacts/` — the committed record: `data/` per run, optional `pdfs/` deliverables
 - `demolab.yaml` — branding + collections (also marks this directory as a lab)
 
 The engine ships in the `demolab-cli` package — nothing to vendor or maintain here.

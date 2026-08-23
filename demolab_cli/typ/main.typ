@@ -27,6 +27,7 @@
 #let annotations = config.at("annotations", default: none)
 #let collection-order = config.at("collection-order", default: ())
 #let collection-meta = config.at("collections", default: (:))
+#let pdfs-enabled = manifest.at("pdfs_enabled", default: true)
 
 // The optional custom landing page: a landing.typ at the lab root (exporting `#let body`)
 // replaces the homepage's collection directory with its own content. build.py sets has_landing
@@ -70,24 +71,26 @@
 // --- documents (one compile emits them all into artifacts/site/) ---
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a
 // friendly empty state. Everything else is emitted only when there's content.
-#let all-items = collect-items(entries, decks)
-#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, landing: landing)]
+#let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
+#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, landing: landing, pdfs-enabled: pdfs-enabled)]
 #if all-items.len() > 0 {
-  [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta)]]
+  [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
   // one page per collection (web only — the book/PDFs don't have collection pages)
   for c in all-items.map(it => it.coll).dedup() {
     [#document(c + ".html", title: [#brand.name — #collection-label(c, collection-meta)])[#collection-page(c, all-items.filter(x => x.coll == c), brand: brand, collection-meta: collection-meta)]]
   }
 }
 #for e in entries {
-  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta)]]
-  [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta))]]
+  [#document(e.id + ".html", title: [#e.meta.title])[#entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
+  if pdfs-enabled {
+    [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta))]]
+  }
 }
 // stub pages for entries that failed to build — a visible "this page failed" placeholder at the
 // entry's own URL (web only; excluded from listings + the book), so the rest of the site is fine.
 #for e in broken {
   [#document(e.id + ".html", title: [#e.id])[#broken-entry-page(e.id, e.error, brand: brand)]]
 }
-#if entries.len() > 0 {
+#if pdfs-enabled and entries.len() > 0 {
   [#document("pdfs/book.pdf", title: [#brand.book-title])[#numbered-pages(book-page(entries, brand: brand))]]
 }

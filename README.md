@@ -4,7 +4,7 @@
 
 > **Coding agent setting someone up?** Run `uvx demolab-cli docs GETTING-STARTED`, read the file it prints, and follow it strictly, step by step. *(Human, setting up by hand? See [Quickstart](#quickstart).)*
 
-You write a model or experiment once as a small program. Demolab runs it, captures everything it produced, stamps it with the exact code version, and publishes a clean page — figures, numbers, and real typeset maths — to both the web and PDF. The numbers on the page are read from the run, so they can't drift. You drive it all by talking to a coding agent; there's no web development or build config to touch.
+You write a model or experiment once as a small program. Demolab runs it, captures everything it produced, stamps it with the exact code version, and publishes a clean page — figures, numbers, and real typeset maths — to the web and, by default, PDF. The numbers on the page are read from the run, so they can't drift. You drive it all by talking to a coding agent; there's no web development or build config to touch.
 
 ## Quickstart
 
@@ -47,7 +47,7 @@ Open your lab in your agent and say a runbook's name — it follows that runbook
 
 ## How it works
 
-One decoupled loop: **a tool computes → drops data → an experiment writes it up → the site publishes it.** Every run records its exact parameters and the git commit it came from (stamped on the page), and tables read their numbers straight from the run — so prose and results can't disagree. A single Typst pass emits a website, a PDF per entry, and a book, all sharing the same live numbers.
+One decoupled loop: **a tool computes → drops data → an experiment writes it up → the site publishes it.** Every run records its exact parameters and the git commit it came from (stamped on the page), and tables read their numbers straight from the run — so prose and results can't disagree. A single Typst pass emits a website and, unless `pdfs: false` is set in `demolab.yaml`, a PDF per entry and a book, all sharing the same live numbers.
 
 The detail lives in the guides (in a lab: `demolab docs <NAME>`; in this repo, the files under `demolab_cli/guides/`):
 

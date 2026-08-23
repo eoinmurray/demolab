@@ -14,6 +14,10 @@ description: A lab notebook for computational science — reproducible results, 
 # author: Your Name
 # contact: you@example.com
 
+# PDF publishing is enabled by default. Disable it for a web-only lab; existing PDFs are
+# left untouched, and PDF-only slide decks are omitted from the site.
+# pdfs: false
+
 # Optional collaborative inline comments on web articles and experiments. Readers select text
 # and discuss it through Hypothesis accounts and groups; PDFs are unchanged. Set this lab-wide,
 # or omit it here and add `annotations: "hypothesis"` to selected writings' `meta` blocks.
