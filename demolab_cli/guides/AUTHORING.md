@@ -27,3 +27,15 @@ Put static inputs under `assets/`. Typst can read them from absolute project pat
 copied into the website at the same relative path; `#video("clip.mp4")` references an asset.
 
 Use `demolab dev` for live preview and `demolab build` for a complete publication.
+
+The homepage remains a compact collection directory by default. To expand collection contents
+and optionally show recently updated ordinary writings, add this to `demolab.yaml`:
+
+```yaml
+index:
+  mode: expanded
+  recent: 5
+```
+
+Omit `recent` or set it to `0` to remove “Recently worked on”. Recent work is ranked only by
+authored `updated_at ?? created_at`, then by ID descending; slides are excluded.

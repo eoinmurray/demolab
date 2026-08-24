@@ -18,6 +18,12 @@ description: A Typst presentation published as a website with optional PDFs.
 # or omit it here and add `annotations: "hypothesis"` to selected writings' `meta` blocks.
 # annotations: hypothesis
 
+# Keep the compact collection directory by default. To show recent authored work followed by
+# expanded collection contents, enable this mode. Omit `recent` or set it to 0 to hide that section.
+# index:
+#   mode: expanded
+#   recent: 5
+
 # Optional custom landing page — not a config key: create a `landing.typ` at the repo root
 # exporting `#let body = [...]` and the homepage renders it (web only) instead of the collection
 # directory, below the title/tagline/byline above. Delete the file to get the directory back.

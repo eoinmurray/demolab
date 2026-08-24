@@ -27,6 +27,7 @@
 #let annotations = config.at("annotations", default: none)
 #let collection-order = config.at("collection-order", default: ())
 #let collection-meta = config.at("collections", default: (:))
+#let index-config = config.at("index", default: (:))
 #let pdfs-enabled = manifest.at("pdfs_enabled", default: true)
 
 // The optional custom landing page: a landing.typ at the lab root (exporting `#let body`)
@@ -71,7 +72,7 @@
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a
 // friendly empty state. Everything else is emitted only when there's content.
 #let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
-#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, landing: landing, pdfs-enabled: pdfs-enabled)]
+#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled)]
 #if all-items.len() > 0 {
   [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
   // one page per collection (web only — the book/PDFs don't have collection pages)

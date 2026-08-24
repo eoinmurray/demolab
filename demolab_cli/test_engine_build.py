@@ -234,3 +234,121 @@ def test_authored_dates_reject_invalid_values(
     )
     assert proc.returncode != 0
     assert message in proc.stderr
+
+
+def test_default_homepage_remains_collection_directory(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text("name: Test\npdfs: false\n")
+    (root / "writings" / "note.typ").write_text(
+        '#let meta = (title: "Note", created_at: "2026-08-24", collection: "notes")\n'
+        '#let body = [Body.]\n'
+    )
+
+    _build(root)
+
+    index = (root / "artifacts" / "site" / "index.html").read_text()
+    assert '<ul class="coll-list">' in index
+    assert "Recently worked on" not in index
+    assert 'href="note.html"' not in index
+
+
+def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Test\ncollection-order: [second, work, slides]\n"
+        "collections:\n  second:\n    label: Second collection\n"
+        "    description: Listed first.\n"
+        "index:\n  mode: expanded\n  recent: 2\n"
+    )
+    writings = root / "writings"
+    entries = (
+        ("alpha", "2026-08-24", "2026-08-27", "work", "ExpStudy"),
+        ("beta", "2026-08-26", None, "work", "ExpScoutPlan"),
+        ("gamma", "2026-08-26", None, "work", "ExpStudy"),
+        ("delta", "2026-08-20", None, "second", None),
+    )
+    for entry_id, created, updated, collection, status in entries:
+        updated_field = "" if updated is None else f', updated_at: "{updated}"'
+        status_field = "" if status is None else f', status: "{status}"'
+        (writings / f"{entry_id}.typ").write_text(
+            f'#let meta = (title: "{entry_id}", created_at: "{created}"{updated_field}, '
+            f'collection: "{collection}"{status_field})\n#let body = [Body.]\n'
+        )
+    (writings / "talk.slide.typ").write_text(
+        '#let meta = (title: "Talk", created_at: "2026-08-28", collection: "slides")\n'
+        '#set page(width: 16cm, height: 9cm)\n= Talk\n'
+    )
+
+    _build(root)
+
+    index_path = root / "artifacts" / "site" / "index.html"
+    index = index_path.read_text()
+    recent = index[index.index("Recently worked on"):index.index('href="second.html"')]
+    assert recent.index('href="alpha.html"') < recent.index('href="gamma.html"')
+    assert 'href="beta.html"' not in recent
+    assert 'href="talk.html"' not in recent
+    assert index.index('href="second.html"') < index.index('href="work.html"')
+    assert index.index('href="work.html"') < index.index('href="slides.html"')
+    assert "Second collection" in index and "Listed first." in index
+    work = index[index.index('href="work.html"'):index.index('href="slides.html"')]
+    assert work.index('href="gamma.html"') < work.index('href="beta.html"')
+    assert work.index('href="beta.html"') < work.index('href="alpha.html"')
+    assert "ExpScoutPlan" in work and "ExpStudy" in work
+    slides = index[index.index('href="slides.html"'):]
+    assert 'href="pdfs/talk.pdf"' in slides
+
+    # Filesystem/build activity cannot affect authored-date ranking.
+    os.utime(writings / "beta.typ", (2_000_000_000, 2_000_000_000))
+    _build(root)
+    rebuilt = index_path.read_text()
+    rebuilt_recent = rebuilt[
+        rebuilt.index("Recently worked on"):rebuilt.index('href="second.html"')
+    ]
+    assert rebuilt_recent.index('href="alpha.html"') < rebuilt_recent.index('href="gamma.html"')
+    assert 'href="beta.html"' not in rebuilt_recent
+
+
+@pytest.mark.parametrize("recent_line", ("", "  recent: 0\n"))
+def test_expanded_homepage_can_omit_recent_section(
+    tmp_path: Path, recent_line: str,
+) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Test\npdfs: false\nindex:\n  mode: expanded\n" + recent_line
+    )
+    (root / "writings" / "note.typ").write_text(
+        '#let meta = (title: "Note", created_at: "2026-08-24", collection: "notes")\n'
+        '#let body = [Body.]\n'
+    )
+
+    _build(root)
+
+    index = (root / "artifacts" / "site" / "index.html").read_text()
+    assert "Recently worked on" not in index
+    assert 'href="note.html"' in index
+
+
+def test_expanded_homepage_rejects_negative_recent(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Test\npdfs: false\nindex:\n  mode: expanded\n  recent: -1\n"
+    )
+    (root / "writings" / "note.typ").write_text(
+        '#let meta = (title: "Note", created_at: "2026-08-24", collection: "notes")\n'
+        '#let body = [Body.]\n'
+    )
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "demolab_cli.build"],
+        env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
+    )
+    assert proc.returncode != 0
+    assert "index.recent' must be a non-negative integer" in proc.stderr

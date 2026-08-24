@@ -13,6 +13,11 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **The homepage can optionally expand recent work and collection contents.** Set
+  `index.mode: expanded` with an optional non-negative `index.recent`; authored dates rank recent
+  writings, while expanded collections remain strictly ID-descending and status-independent.
+
 ## [3.1.0] — 2026-08-24
 
 ### Changed

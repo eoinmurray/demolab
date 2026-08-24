@@ -342,6 +342,59 @@
   }
 }
 
+// Expanded-homepage configuration and ordering are deliberately separate from collection-page
+// ordering: status and curated `order` never influence these homepage writing lists.
+#let index-options(index) = {
+  assert(type(index) == dictionary, message: "demolab.yaml 'index' must be a mapping")
+  let mode = index.at("mode", default: "directory")
+  assert(mode in ("directory", "expanded"),
+    message: "demolab.yaml 'index.mode' must be 'expanded' when set")
+  let recent = index.at("recent", default: 0)
+  assert(type(recent) == int and recent >= 0,
+    message: "demolab.yaml 'index.recent' must be a non-negative integer")
+  (mode: mode, recent: recent)
+}
+
+#let id-desc(items) = items.sorted(key: x => x.id).rev()
+#let effective-work-date(item) = {
+  let dates = entry-dates(item.meta)
+  if dates.updated != none { dates.updated } else { dates.created }
+}
+#let recent-writings(items, limit) = {
+  items
+    .filter(x => not x.deck)
+    .sorted(key: x => x.id)
+    .sorted(key: effective-work-date)
+    .rev()
+    .slice(0, calc.min(limit, items.filter(x => not x.deck).len()))
+}
+#let existing-slide-order(slides, collection-items) = {
+  if is-curated(collection-items) { reading-order(slides) } else {
+    slides.sorted(key: x => x.id).rev().sorted(key: x => status-rank(x.status))
+  }
+}
+
+#let expanded-index(colls, items, recent: 0, collection-meta: (:)) = {
+  let recent-items = recent-writings(items, recent)
+  if recent > 0 and recent-items.len() > 0 {
+    heading(level: 2, [Recently worked on])
+    entry-list(recent-items, show-collection: true, collection-meta: collection-meta)
+  }
+  for c in colls {
+    let collection-items = items.filter(x => x.coll == c)
+    let writings = id-desc(collection-items.filter(x => not x.deck))
+    let slides = existing-slide-order(collection-items.filter(x => x.deck), collection-items)
+    heading(level: 2, link(c + ".html", collection-label(c, collection-meta)))
+    let desc = collection-description(c, collection-meta)
+    if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
+    if writings.len() > 0 { entry-list(writings, collection-meta: collection-meta) }
+    if slides.len() > 0 {
+      heading(level: 3, [Slides])
+      entry-list(slides, collection-meta: collection-meta)
+    }
+  }
+}
+
 // --- heading anchors: a slug id on every heading so any section is deep-linkable (page.html#slug) ---
 // to-string flattens a heading's content to plain text; slugify lowercases it to a-z0-9-hyphens.
 #let to-string(c) = {
@@ -502,12 +555,13 @@
 // `landing`; it replaces the collection directory below the brand header — a full custom
 // landing page. Used by the upstream demo site; absent on a normal lab. The landing body
 // owns its markup (html.elem); the .welcome-* classes in style.css are there to reuse.
-#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), landing: none, pdfs-enabled: true) = {
+#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
   let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
   let colls = items.map(it => it.coll).dedup().sorted(key: c => collection-rank(c, collection-order))
+  let index = index-options(index-config)
   // .listing scopes the pinglab treatment: nav/index links unadorned, underline on hover
   // only (entry-body prose keeps the default underline). The homepage leads with the same
   // title + description header a collection page uses, so the two read as siblings.
@@ -540,6 +594,16 @@
       })
     } else if landing != none {
       landing
+    } else if index.mode == "expanded" {
+      expanded-index(colls, items, recent: index.recent, collection-meta: collection-meta)
+      html.elem("p", attrs: (class: "page-foot"), {
+        link("all.html", "Browse all entries")
+        if pdfs-enabled {
+          [ · also available as a ]
+          link("pdfs/book.pdf", "single pdf")
+          [.]
+        }
+      })
     } else {
       collection-index(colls, collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
