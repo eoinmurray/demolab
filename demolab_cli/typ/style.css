@@ -166,8 +166,7 @@ ol.refs .doi:hover { color: var(--ink); }
 .cite-popover .doi { color: var(--muted); }
 .cite-popover .doi:hover { color: var(--ink); }
 
-/* Status marker (`.status`): plain text in the meta line — `final` renders nothing (RULES §6.4),
-   so no styling is needed; it inherits the meta line's look. */
+/* Experiment artifact stage (`.status`): inherits the metadata line's quiet treatment. */
 
 /* Build-error stub: an entry that failed to compile (a missing figure, a Typst error) is served as
    a stub page with the error in this block, so the failure is visible on its own page while the

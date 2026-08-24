@@ -122,3 +122,33 @@ def test_pdfs_config_defaults_on_and_validates(tmp_path: Path, monkeypatch) -> N
 def test_source_date_epoch_overrides_default(monkeypatch) -> None:
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
     assert build.typst_compile("input.typ")[3] == "1234567890"
+
+
+def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text("name: Test\npdfs: false\n")
+    stages = (
+        ("untyped", None),
+        ("study", "ExpStudy"),
+        ("study-plan", "ExpStudyPlan"),
+        ("scout", "ExpScout"),
+        ("scout-plan", "ExpScoutPlan"),
+    )
+    for entry_id, status in stages:
+        status_field = "" if status is None else f', status: "{status}"'
+        (root / "writings" / f"{entry_id}.typ").write_text(
+            f'#let meta = (title: "{entry_id}", date: "2026-08-24", '
+            f'collection: "lifecycle"{status_field})\n#let body = [Body.]\n'
+        )
+
+    _build(root)
+
+    page = (root / "artifacts" / "site" / "lifecycle.html").read_text()
+    expected = ("scout-plan", "scout", "study-plan", "study", "untyped")
+    positions = [page.index(f'href="{entry_id}.html"') for entry_id in expected]
+    assert positions == sorted(positions)
+    for status in ("ExpScoutPlan", "ExpScout", "ExpStudyPlan", "ExpStudy"):
+        assert f'class="status">{status}</span>' in page
+    assert 'class="status">final</span>' not in page

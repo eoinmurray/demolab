@@ -11,6 +11,10 @@ Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
    by hand. A web-only build (`pdfs: false`) leaves existing shareable PDFs untouched.
 5. `demolab dev` previews; `demolab build` publishes; `demolab deploy-setup` installs static Pages
    workflows. Typst is the only rendering toolchain.
+6. An experiment may set `meta.status` to its artifact stage: `ExpScoutPlan`, `ExpScout`,
+   `ExpStudyPlan`, or `ExpStudy`. Every supplied stage is visible, and listings follow that
+   lifecycle order. Omit it from articles and untyped legacy writings. It identifies the artifact
+   that exists, not execution progress or editorial completion.
 
 Demolab does not run source code, validate claims, manage research, or guarantee where numbers
 came from. Authors own their content and evidence.

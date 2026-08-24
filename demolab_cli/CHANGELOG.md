@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Changed
+- **Experiment status identifies the scientific artifact stage.** Optional writing metadata now
+  follows `ExpScoutPlan → ExpScout → ExpStudyPlan → ExpStudy`; every supplied stage is
+  visible and listings follow that order. The former editorial lifecycle and invisible `final`
+  default are removed.
+
 ## [3.0.0] — 2026-08-23
 
 ### Changed

@@ -164,25 +164,21 @@
   if i == none { order.len() } else { i }
 }
 
-// --- status-badge: an entry's lifecycle marker, as plain text ---
-// Set `status:` in a writing's meta. "final" (the default) shows nothing — a clean line is
-// "done" — so only work-in-progress is flagged. Just the word, no styling; it sits in the
-// meta line and inherits its look.
+// --- status-badge: an experiment's artifact-stage marker, as plain text ---
+// Set `status:` to the canonical artifact noun: ExpScoutPlan, ExpScout, ExpStudyPlan, or
+// ExpStudy. It is optional and every supplied stage is shown.
 #let status-badge(status) = {
-  let s = if status == none { "final" } else { status }
-  if s != "final" {
-    let disp = upper(s.slice(0, 1)) + s.slice(1)  // capitalised for display; sorting uses the raw value
+  if status != none {
     context {
-      if target() == "html" { html.elem("span", attrs: (class: "status"), disp) } else { text(disp) }
+      if target() == "html" { html.elem("span", attrs: (class: "status"), status) } else { text(status) }
     }
   }
 }
 
-// Lifecycle order for sorting: final → revising → building → draft. Unknown (free-form) values
-// sort mid-lifecycle. Used by grouped-entry-lists so settled work leads and work-in-progress trails.
+// Artifact lifecycle order for sorting. Untyped and unknown values follow typed experiments.
 #let status-rank(s) = {
-  let i = ("final", "revising", "building", "draft").position(x => x == s)
-  if i == none { 2 } else { i }
+  let i = ("ExpScoutPlan", "ExpScout", "ExpStudyPlan", "ExpStudy").position(x => x == s)
+  if i == none { 4 } else { i }
 }
 
 // Flatten entries + decks into one uniform list of link rows. Decks (paged-only) link to
@@ -194,7 +190,7 @@
     kind: e.kind,
     title: e.meta.title,
     date: e.meta.date,
-    status: e.meta.at("status", default: "final"),
+    status: e.meta.at("status", default: none),
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
     href: e.id + ".html",
@@ -205,7 +201,7 @@
     kind: "deck",
     title: d.meta.title,
     date: d.meta.date,
-    status: d.meta.at("status", default: "final"),
+    status: d.meta.at("status", default: none),
     coll: d.meta.at("collection", default: "slides"),
     order: d.meta.at("order", default: none),
     href: "pdfs/" + d.id + ".pdf",
@@ -242,7 +238,7 @@
             html.elem("div", attrs: (class: "row-meta"), {
               human-date(it.date)
               if show-collection [ · #collection-label(it.coll, collection-meta)]
-              if it.status != "final" [ · #status-badge(it.status)]
+              if it.status != none [ · #status-badge(it.status)]
               if it.pdf != none {
                 [ · ]
                 html.elem("a", attrs: (class: "row-pdf", href: it.pdf), "pdf")
@@ -255,7 +251,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#human-date(it.date)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != "final" [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
+        #text(fill: gray, size: 9pt)[#human-date(it.date)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -263,7 +259,7 @@
 // Render items grouped by kind — Articles, then Experiments, then Slides — each a level-2
 // section (empty groups dropped). Shared by the all-entries page and each collection page.
 // Group order: Articles, then Experiments, then Slides. Within a group, rows sort by **status**
-// (lifecycle: final first, draft last — settled work leads) then by **id** descending
+// (ExpScoutPlan → ExpScout → ExpStudyPlan → ExpStudy) then by **id** descending
 // (newest first). A stable two-pass gives the id-desc tiebreak within each status.
 // A collection where any item carries `order:` is *curated*: it lists in reading order
 // (by that rank) instead of the status/newest sort, so a documentation arc reads in sequence.
@@ -439,20 +435,20 @@
     human-date(meta.date),
   ).filter(x => x != none)
   let meta-line = meta-bits.join(" · ")
-  let status = meta.at("status", default: "final")
+  let status = meta.at("status", default: none)
   let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
       html.elem("div", attrs: (class: "entry-meta"), {
         meta-line
-        if status != "final" [ · #status-badge(status)]
+        if status != none [ · #status-badge(status)]
         if pdf-href != none {
           [ · ]
           html.elem("a", attrs: (class: "entry-pdf", href: pdf-href), "pdf")
         }
       })
     } else {
-      text(size: 9pt, fill: rgb("#555555"), { meta-line; if status != "final" [ · #status-badge(status)] })
+      text(size: 9pt, fill: rgb("#555555"), { meta-line; if status != none [ · #status-badge(status)] })
       v(9pt)
       line(length: 100%, stroke: 0.6pt + rgb("#cccccc"))
       v(14pt)
