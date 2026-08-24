@@ -13,6 +13,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-08-24
+
 ### Changed
 - **Creation and update dates are explicit authored metadata.** New writings use immutable
   `created_at` and optional `updated_at`; entry headers, listings, PDFs, and the book consistently
