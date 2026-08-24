@@ -193,8 +193,10 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
     assert expected in changed
     assert expected in listing
     unchanged = (site / "unchanged.html").read_text()
-    assert 'Created <time datetime="2026-08-24">24 August 2026</time>' in unchanged
-    assert "Updated" not in unchanged
+    assert (
+        'Created <time datetime="2026-08-24">24 August 2026</time> · Updated '
+        '<time datetime="2026-08-24">24 August 2026</time>'
+    ) in unchanged
     assert 'Created <time datetime="2026-08-23">23 August 2026</time>' in (
         site / "legacy.html"
     ).read_text()
@@ -205,6 +207,10 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
         )
         book = _pdf_text(site / "pdfs" / "book.pdf")
         assert "Created 24 August 2026 · Updated 27 August 2026" in book
+        assert "Created 24 August 2026 · Updated 24 August 2026" in _pdf_text(
+            site / "pdfs" / "unchanged.pdf"
+        )
+        assert "Created 24 August 2026 · Updated 24 August 2026" in book
         assert "Created 23 August 2026" in book
 
 

@@ -19,7 +19,9 @@ Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
    date of the most recent substantive content update and omit it when unchanged. Demolab validates
    and renders only these authored calendar dates; it never derives them from Git, filesystem,
    build, or deployment data. `updated_at` cannot precede `created_at`. Deprecated `meta.date`
-   remains a compatibility fallback for existing writings. Dates do not affect collection order.
+   remains a compatibility fallback for existing writings. A supplied `updated_at` is always
+   displayed, even when it equals `created_at`; omit it when no update should be shown. Dates do
+   not affect collection order.
 8. The homepage is a collection directory unless `demolab.yaml` sets `index.mode: expanded`.
    Expanded mode optionally shows the newest `index.recent` ordinary writings by authored
    `updated_at ?? created_at` (ID descending breaks ties), then expands collections in existing

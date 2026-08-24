@@ -56,13 +56,13 @@
     if target() == "html" {
       [Created ]
       html.elem("time", attrs: (datetime: dates.created), human-date(dates.created))
-      if dates.updated != none and dates.updated != dates.created {
+      if dates.updated != none {
         [ · Updated ]
         html.elem("time", attrs: (datetime: dates.updated), human-date(dates.updated))
       }
     } else {
       [Created #human-date(dates.created)]
-      if dates.updated != none and dates.updated != dates.created {
+      if dates.updated != none {
         [ · Updated #human-date(dates.updated)]
       }
     }

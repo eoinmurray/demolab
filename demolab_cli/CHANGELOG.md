@@ -13,6 +13,10 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Fixed
+- **Every supplied update date is visible.** `updated_at` now renders even when it equals
+  `created_at`, consistently across entry headers, listings, PDFs, and the book.
+
 ## [3.2.0] — 2026-08-24
 
 ### Added
