@@ -15,6 +15,11 @@ Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
    `ExpStudyPlan`, or `ExpStudy`. Every supplied stage is visible, and listings follow that
    lifecycle order. Omit it from articles and untyped legacy writings. It identifies the artifact
    that exists, not execution progress or editorial completion.
+7. Every writing sets immutable `meta.created_at: "YYYY-MM-DD"`. Set `meta.updated_at` to the
+   date of the most recent substantive content update and omit it when unchanged. Demolab validates
+   and renders only these authored calendar dates; it never derives them from Git, filesystem,
+   build, or deployment data. `updated_at` cannot precede `created_at`. Deprecated `meta.date`
+   remains a compatibility fallback for existing writings. Dates do not affect collection order.
 
 Demolab does not run source code, validate claims, manage research, or guarantee where numbers
 came from. Authors own their content and evidence.

@@ -2,7 +2,7 @@
 
 #let meta = (
   title: "Authoring a page",
-  date: "2026-08-23",
+  created_at: "2026-08-23",
   description: "The small writing contract and direct asset access.",
   collection: "guide",
   order: 2,

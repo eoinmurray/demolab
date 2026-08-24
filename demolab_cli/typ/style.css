@@ -131,6 +131,8 @@ figcaption,
   color: var(--muted);
 }
 .entry-meta { margin: .2rem 0 1.75rem; }
+/* Authored dates are deliberately quiet metadata, never headline emphasis. */
+.entry-meta time, .row-meta time { font-weight: 400; color: inherit; }
 /* Byline under the homepage title: the lab's owner, quiet, links to contact if set. Its
    default spacing also works when there is no description; the adjacent rule closes the
    larger description margin only when that line actually exists. */

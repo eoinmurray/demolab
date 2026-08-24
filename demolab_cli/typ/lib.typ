@@ -18,16 +18,55 @@
 // Root-relative path to a run artifact under artifacts/data/ (Typst --root is the lab root).
 #let data-file(rel) = "/artifacts/data/" + rel
 
-// --- human-date: render an ISO "YYYY-MM-DD" as a reader-friendly "16 June 2026" ---
-// Dates are authored ISO (sortable, unambiguous); this is the form shown on the page.
-// Falls back to the raw string if it isn't a well-formed ISO date.
+// --- authored dates: validate and render creation/update metadata ---
+// Demolab only renders dates supplied by the author. `date` remains a deprecated fallback for
+// old writings; it is never combined with Git, filesystem, build, or deployment timestamps.
+#let iso-date(value, field) = {
+  assert(type(value) == str, message: "meta." + field + " must be a string in YYYY-MM-DD form")
+  assert(value.match(regex("^\\d{4}-\\d{2}-\\d{2}$")) != none,
+    message: "meta." + field + " must be an ISO calendar date in YYYY-MM-DD form")
+  let p = value.split("-")
+  // datetime rejects impossible calendar dates such as 2026-02-30.
+  let _validated = datetime(year: int(p.at(0)), month: int(p.at(1)), day: int(p.at(2)))
+  value
+}
+
+#let entry-dates(meta) = {
+  let created-value = meta.at("created_at", default: meta.at("date", default: none))
+  assert(created-value != none,
+    message: "meta.created_at is required (deprecated meta.date is accepted for compatibility)")
+  let created = iso-date(created-value,
+    if "created_at" in meta { "created_at" } else { "date" })
+  let updated = if "updated_at" in meta { iso-date(meta.updated_at, "updated_at") } else { none }
+  assert(updated == none or updated >= created,
+    message: "meta.updated_at must not be earlier than meta.created_at")
+  (created: created, updated: updated)
+}
+
 #let human-date(iso) = {
-  let p = str(iso).split("-")
-  if p.len() == 3 {
-    datetime(year: int(p.at(0)), month: int(p.at(1)), day: int(p.at(2))).display(
-      "[day padding:none] [month repr:long] [year]",
-    )
-  } else { iso }
+  let p = iso.split("-")
+  datetime(year: int(p.at(0)), month: int(p.at(1)), day: int(p.at(2))).display(
+    "[day padding:none] [month repr:long] [year]",
+  )
+}
+
+#let date-line(meta) = {
+  let dates = entry-dates(meta)
+  context {
+    if target() == "html" {
+      [Created ]
+      html.elem("time", attrs: (datetime: dates.created), human-date(dates.created))
+      if dates.updated != none and dates.updated != dates.created {
+        [ · Updated ]
+        html.elem("time", attrs: (datetime: dates.updated), human-date(dates.updated))
+      }
+    } else {
+      [Created #human-date(dates.created)]
+      if dates.updated != none and dates.updated != dates.created {
+        [ · Updated #human-date(dates.updated)]
+      }
+    }
+  }
 }
 
 // --- web-styles: inject the stylesheet + head meta into HTML pages (ignored in the PDF pass) ---
@@ -189,7 +228,7 @@
     id: e.id,
     kind: e.kind,
     title: e.meta.title,
-    date: e.meta.date,
+    meta: e.meta,
     status: e.meta.at("status", default: none),
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
@@ -200,7 +239,7 @@
     id: d.id,
     kind: "deck",
     title: d.meta.title,
-    date: d.meta.date,
+    meta: d.meta,
     status: d.meta.at("status", default: none),
     coll: d.meta.at("collection", default: "slides"),
     order: d.meta.at("order", default: none),
@@ -236,7 +275,7 @@
           html.elem("div", attrs: (class: "row-main"), {
             html.elem("a", attrs: (class: "row-title", href: it.href), it.title)
             html.elem("div", attrs: (class: "row-meta"), {
-              human-date(it.date)
+              date-line(it.meta)
               if show-collection [ · #collection-label(it.coll, collection-meta)]
               if it.status != none [ · #status-badge(it.status)]
               if it.pdf != none {
@@ -251,7 +290,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#human-date(it.date)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
+        #text(fill: gray, size: 9pt)[#date-line(it.meta)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -430,17 +469,13 @@
   }
   // the metadata strip under the title — id · date · status · pdf, all inline on the left (web
   // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
-  let meta-bits = (
-    id,
-    human-date(meta.date),
-  ).filter(x => x != none)
-  let meta-line = meta-bits.join(" · ")
   let status = meta.at("status", default: none)
   let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
       html.elem("div", attrs: (class: "entry-meta"), {
-        meta-line
+        if id != none [#id · ]
+        date-line(meta)
         if status != none [ · #status-badge(status)]
         if pdf-href != none {
           [ · ]
@@ -448,7 +483,7 @@
         }
       })
     } else {
-      text(size: 9pt, fill: rgb("#555555"), { meta-line; if status != none [ · #status-badge(status)] })
+      text(size: 9pt, fill: rgb("#555555"), { if id != none [#id · ]; date-line(meta); if status != none [ · #status-badge(status)] })
       v(9pt)
       line(length: 100%, stroke: 0.6pt + rgb("#cccccc"))
       v(14pt)
@@ -568,7 +603,7 @@
     chapter.update(e.meta.title)
     pagebreak()
     heading(level: 1, e.meta.title)
-    text(size: 9pt, fill: rgb("#555555"))[#human-date(e.meta.date)]
+    text(size: 9pt, fill: rgb("#555555"))[#date-line(e.meta)]
     parbreak()
     paged-body(e.body)
   }

@@ -2,7 +2,7 @@
 
 #let meta = (
   title: "Demolab, simplified",
-  date: "2026-08-23",
+  created_at: "2026-08-23",
   description: "A small presentation system for Typst writings, static assets, websites, and optional PDFs.",
   collection: "guide",
   order: 1,

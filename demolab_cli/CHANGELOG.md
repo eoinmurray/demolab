@@ -14,6 +14,10 @@ the runbook shows the entries between your version and the latest.
 ## [Unreleased]
 
 ### Changed
+- **Creation and update dates are explicit authored metadata.** New writings use immutable
+  `created_at` and optional `updated_at`; entry headers, listings, PDFs, and the book consistently
+  label and validate them. Legacy `date` remains a deprecated compatibility fallback, and dates
+  are never inferred or used to change collection ordering.
 - **Experiment status identifies the scientific artifact stage.** Optional writing metadata now
   follows `ExpScoutPlan → ExpScout → ExpStudyPlan → ExpStudy`; every supplied stage is
   visible and listings follow that order. The former editorial lifecycle and invisible `final`

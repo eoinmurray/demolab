@@ -2,7 +2,7 @@
 
 #let meta = (
   title: "Publishing",
-  date: "2026-08-23",
+  created_at: "2026-08-23",
   description: "Build the website, choose whether to emit PDFs, and deploy static output.",
   collection: "guide",
   order: 3,

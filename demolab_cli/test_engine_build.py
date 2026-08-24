@@ -33,6 +33,15 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _pdf_text(path: Path) -> str:
+    pdftotext = shutil.which("pdftotext")
+    assert pdftotext is not None
+    proc = subprocess.run(
+        [pdftotext, str(path), "-"], capture_output=True, text=True, check=True,
+    )
+    return proc.stdout
+
+
 def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> None:
     root = tmp_path / "presentation"
     root.mkdir()
@@ -139,7 +148,7 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
     for entry_id, status in stages:
         status_field = "" if status is None else f', status: "{status}"'
         (root / "writings" / f"{entry_id}.typ").write_text(
-            f'#let meta = (title: "{entry_id}", date: "2026-08-24", '
+            f'#let meta = (title: "{entry_id}", created_at: "2026-08-24", '
             f'collection: "lifecycle"{status_field})\n#let body = [Body.]\n'
         )
 
@@ -152,3 +161,76 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
     for status in ("ExpScoutPlan", "ExpScout", "ExpStudyPlan", "ExpStudy"):
         assert f'class="status">{status}</span>' in page
     assert 'class="status">final</span>' not in page
+
+
+def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    writings = root / "writings"
+    (writings / "changed.typ").write_text(
+        '#let meta = (title: "Changed", created_at: "2026-08-24", '
+        'updated_at: "2026-08-27", collection: "dates")\n#let body = [Body.]\n'
+    )
+    (writings / "unchanged.typ").write_text(
+        '#let meta = (title: "Unchanged", created_at: "2026-08-24", '
+        'updated_at: "2026-08-24", collection: "dates")\n#let body = [Body.]\n'
+    )
+    (writings / "legacy.typ").write_text(
+        '#let meta = (title: "Legacy", date: "2026-08-23", '
+        'collection: "dates")\n#let body = [Body.]\n'
+    )
+
+    _build(root)
+
+    site = root / "artifacts" / "site"
+    changed = (site / "changed.html").read_text()
+    listing = (site / "dates.html").read_text()
+    expected = (
+        'Created <time datetime="2026-08-24">24 August 2026</time> · Updated '
+        '<time datetime="2026-08-27">27 August 2026</time>'
+    )
+    assert expected in changed
+    assert expected in listing
+    unchanged = (site / "unchanged.html").read_text()
+    assert 'Created <time datetime="2026-08-24">24 August 2026</time>' in unchanged
+    assert "Updated" not in unchanged
+    assert 'Created <time datetime="2026-08-23">23 August 2026</time>' in (
+        site / "legacy.html"
+    ).read_text()
+
+    if shutil.which("pdftotext") is not None:
+        assert "Created 24 August 2026 · Updated 27 August 2026" in _pdf_text(
+            site / "pdfs" / "changed.pdf"
+        )
+        book = _pdf_text(site / "pdfs" / "book.pdf")
+        assert "Created 24 August 2026 · Updated 27 August 2026" in book
+        assert "Created 23 August 2026" in book
+
+
+@pytest.mark.parametrize(
+    ("created", "updated", "message"),
+    (
+        ("2026-02-30", None, "date is invalid"),
+        ("24-08-2026", None, "ISO calendar date"),
+        ("2026-08-24", "2026-08-23", "must not be earlier"),
+    ),
+)
+def test_authored_dates_reject_invalid_values(
+    tmp_path: Path, created: str, updated: str | None, message: str,
+) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    updated_field = "" if updated is None else f', updated_at: "{updated}"'
+    (root / "writings" / "invalid.typ").write_text(
+        f'#let meta = (title: "Invalid", created_at: "{created}"{updated_field})\n'
+        '#let body = [Body.]\n'
+    )
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "demolab_cli.build", "invalid"],
+        env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
+    )
+    assert proc.returncode != 0
+    assert message in proc.stderr
