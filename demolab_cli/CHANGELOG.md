@@ -13,6 +13,8 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-08-24
+
 ### Added
 - **The homepage can optionally expand recent work and collection contents.** Set
   `index.mode: expanded` with an optional non-negative `index.recent`; authored dates rank recent
