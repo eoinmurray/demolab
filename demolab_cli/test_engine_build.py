@@ -56,6 +56,17 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     assert (site / "assets" / "example.json").exists() or (site / "example.json").exists()
     assert "Writings" in (site / "all.html").read_text()
     assert "Experiments" not in (site / "all.html").read_text()
+    assert 'class="theme-docs"' in (site / "api.html").read_text()
+    assert 'class="theme-docs"' in (site / "developer.html").read_text()
+    assert 'class="theme-docs"' not in (site / "pages.html").read_text()
+    homepage = (site / "index.html").read_text()
+    assert homepage.count('href="developer.html"') == 1  # header link only; collection stays hidden
+    assert 'href="api.html"' not in homepage
+    assert '<nav class="site-links" aria-label="Site links">' in homepage
+    assert '<a href="developer.html">Developer docs</a>' in homepage
+    assert '<a href="https://github.com/eoinmurray/demolab">Source</a>' in homepage
+    assert 'href="api.html"' in (site / "all.html").read_text()
+    assert (site / "developer.html").exists()
 
 
 def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:

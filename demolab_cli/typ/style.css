@@ -208,6 +208,30 @@ ol.refs .doi:hover { color: var(--ink); }
 .site-head {
   margin-bottom: 1rem;
 }
+.site-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem 2.5rem;
+}
+.site-head-copy { min-width: 0; }
+.site-links { flex: 0 0 auto; padding-top: .2rem; }
+.site-links ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .35rem 1.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.site-links a {
+  color: var(--muted);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.site-links a:hover { color: var(--ink); text-decoration: underline; }
 .site-head h1, .site-head h2 {
   font-size: 1.5rem;
   line-height: 1.15;
@@ -457,6 +481,9 @@ body:has(.theme-docs) th:last-child { text-align: left; font-variant-numeric: no
 
 @media (max-width: 42rem) {
   body { margin-top: 2rem; margin-bottom: 2.5rem; }
+  .site-head-row { display: block; }
+  .site-links { padding-top: .8rem; }
+  .site-links ul { justify-content: flex-start; }
   .welcome { margin-bottom: 2rem; }
   .welcome-kicker { margin-top: 2.5rem; }
   .welcome-docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }

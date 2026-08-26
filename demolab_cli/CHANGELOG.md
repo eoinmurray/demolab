@@ -13,6 +13,26 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.3.0] — 2026-08-26
+
+### Added
+- **Homepage headers can carry a compact responsive link row.** Configure top-level `links` with
+  `label` and `url` values; links sit to the right of the title and wrap below it on narrow screens.
+- **Collections can stay off the homepage without becoming private.** Set `homepage: false` to
+  exclude a collection and its entries from homepage directories and recent work while retaining
+  direct pages, the all-entries listing, and PDFs.
+
+### Changed
+- **Developer-documentation themes now include collection pages.** A collection with `theme: docs`
+  applies the treatment consistently to its index and articles; global listings and PDFs remain
+  neutral.
+- **The source checkout is the single internal demo fixture.** Root writings and assets provide a
+  small working example, while installed projects continue to receive only empty content stubs.
+
+### Removed
+- The duplicate packaged demo, its `--demo`/`--landing` preview paths, and the upstream marketing
+  site and GitHub Pages workflows have been removed.
+
 ## [3.2.1] — 2026-08-24
 
 ### Fixed

@@ -9,6 +9,13 @@ description: A Typst presentation published as a website with optional PDFs.
 # author: Your Name
 # contact: you@example.com
 
+# Optional links shown as a compact horizontal row at the right of the homepage title.
+# links:
+#   - label: Documentation
+#     url: https://example.com/docs
+#   - label: Source
+#     url: https://github.com/example/project
+
 # PDF publishing is enabled by default. Disable it for a web-only lab; existing PDFs are
 # left untouched, and PDF-only slide decks are omitted from the site.
 # pdfs: false
@@ -31,13 +38,15 @@ description: A Typst presentation published as a website with optional PDFs.
 # Homepage collections. Writings are grouped by their `collection:` meta field; this
 # registry gives each collection a display label + description and sets the order. A
 # collection with no entry here still works — its slug is just title-cased. Add
-# `theme: docs` to a collection whose articles should have a light developer-documentation
-# web treatment. Collection listings and PDFs retain the standard design.
+# `theme: docs` to give a collection page and all its articles a light developer-documentation
+# web treatment. Set `homepage: false` to omit a collection and its recent entries from the
+# homepage while retaining its collection page, article URLs, all-entries listing, and PDFs.
 collection-order: [notes, slides]
 collections:
   notes:
     label: Notes
     description: The presentation's main writings.
+    # homepage: false
   slides:
     label: Talks & slides
     description: Deck PDFs from talks — paged-only, linked as PDF.

@@ -1,24 +1,19 @@
-// Source-checkout demo content and end-to-end fixture.
 #import "/.demolab/lib.typ": *
 
 #let meta = (
-  title: "Demolab, simplified",
-  created_at: "2026-08-23",
-  description: "A small presentation system for Typst writings, static assets, websites, and optional PDFs.",
-  collection: "guide",
+  title: "Welcome",
+  created_at: "2026-08-26",
+  description: "A minimal working page in the example site.",
+  collection: "pages",
   order: 1,
 )
 
 #let body = [
-  Demolab turns a directory of Typst writings and ordinary assets into a navigable website.
-  PDF publishing is available, but optional. There is no experiment framework, provenance
-  contract, research workflow, or application server hiding beneath it.
+  This is a small working Demolab site. Each file under `writings/` becomes a web page and,
+  when PDF output is enabled, a PDF.
 
-  == The whole loop
+  == A deliberately small fixture
 
-  ```text
-  writings/ + assets/ -> demolab build -> artifacts/
-  ```
-
-  Use `demolab dev` while writing and `demolab build` when the presentation is ready.
+  The checkout keeps only enough example content to exercise listings, navigation, assets, and
+  builds. Run `demolab dev` to preview it or `demolab build` to produce the static output.
 ]

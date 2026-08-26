@@ -13,7 +13,22 @@
   description: none, // one-line site tagline shown under the homepage title (set in demolab.yaml)
   author: none,      // the lab's owner — shown as a byline on the homepage + <meta name="author">
   contact: none,     // optional email/url; if set, the byline links to it (mailto for an @, else href)
+  links: (),         // optional homepage header links: ((label: "Docs", url: "docs.html"),)
 )
+
+#let homepage-links(brand) = {
+  let links = brand.at("links", default: ())
+  assert(type(links) == array, message: "demolab.yaml 'links' must be a list")
+  for item in links {
+    assert(type(item) == dictionary,
+      message: "each demolab.yaml 'links' item must contain label and url")
+    assert(type(item.at("label", default: none)) == str,
+      message: "each demolab.yaml 'links' item needs a string label")
+    assert(type(item.at("url", default: none)) == str,
+      message: "each demolab.yaml 'links' item needs a string url")
+  }
+  links
+}
 
 // Root-relative path to a run artifact under artifacts/data/ (Typst --root is the lab root).
 #let data-file(rel) = "/artifacts/data/" + rel
@@ -194,6 +209,12 @@
 #let collection-label(slug, meta) = meta.at(slug, default: (:)).at("label", default: title-case(slug))
 #let collection-description(slug, meta) = meta.at(slug, default: (:)).at("description", default: none)
 #let collection-theme(slug, meta) = meta.at(slug, default: (:)).at("theme", default: none)
+#let collection-homepage-visible(slug, meta) = {
+  let visible = meta.at(slug, default: (:)).at("homepage", default: true)
+  assert(type(visible) == bool,
+    message: "demolab.yaml collection '" + slug + "' homepage must be true or false")
+  visible
+}
 #let theme-class(theme, base: none) = {
   let classes = if base == none { () } else { (base,) }
   (classes + if theme == none { () } else { ("theme-" + str(theme),) }).join(" ")
@@ -462,8 +483,8 @@
   // one entry; absent metadata inherits the root demolab.yaml setting.
   let annotation-provider = meta.at("annotations", default: annotations)
   web-styles(brand: brand, annotations: annotation-provider)
-  // Collection themes are a light, web-only treatment for articles. Experiments, collection
-  // listings, PDFs, and the combined book deliberately retain the standard lab presentation.
+  // Collection themes are a light, web-only treatment for entries and their collection page.
+  // PDFs, the combined book, and global listings retain the standard presentation.
   let theme = collection-theme(meta.at("collection", default: "uncategorized"), collection-meta)
   context {
     if target() == "html" and theme != none {
@@ -560,27 +581,42 @@
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
   let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
-  let colls = items.map(it => it.coll).dedup().sorted(key: c => collection-rank(c, collection-order))
+  let homepage-items = items.filter(it => collection-homepage-visible(it.coll, collection-meta))
+  let colls = homepage-items.map(it => it.coll).dedup().sorted(key: c => collection-rank(c, collection-order))
   let index = index-options(index-config)
   // .listing scopes the pinglab treatment: nav/index links unadorned, underline on hover
   // only (entry-body prose keeps the default underline). The homepage leads with the same
   // title + description header a collection page uses, so the two read as siblings.
   html.elem("div", attrs: (class: "listing"), {
     html.elem("header", attrs: (class: "site-head"), {
-      heading(level: 1, brand.name)
-      if brand.at("description", default: none) != none {
-        html.elem("p", attrs: (class: "entry-meta"), brand.description)
-      }
-      // Byline: the lab's owner under the title. Links to contact if given (mailto for an email).
-      if brand.at("author", default: none) != none {
-        let c = brand.at("contact", default: none)
-        html.elem("p", attrs: (class: "byline"), {
-          [by ]
-          if c != none {
-            link(if "@" in c and not c.starts-with("http") { "mailto:" + c } else { c }, brand.author)
-          } else { brand.author }
+      let links = homepage-links(brand)
+      html.elem("div", attrs: (class: "site-head-row"), {
+        html.elem("div", attrs: (class: "site-head-copy"), {
+          heading(level: 1, brand.name)
+          if brand.at("description", default: none) != none {
+            html.elem("p", attrs: (class: "entry-meta"), brand.description)
+          }
+          // Byline: the lab's owner under the title. Links to contact if given (mailto for an email).
+          if brand.at("author", default: none) != none {
+            let c = brand.at("contact", default: none)
+            html.elem("p", attrs: (class: "byline"), {
+              [by ]
+              if c != none {
+                link(if "@" in c and not c.starts-with("http") { "mailto:" + c } else { c }, brand.author)
+              } else { brand.author }
+            })
+          }
         })
-      }
+        if links.len() > 0 {
+          html.elem("nav", attrs: (class: "site-links", "aria-label": "Site links"), {
+            html.elem("ul", {
+              for item in links {
+                html.elem("li", html.elem("a", attrs: (href: item.url), item.label))
+              }
+            })
+          })
+        }
+      })
     })
     if items.len() == 0 {
       // Freshly-scaffolded repo — no writings yet. This is the first thing a (often non-technical)
@@ -595,7 +631,7 @@
     } else if landing != none {
       landing
     } else if index.mode == "expanded" {
-      expanded-index(colls, items, recent: index.recent, collection-meta: collection-meta)
+      expanded-index(colls, homepage-items, recent: index.recent, collection-meta: collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
         link("all.html", "Browse all entries")
         if pdfs-enabled {
@@ -623,13 +659,19 @@
 // Reached from the homepage directory; the foot link returns there.
 #let collection-page(coll, items, brand: default-brand, collection-meta: (:)) = {
   web-styles(brand: brand)
+  let theme = collection-theme(coll, collection-meta)
+  context {
+    if target() == "html" and theme != none {
+      html.elem("div", attrs: (class: theme-class(theme), "aria-hidden": "true"))[]
+    }
+  }
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false)
   let desc = collection-description(coll, collection-meta)
   html.elem("div", attrs: (class: "listing"), {
     heading(level: 1, collection-label(coll, collection-meta))
     if desc != none { html.elem("p", attrs: (class: "entry-meta"), desc) }
-    grouped-entry-lists(items)
+    grouped-entry-lists(items, collection-meta: collection-meta)
     html.elem("p", attrs: (class: "page-foot"), link("index.html", "← all collections"))
   })
 }

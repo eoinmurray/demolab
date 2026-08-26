@@ -1,4 +1,4 @@
 {
-  "message": "Writings can read JSON directly from the assets directory.",
-  "value": 3
+  "message": "This value came from assets/example.json.",
+  "value": 42
 }

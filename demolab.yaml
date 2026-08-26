@@ -1,11 +1,25 @@
-# Internal demo config for the source checkout's end-to-end fixture.
-name: Demolab
-book-title: Demolab — the book
-contents-title: Demolab — contents
-description: Typst writings and assets, published as a website with optional PDFs.
+# Small working site used to exercise the engine in this source checkout.
+name: Example Site
+book-title: Example Site — collected pages
+contents-title: Example Site — contents
+description: A tiny Demolab site with ordinary pages, an asset, and developer documentation.
+links:
+  - label: Developer docs
+    url: developer.html
+  - label: Source
+    url: https://github.com/eoinmurray/demolab
 
-collection-order: [guide]
+index:
+  mode: expanded
+  recent: 3
+
+collection-order: [pages, developer]
 collections:
-  guide:
-    label: Guide
-    description: "The complete presentation system, in three short pages."
+  pages:
+    label: Example pages
+    description: "Enough content to demonstrate navigation, writing metadata, and assets."
+  developer:
+    label: Developer guide
+    description: "A documentation collection using the developer-oriented visual theme."
+    theme: docs
+    homepage: false
