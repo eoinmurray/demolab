@@ -163,6 +163,22 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
     return False, (proc.stdout + proc.stderr).strip() or f"build.py exited {proc.returncode}"
 
 
+def html_file_for_path(path: str, site: Path) -> Path:
+    """Map a URL path to its HTML artifact, accepting both `/entry` and `/entry.html`.
+
+    Generated links use the bare form; the explicit extension remains a compatible alias.
+    Directories continue to resolve through their own index.html.
+    """
+    fs = site / path.lstrip("/")
+    if path.endswith("/") or fs.is_dir():
+        return fs / "index.html"
+    if not fs.exists():
+        bare_html = Path(str(fs) + ".html")
+        if bare_html.is_file() and _within(bare_html, site):
+            return bare_html
+    return fs
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(SITE), **k)
@@ -174,9 +190,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path.split("?", 1)[0] == "/__dev":
             return self._sse()
         path = unquote(self.path.split("?", 1)[0])
-        fs = SITE / path.lstrip("/")
-        if path.endswith("/") or fs.is_dir():
-            fs = fs / "index.html"
+        fs = html_file_for_path(path, SITE)
         # Serve in-tree .html through the reload-injecting path; everything else (assets, or a
         # crafted `..` path) falls to SimpleHTTPRequestHandler, whose translate_path already confines
         # to the served dir. _within re-checks so a `..%2f….html` can't escape SITE via this path.

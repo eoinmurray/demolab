@@ -13,6 +13,19 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.5.0] — 2026-08-26
+
+### Changed
+- **Entry indexes are denser and more consistent with article headers.** List rows use a fixed,
+  right-aligned identifier rail, omit the inferable `Created` label, and link collection metadata;
+  article headers use the same compact metadata vocabulary with the entry identifier prepended.
+- **Web navigation now uses clean, extensionless URLs.** Generated links target paths such as
+  `/welcome` while the static build retains `welcome.html`; the local development server accepts
+  both forms so preview routing matches GitHub Pages.
+- **Private bundle scratch now lives entirely under `.demolab/bundle/`.** Builds no longer create
+  `temp/bundle/`; the first build removes that legacy subtree and the obsolete `temp/demo-preview/`
+  staging tree while preserving unrelated experiment scratch in `temp/`.
+
 ## [3.4.0] — 2026-08-26
 
 ### Added

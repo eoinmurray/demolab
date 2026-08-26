@@ -7,7 +7,7 @@ def test_entry_from_error_parses_the_failing_id():
     err = (
         "error: file not found (searched at /x/artifacts/data/exp044/dt_sweep.svg)\n"
         "  ┌─ writings/exp044.typ:50:10\n"
-        "while importing `/writings/exp044.typ` at temp/bundle/main.typ:32:2"
+        "while importing `/writings/exp044.typ` at .demolab/bundle/main.typ:32:2"
     )
     assert build._entry_from_error(err, {"exp044", "exp000"}) == "exp044"
     # only entries we can still drop are candidates

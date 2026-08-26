@@ -2,22 +2,22 @@
 //   typst compile --format bundle --features bundle,html
 //
 // This file ships inside the demolab-cli package and is STAGED by build.py into the lab's
-// temp/bundle/ before each compile (typst --root confines reads to the lab tree, so the
+// .demolab/bundle/ before each compile (typst --root confines reads to the lab tree, so the
 // compiled file must live under it). It holds no per-entry knowledge: build.py globs the
 // filesystem (Typst can't list directories) and writes the discovered id/asset lists to
-// temp/bundle/index.json; this file reads that manifest and does everything else —
+// .demolab/bundle/index.json; this file reads that manifest and does everything else —
 // importing each writing, emitting every document, embedding every asset — in plain Typst.
 // No generated source.
 //
 // Compiled with `--root` at the lab root, so `/writings/...`, `/artifacts/...`,
-// `/temp/bundle/...`, and the staged `/.demolab/...` all resolve. Run it by hand to debug:
+// `/.demolab/bundle/...`, and the staged `/.demolab/...` all resolve. Run it by hand to debug:
 //   uv run demolab build   # stages this file + .demolab/, writes the manifest + decks
-//   typst compile --format bundle --features bundle,html --root . temp/bundle/main.typ artifacts/site/
+//   typst compile --format bundle --features bundle,html --root . .demolab/bundle/main.typ artifacts/site/
 #import "/.demolab/lib.typ": *
 
 // The manifest build.py wrote: { entries: [{id, kind, videos}], decks: [{id}],
 // has_brand_config, has_landing }.
-#let manifest = json("/temp/bundle/index.json")
+#let manifest = json("/.demolab/bundle/index.json")
 
 // The optional root demolab.yaml (build.py sets has_brand_config after checking it exists
 // — Typst can't stat). Branding merges over engine defaults; collection label/order are
@@ -60,7 +60,7 @@
 }
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {
-  asset("pdfs/" + d.id + ".pdf", read("/temp/bundle/decks/" + d.id + ".pdf", encoding: none))
+  asset("pdfs/" + d.id + ".pdf", read("/.demolab/bundle/decks/" + d.id + ".pdf", encoding: none))
 }
 // site favicon (a lab-notebook mark), linked from every page's <head> by lib.typ
 #asset("favicon.svg", read("/.demolab/favicon.svg", encoding: none))

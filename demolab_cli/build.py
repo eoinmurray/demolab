@@ -2,12 +2,12 @@
 
 build.py does only what Typst can't: it globs the filesystem (Typst has no directory
 listing) and orchestrates the compiler. It stages the engine's Typst surface into the lab
-(.demolab/ + temp/bundle/main.typ — typst --root confines reads to the lab tree, and the
-engine lives in site-packages), writes the discovered id/asset lists to
-temp/bundle/index.json, and compiles; the static typ/main.typ reads that manifest and does
+inside .demolab/ (Typst --root confines reads to the lab tree, while the engine lives in
+site-packages), writes the discovered id/asset lists to .demolab/bundle/index.json, and
+compiles; the static typ/main.typ reads that manifest and does
 the rest (imports, documents, assets) in plain Typst — there is no generated source.
 
-One `typst compile --format bundle --features bundle,html temp/bundle/main.typ` emits,
+One `typst compile --format bundle --features bundle,html .demolab/bundle/main.typ` emits,
 into artifacts/site/:
   index.html            — homepage index of writings
   <id>.html             — per-entry web page (figures inline, video plays)
@@ -41,7 +41,7 @@ from demolab_cli import _paths
 ROOT = Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd()).resolve()
 WRITINGS = ROOT / "writings"
 ASSETS = ROOT / "assets"
-BUILD = ROOT / "temp" / "bundle"           # scratch: staged main.typ + manifest + deck PDFs
+BUILD = ROOT / ".demolab" / "bundle"       # private scratch: main.typ + manifest + deck PDFs
 MAIN = BUILD / "main.typ"                  # staged copy of the packaged typ/main.typ
 ENTRY_MAIN = BUILD / "entry.typ"           # staged single-entry PDF wrapper
 MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ reads
@@ -94,6 +94,15 @@ def stage() -> None:
     version-stamped) and the bundle root main.typ (copied fresh every build — it's tiny, and
     a stale copy after an engine upgrade would be a subtle bug)."""
     _paths.stage(ROOT)
+    # Older engines leaked bundle and demo-preview staging into the user-facing temp/ tree. Remove
+    # only those known generated subtrees; preserve any experiment scratch alongside them.
+    legacy_temp = ROOT / "temp"
+    for generated in (legacy_temp / "bundle", legacy_temp / "demo-preview"):
+        shutil.rmtree(generated, ignore_errors=True)
+    try:
+        legacy_temp.rmdir()  # remove temp/ only when generated engine scratch was its last content
+    except OSError:
+        pass
     BUILD.mkdir(parents=True, exist_ok=True)
     shutil.copy2(_paths.TYP / "main.typ", MAIN)
     shutil.copy2(_paths.TYP / "entry.typ", ENTRY_MAIN)
@@ -129,7 +138,7 @@ def discover_decks():
 
 def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = None,
                    *, publish_pdfs: bool = True) -> None:
-    """Write temp/bundle/index.json — the id/asset lists the staged main.typ reads.
+    """Write .demolab/bundle/index.json — the id/asset lists the staged main.typ reads.
 
     This is the only place per-writing knowledge is assembled, and it's pure data (no Typst
     source): writing ids, static asset paths, and deck ids. An entry in `broken` carries an
@@ -159,7 +168,7 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
 
 
 def compile_decks(deck_ids: list[str]) -> list[str]:
-    """Compile each standalone deck to a scratch PDF (temp/bundle/decks/<id>.pdf); return the ones
+    """Compile each standalone deck to a scratch PDF (.demolab/bundle/decks/<id>.pdf); return the ones
     that built. A deck that fails to compile is skipped with a warning rather than failing the whole
     build (main.typ only embeds decks that produced a PDF).
 
@@ -251,7 +260,7 @@ def main() -> None:
     # tool for inspecting what the compiler will see. (Dev serving is devserver.py, which runs
     # a full build on each change; it doesn't use this flag.)
     generate_only = "--generate-only" in sys.argv
-    # --skip-decks reuses the deck PDFs already in temp/bundle/decks/ instead of recompiling
+    # --skip-decks reuses the deck PDFs already in .demolab/bundle/decks/ instead of recompiling
     # them. The dev server passes it when a change touched no deck source or data asset, so a
     # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
     # those PDFs exist (a full build ran first); a bare `demolab build` never skips.

@@ -175,7 +175,7 @@ ol.refs .doi:hover { color: var(--ink); }
    rest of the site is fine. */
 .build-error { border-left: 3px solid #c0392b; background: #fcf3f2; color: #7a1f16; }
 
-/* Heading anchors: every heading carries a slug id (link to page.html#slug); a quiet # permalink
+/* Heading anchors: every heading carries a slug id (link to page#slug); a quiet # permalink
    fades in on hover to grab that URL. */
 .hx .permalink { opacity: 0; margin-left: .3em; color: var(--muted); text-decoration: none; font-weight: 400; font-size: .85em; }
 .hx:hover .permalink, .hx:focus-within .permalink { opacity: 1; }
@@ -199,6 +199,8 @@ ol.refs .doi:hover { color: var(--ink); }
    keeps its underline (muted, darkening on hover) rather than the bare listing-nav treatment. */
 .entry-pdf { color: var(--muted); text-decoration: underline; }
 .entry-pdf:hover { color: var(--ink); }
+.entry-collection { color: var(--muted); text-decoration: underline; }
+.entry-collection:hover { color: var(--ink); }
 /* On listing pages the description sits closer to the list it heads (entry pages keep the
    airier 1.75rem before the body). */
 .listing .entry-meta { margin-bottom: 1.25rem; }
@@ -348,11 +350,21 @@ ol.refs .doi:hover { color: var(--ink); }
 /* Index rows: mono id in a left column; title + a quiet meta sub-line (date · status · pdf)
    stacked in the main column, so long titles wrap without orphaning the meta. */
 .entry-list { list-style: none; padding-left: 0; margin: 1.25rem 0; }
-.entry-row { display: flex; align-items: baseline; gap: .6rem; padding: .5rem 0; }
-.entry-row .row-id { flex: 0 0 auto; min-width: 3em; font-family: var(--mono); }
+.entry-row { display: flex; align-items: baseline; gap: .6rem; padding: .45rem 0; }
+.entry-row .row-id {
+  flex: 0 0 4.5rem;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--mono);
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .row-main { flex: 1 1 auto; min-width: 0; }
 .row-main .row-title { display: block; }
-.row-main .row-meta { display: block; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+.row-main .row-meta { display: block; margin-top: -.05rem; font-variant-numeric: tabular-nums; }
+.row-meta .row-collection { color: var(--muted); text-decoration: underline; }
+.row-meta .row-collection:hover { color: var(--ink); }
 
 /* Foot-of-listing nav line: quiet by default, links darken + underline on hover. */
 .page-foot { margin-top: 2rem; }

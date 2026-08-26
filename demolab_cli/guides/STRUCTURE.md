@@ -9,8 +9,8 @@ my-presentation/
 ├── artifacts/
 │   ├── site/            generated static website
 │   └── pdfs/           optional generated PDFs
-├── temp/              generated build scratch
-└── .demolab/          generated engine staging
+├── temp/              optional experiment scratch
+└── .demolab/          generated engine and private build staging
 ```
 
 The installed `demolab-cli` package owns the renderer and theme. The presentation owns its

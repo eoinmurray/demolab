@@ -53,7 +53,19 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     root = tmp_path / "presentation"
     root.mkdir()
     _assemble(root)
+    legacy_bundle = root / "temp" / "bundle"
+    legacy_bundle.mkdir(parents=True)
+    (legacy_bundle / "stale.txt").write_text("old engine scratch")
+    legacy_demo = root / "temp" / "demo-preview"
+    legacy_demo.mkdir()
+    (legacy_demo / "stale.txt").write_text("old demo scratch")
+    (root / "temp" / "experiment.txt").write_text("preserve user scratch")
     _build(root)
+    assert not legacy_bundle.exists()
+    assert not legacy_demo.exists()
+    assert (root / "temp" / "experiment.txt").read_text() == "preserve user scratch"
+    assert (root / ".demolab" / "bundle" / "main.typ").is_file()
+    assert (root / ".demolab" / "bundle" / "index.json").is_file()
     first = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
     _build(root)
     second = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
@@ -68,16 +80,16 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     assert 'class="theme-docs"' in (site / "pinglab-docs.html").read_text()
     assert 'class="theme-docs"' not in (site / "pages.html").read_text()
     homepage = (site / "index.html").read_text()
-    assert homepage.count('href="documentation.html"') == 1  # header link only; directory stays hidden
-    assert 'href="api.html"' not in homepage
+    assert homepage.count('href="documentation"') == 1  # header link only; directory stays hidden
+    assert 'href="api"' not in homepage
     assert '<nav class="site-links" aria-label="Site links">' in homepage
-    assert '<a href="documentation.html">Developer docs</a>' in homepage
+    assert '<a href="documentation">Developer docs</a>' in homepage
     assert '<a href="https://github.com/eoinmurray/demolab">Source</a>' in homepage
-    assert 'href="api.html"' in (site / "all.html").read_text()
+    assert 'href="api"' in (site / "all.html").read_text()
     parent = (site / "documentation.html").read_text()
     children = ("pinglab-docs", "snnlang-docs", "snnsim-docs", "snnviz-docs")
     assert all((site / f"{child}.html").exists() for child in children)
-    positions = [parent.index(f'href="{child}.html"') for child in children]
+    positions = [parent.index(f'href="{child}"') for child in children]
     assert positions == sorted(positions)
     assert "Pinglab docs" in parent and "Developer guides and API notes for Pinglab." in parent
     assert '<span class="coll-count">1 entry</span>' in parent
@@ -131,8 +143,8 @@ def test_flat_collection_config_remains_backward_compatible(tmp_path: Path) -> N
     _build(root)
     site = root / "artifacts" / "site"
     assert (site / "notes.html").exists()
-    assert 'href="notes.html">Notes</a>' in (site / "index.html").read_text()
-    assert 'href="note.html">Note</a>' in (site / "notes.html").read_text()
+    assert 'href="notes">Notes</a>' in (site / "index.html").read_text()
+    assert 'href="note">Note</a>' in (site / "notes.html").read_text()
 
 
 def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:
@@ -233,7 +245,7 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
 
     page = (root / "artifacts" / "site" / "lifecycle.html").read_text()
     expected = ("scout-plan", "scout", "study-plan", "study", "untyped")
-    positions = [page.index(f'href="{entry_id}.html"') for entry_id in expected]
+    positions = [page.index(f'href="{entry_id}"') for entry_id in expected]
     assert positions == sorted(positions)
     for status in ("ExpScoutPlan", "ExpScout", "ExpStudyPlan", "ExpStudy"):
         assert f'class="status">{status}</span>' in page
@@ -264,17 +276,23 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
     changed = (site / "changed.html").read_text()
     listing = (site / "dates.html").read_text()
     expected = (
-        'Created <time datetime="2026-08-24">24 August 2026</time> · Updated '
+        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
         '<time datetime="2026-08-27">27 August 2026</time>'
     )
     assert expected in changed
-    assert expected in listing
+    assert (
+        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
+        '<time datetime="2026-08-27">27 August 2026</time>'
+    ) in listing
+    assert "Created <time" not in changed
+    assert "Created <time" not in listing
+    assert '<a class="entry-collection" href="dates">Dates</a>' in changed
     unchanged = (site / "unchanged.html").read_text()
     assert (
-        'Created <time datetime="2026-08-24">24 August 2026</time> · Updated '
+        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
         '<time datetime="2026-08-24">24 August 2026</time>'
     ) in unchanged
-    assert 'Created <time datetime="2026-08-23">23 August 2026</time>' in (
+    assert '<time datetime="2026-08-23">23 August 2026</time>' in (
         site / "legacy.html"
     ).read_text()
 
@@ -334,7 +352,7 @@ def test_default_homepage_remains_collection_directory(tmp_path: Path) -> None:
     index = (root / "artifacts" / "site" / "index.html").read_text()
     assert '<ul class="coll-list">' in index
     assert "Recently worked on" not in index
-    assert 'href="note.html"' not in index
+    assert 'href="note"' not in index
 
 
 def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> None:
@@ -370,18 +388,19 @@ def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> Non
 
     index_path = root / "artifacts" / "site" / "index.html"
     index = index_path.read_text()
-    recent = index[index.index("Recently worked on"):index.index('href="second.html"')]
-    assert recent.index('href="alpha.html"') < recent.index('href="gamma.html"')
-    assert 'href="beta.html"' not in recent
-    assert 'href="talk.html"' not in recent
-    assert index.index('href="second.html"') < index.index('href="work.html"')
-    assert index.index('href="work.html"') < index.index('href="slides.html"')
+    recent = index[index.index("Recently worked on"):index.index('href="second"')]
+    assert recent.index('href="alpha"') < recent.index('href="gamma"')
+    assert 'href="beta"' not in recent
+    assert 'href="talk"' not in recent
+    assert index.index('<h3><a href="second"') < index.index('<h3><a href="work"')
+    assert '<a class="row-collection" href="work">Work</a>' in recent
+    assert index.index('href="work"') < index.index('href="slides"')
     assert "Second collection" in index and "Listed first." in index
-    work = index[index.index('href="work.html"'):index.index('href="slides.html"')]
-    assert work.index('href="gamma.html"') < work.index('href="beta.html"')
-    assert work.index('href="beta.html"') < work.index('href="alpha.html"')
+    work = index[index.index('href="work"'):index.index('href="slides"')]
+    assert work.index('href="gamma"') < work.index('href="beta"')
+    assert work.index('href="beta"') < work.index('href="alpha"')
     assert "ExpScoutPlan" in work and "ExpStudy" in work
-    slides = index[index.index('href="slides.html"'):]
+    slides = index[index.index('href="slides"'):]
     assert 'href="pdfs/talk.pdf"' in slides
 
     # Filesystem/build activity cannot affect authored-date ranking.
@@ -389,10 +408,10 @@ def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> Non
     _build(root)
     rebuilt = index_path.read_text()
     rebuilt_recent = rebuilt[
-        rebuilt.index("Recently worked on"):rebuilt.index('href="second.html"')
+        rebuilt.index("Recently worked on"):rebuilt.index('href="second"')
     ]
-    assert rebuilt_recent.index('href="alpha.html"') < rebuilt_recent.index('href="gamma.html"')
-    assert 'href="beta.html"' not in rebuilt_recent
+    assert rebuilt_recent.index('href="alpha"') < rebuilt_recent.index('href="gamma"')
+    assert 'href="beta"' not in rebuilt_recent
 
 
 @pytest.mark.parametrize("recent_line", ("", "  recent: 0\n"))
@@ -414,7 +433,7 @@ def test_expanded_homepage_can_omit_recent_section(
 
     index = (root / "artifacts" / "site" / "index.html").read_text()
     assert "Recently worked on" not in index
-    assert 'href="note.html"' in index
+    assert 'href="note"' in index
 
 
 def test_expanded_homepage_rejects_negative_recent(tmp_path: Path) -> None:

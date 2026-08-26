@@ -84,6 +84,24 @@
   }
 }
 
+// Compact list rows omit the inferable "Created" label while retaining an explicit label for
+// updates, whose meaning is otherwise ambiguous beside the authored date.
+#let row-date-line(meta) = {
+  let dates = entry-dates(meta)
+  context {
+    if target() == "html" {
+      html.elem("time", attrs: (datetime: dates.created), human-date(dates.created))
+      if dates.updated != none {
+        [ · Updated ]
+        html.elem("time", attrs: (datetime: dates.updated), human-date(dates.updated))
+      }
+    } else {
+      [#human-date(dates.created)]
+      if dates.updated != none [ · Updated #human-date(dates.updated)]
+    }
+  }
+}
+
 // --- web-styles: inject the stylesheet + head meta into HTML pages (ignored in the PDF pass) ---
 #let web-styles(brand: default-brand, annotations: none) = context {
   if target() == "html" {
@@ -302,7 +320,7 @@
     status: e.meta.at("status", default: none),
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
-    href: e.id + ".html",
+    href: e.id,
     pdf: if pdfs-enabled { "pdfs/" + e.id + ".pdf" } else { none },
     deck: false,
   )) + decks.map(d => (
@@ -341,12 +359,16 @@
     html.elem("ul", attrs: (class: "entry-list"), {
       for it in items {
         html.elem("li", attrs: (class: "entry-row"), {
-          html.elem("span", attrs: (class: "row-id"), it.id)
+          html.elem("span", attrs: (class: "row-id", title: it.id), it.id)
           html.elem("div", attrs: (class: "row-main"), {
             html.elem("a", attrs: (class: "row-title", href: it.href), it.title)
             html.elem("div", attrs: (class: "row-meta"), {
-              date-line(it.meta)
-              if show-collection [ · #collection-label(it.coll, collection-meta)]
+              row-date-line(it.meta)
+              if show-collection {
+                [ · ]
+                html.elem("a", attrs: (class: "row-collection", href: it.coll),
+                  collection-label(it.coll, collection-meta))
+              }
               if it.status != none [ · #status-badge(it.status)]
               if it.pdf != none {
                 [ · ]
@@ -360,7 +382,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#date-line(it.meta)#if show-collection [ · #collection-label(it.coll, collection-meta)]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
+        #text(fill: gray, size: 9pt)[#row-date-line(it.meta)#if show-collection [ · #link(it.coll, collection-label(it.coll, collection-meta))]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -398,7 +420,7 @@
       for c in colls {
         let desc = collection-description(c, collection-meta)
         html.elem("li", attrs: (class: "coll-row"), {
-          html.elem("a", attrs: (class: "coll-title", href: c + ".html"), collection-label(c, collection-meta))
+          html.elem("a", attrs: (class: "coll-title", href: c), collection-label(c, collection-meta))
           if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
         })
       }
@@ -406,7 +428,7 @@
   } else {
     for c in colls {
       let desc = collection-description(c, collection-meta)
-      [- #link(c + ".html", collection-label(c, collection-meta))]
+      [- #link(c, collection-label(c, collection-meta))]
       if desc != none { block(inset: (left: 1em), below: 0.6em, text(size: 9pt, fill: gray, desc)) }
     }
   }
@@ -431,7 +453,7 @@
         let count = collection-entry-count(child, items, collection-meta)
         html.elem("li", attrs: (class: "coll-row child-coll-row"), {
           html.elem("div", attrs: (class: "child-coll-head"), {
-            html.elem("a", attrs: (class: "coll-title", href: child + ".html"),
+            html.elem("a", attrs: (class: "coll-title", href: child),
               collection-label(child, collection-meta))
             html.elem("span", attrs: (class: "coll-count"),
               str(count) + if count == 1 { " entry" } else { " entries" })
@@ -485,7 +507,7 @@
     let collection-items = items.filter(x => x.coll == c)
     let writings = id-desc(collection-items.filter(x => not x.deck))
     let slides = existing-slide-order(collection-items.filter(x => x.deck), collection-items)
-    heading(level: 2, link(c + ".html", collection-label(c, collection-meta)))
+    heading(level: 2, link(c, collection-label(c, collection-meta)))
     let desc = collection-description(c, collection-meta)
     if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
     if writings.len() > 0 { entry-list(writings, collection-meta: collection-meta) }
@@ -496,7 +518,7 @@
   }
 }
 
-// --- heading anchors: a slug id on every heading so any section is deep-linkable (page.html#slug) ---
+// --- heading anchors: a slug id on every heading so any section is deep-linkable (page#slug) ---
 // to-string flattens a heading's content to plain text; slugify lowercases it to a-z0-9-hyphens.
 #let to-string(c) = {
   if c == none { "" }
@@ -555,7 +577,7 @@
   heading(level: 1, id)
   html.elem("p", attrs: (class: "entry-meta"), [This entry failed to build, so it's a stub. The rest of the site built normally; fix the error below and rebuild to bring it back.])
   html.elem("pre", attrs: (class: "build-error"), error)
-  html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "index.html"), [← back to all entries]))
+  html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "."), [← back to all entries]))
 }
 
 #let entry-page(meta, body, id: none, kind: "page", brand: default-brand, annotations: none, collection-meta: (:), pdfs-enabled: true) = {
@@ -583,7 +605,7 @@
   // the book's table of contents.
   set heading(outlined: false)
   // Heading anchors (web only): re-emit each heading with a slug id + a quiet permalink that
-  // appears on hover, so any section is directly linkable (page.html#slug). The PDF/book keep
+  // appears on hover, so any section is directly linkable (page#slug). The PDF/book keep
   // native headings. Typst maps a level-N heading to <h(N+1)>, so match that tag.
   show heading: it => context {
     if target() != "html" { it } else {
@@ -601,7 +623,7 @@
   // stranded. The PDF/book carry no navigation chrome, so this is html-only.
   context {
     if target() == "html" {
-      html.elem("a", attrs: (class: "home-link", href: "index.html"), [← Home])
+      html.elem("a", attrs: (class: "home-link", href: "."), [← Home])
     }
   }
   context {
@@ -621,15 +643,19 @@
       heading(level: 1, meta.title)
     }
   }
-  // the metadata strip under the title — id · date · status · pdf, all inline on the left (web
+  // the metadata strip under the title — id · date · collection · status · pdf, all inline on the left (web
   // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
   let status = meta.at("status", default: none)
+  let coll = meta.at("collection", default: "uncategorized")
   let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
       html.elem("div", attrs: (class: "entry-meta"), {
         if id != none [#id · ]
-        date-line(meta)
+        row-date-line(meta)
+        [ · ]
+        html.elem("a", attrs: (class: "entry-collection", href: coll),
+          collection-label(coll, collection-meta))
         if status != none [ · #status-badge(status)]
         if pdf-href != none {
           [ · ]
@@ -718,7 +744,7 @@
     } else if index.mode == "expanded" {
       expanded-index(colls, homepage-items, recent: index.recent, collection-meta: collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
-        link("all.html", "Browse all entries")
+        link("all", "Browse all entries")
         if pdfs-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
@@ -728,7 +754,7 @@
     } else {
       collection-index(colls, collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
-        link("all.html", "Browse all entries")
+        link("all", "Browse all entries")
         if pdfs-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
@@ -759,7 +785,7 @@
     if desc != none { html.elem("p", attrs: (class: "entry-meta"), desc) }
     child-collection-index(coll, all-items, collection-meta)
     grouped-entry-lists(items, collection-meta: collection-meta)
-    html.elem("p", attrs: (class: "page-foot"), link("index.html", "← all collections"))
+    html.elem("p", attrs: (class: "page-foot"), link(".", "← all collections"))
   })
 }
 
@@ -773,7 +799,7 @@
   html.elem("div", attrs: (class: "listing"), {
     heading(level: 1, [All entries])
     grouped-entry-lists(items)
-    html.elem("p", attrs: (class: "page-foot"), link("index.html", "← grouped by collection"))
+    html.elem("p", attrs: (class: "page-foot"), link(".", "← grouped by collection"))
   })
 }
 

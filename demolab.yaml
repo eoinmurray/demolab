@@ -5,7 +5,7 @@ contents-title: Example Site — contents
 description: A tiny Demolab site with ordinary pages, an asset, and developer documentation.
 links:
   - label: Developer docs
-    url: documentation.html
+    url: documentation
   - label: Source
     url: https://github.com/eoinmurray/demolab
 

@@ -7,7 +7,8 @@ Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
 2. `writings/*.typ` are user-authored pages exporting `meta` and `body`. Files ending in
    `.slide.typ` are optional standalone Typst decks; the normal build compiles and lists them.
 3. `assets/` contains user-owned static inputs. Writings may read these directly.
-4. `artifacts/site/`, `artifacts/pdfs/`, `temp/`, and `.demolab/` are generated. Do not edit them
+4. `artifacts/site/`, `artifacts/pdfs/`, and `.demolab/` are generated. Experiments may also use
+   `temp/` for disposable scratch, but the publication engine does not. Do not edit generated files
    by hand. A web-only build (`pdfs: false`) leaves existing shareable PDFs untouched.
 5. `demolab dev` previews; `demolab build` publishes; `demolab deploy-setup` installs static Pages
    workflows. Typst is the only rendering toolchain.

@@ -57,6 +57,19 @@ def test_within_blocks_traversal(tmp_path):
     assert not devserver._within(site / ".." / ".." / "etc" / "hosts.html", site)
 
 
+def test_html_file_for_path_accepts_bare_and_explicit_urls(tmp_path):
+    site = tmp_path / "site"
+    site.mkdir()
+    page = site / "report.v2.html"
+    page.write_text("report")
+    (site / "index.html").write_text("home")
+
+    assert devserver.html_file_for_path("/report.v2", site) == page
+    assert devserver.html_file_for_path("/report.v2.html", site) == page
+    assert devserver.html_file_for_path("/", site) == site / "index.html"
+    assert devserver.html_file_for_path("/missing", site) == site / "missing"
+
+
 def test_make_server_accepts_both_loopbacks():
     # The banner says http://localhost, but Windows resolves `localhost` to the IPv6 ::1 first
     # — an IPv4-only bind makes that URL dead there while 127.0.0.1 works. make_server must
