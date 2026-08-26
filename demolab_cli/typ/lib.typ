@@ -30,8 +30,8 @@
   links
 }
 
-// Root-relative path to a run artifact under artifacts/data/ (Typst --root is the lab root).
-#let data-file(rel) = "/artifacts/data/" + rel
+// Root-relative path to tracked publication evidence (Typst --root is the lab root).
+#let data-file(rel) = "/.artifacts/" + rel
 
 // --- authored dates: validate and render creation/update metadata ---
 // Demolab only renders dates supplied by the author. `date` remains a deprecated fallback for

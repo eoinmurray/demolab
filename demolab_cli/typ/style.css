@@ -396,16 +396,11 @@ pre {
 }
 pre code { font-size: 1em; }
 
-/* Built-in article treatment: developer documentation. A collection opts its articles in
-   with `theme: docs` in demolab.yaml. This stays close to demolab's default spacing and
-   structure while using the neutral sans/mono pairing, cool slate surfaces, and blue accent
-   readers expect from contemporary technical references.
-   Collection listings, experiments, PDFs, and the combined book remain unchanged. */
+/* Built-in developer-documentation skin. A collection opts in with `theme: docs`; its collection
+   page and writings keep the default components, measurements, ordering, and metadata exactly.
+   Only visual tokens and surfaces change: neutral sans/mono type, cool slate ink, and blue links. */
 body:has(.theme-docs) {
-  max-width: 46em;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
-  font-size: 17px;
-  line-height: 1.65;
   color: #172033;
   --ink: #172033;
   --muted: #64748b;
@@ -425,16 +420,6 @@ body:has(.theme-docs) h6 {
   color: #111827;
   font-family: inherit;
   letter-spacing: -.018em;
-}
-body:has(.theme-docs) h5 {
-  margin: 1.6rem 0 .4rem;
-  font-size: .95rem;
-  line-height: 1.35;
-}
-body:has(.theme-docs) h6 {
-  margin: 1.35rem 0 .35rem;
-  font-size: .9rem;
-  line-height: 1.35;
 }
 body:has(.theme-docs) a { color: var(--docs-accent); text-decoration-color: #9db4da; }
 body:has(.theme-docs) .home-link,
@@ -456,13 +441,10 @@ body:has(.theme-docs) pre {
   box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
 }
 body:has(.theme-docs) pre code { padding: 0; color: inherit; background: transparent; font-size: 1em; }
-body:has(.theme-docs) table { width: 100%; font-size: .88rem; }
 body:has(.theme-docs) th,
-body:has(.theme-docs) td { border-color: var(--rule); padding: .55rem .7rem; vertical-align: top; }
+body:has(.theme-docs) td { border-color: var(--rule); }
 body:has(.theme-docs) th { color: #334155; background: #f1f5f9; }
 body:has(.theme-docs) td { color: #334155; }
-body:has(.theme-docs) td:last-child,
-body:has(.theme-docs) th:last-child { text-align: left; font-variant-numeric: normal; }
 .docs-toc {
   margin: 1.5rem 0 2rem;
   padding: .85rem 1rem;

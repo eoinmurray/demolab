@@ -9,10 +9,10 @@
 // importing each writing, emitting every document, embedding every asset — in plain Typst.
 // No generated source.
 //
-// Compiled with `--root` at the lab root, so `/writings/...`, `/artifacts/...`,
+// Compiled with `--root` at the lab root, so `/writings/...`, `/.artifacts/...`,
 // `/.demolab/bundle/...`, and the staged `/.demolab/...` all resolve. Run it by hand to debug:
 //   uv run demolab build   # stages this file + .demolab/, writes the manifest + decks
-//   typst compile --format bundle --features bundle,html --root . .demolab/bundle/main.typ artifacts/site/
+//   typst compile --format bundle --features bundle,html --root . .demolab/bundle/main.typ .demolab/site/
 #import "/.demolab/lib.typ": *
 
 // The manifest build.py wrote: { entries: [{id, kind, videos}], decks: [{id}],
@@ -67,7 +67,7 @@
 // hover popovers for inline citations (web-only), referenced by lib.typ's web-styles
 #asset("cite-popover.js", read("/.demolab/cite-popover.js", encoding: none))
 
-// --- documents (one compile emits them all into artifacts/site/) ---
+// --- documents (one compile emits them all into .demolab/site/) ---
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a
 // friendly empty state. Everything else is emitted only when there's content.
 #let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)

@@ -1,15 +1,18 @@
 # RULES
 
-Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
+Demolab has one pipeline: user-owned `writings/ + assets/ + .artifacts/` inputs produce generated
+`.demolab/site/` and optional `.demolab/pdfs/` output.
 
 1. `demolab.yaml` marks the project root and configures branding, collections, annotations, and
    PDF publishing. Every key is optional, but the file itself must remain.
 2. `writings/*.typ` are user-authored pages exporting `meta` and `body`. Files ending in
    `.slide.typ` are optional standalone Typst decks; the normal build compiles and lists them.
 3. `assets/` contains user-owned static inputs. Writings may read these directly.
-4. `artifacts/site/`, `artifacts/pdfs/`, and `.demolab/` are generated. Experiments may also use
-   `temp/` for disposable scratch, but the publication engine does not. Do not edit generated files
-   by hand. A web-only build (`pdfs: false`) leaves existing shareable PDFs untouched.
+4. `.demolab/bundle/`, `.demolab/site/`, and `.demolab/pdfs/` are engine-owned generated output.
+   `.artifacts/` is tracked, user-owned publication evidence; Demolab reads from it but never
+   creates or deletes it. Experiments may also use `temp/` for disposable
+   scratch. Do not edit generated files by hand. A web-only build (`pdfs: false`) removes stale PDFs
+   from `.demolab/site/` but leaves legacy `artifacts/pdfs/` deliverables untouched.
 5. `demolab dev` previews; `demolab build` publishes; `demolab deploy-setup` installs static Pages
    workflows. Typst is the only rendering toolchain.
 6. An experiment may set `meta.status` to its artifact stage: `ExpScoutPlan`, `ExpScout`,

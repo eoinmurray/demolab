@@ -6,6 +6,7 @@ stay in step, and the argument parser must accept every command (with the right 
 """
 import io
 from contextlib import redirect_stdout
+from pathlib import Path
 
 from demolab_cli import cli
 
@@ -50,3 +51,26 @@ def test_no_command_prints_catalog():
     out = buf.getvalue()
     for name in cli.HANDLERS:
         assert name in out, f"catalog output is missing {name!r}"
+
+
+def test_clean_removes_generated_and_legacy_site_but_preserves_legacy_pdfs(
+    tmp_path: Path, monkeypatch,
+):
+    for rel in (".demolab/bundle", ".demolab/site", ".demolab/pdfs", "artifacts/site"):
+        path = tmp_path / rel
+        path.mkdir(parents=True)
+        (path / "generated.txt").write_text("remove")
+    legacy_pdf = tmp_path / "artifacts" / "pdfs" / "deliverable.pdf"
+    legacy_pdf.parent.mkdir(parents=True)
+    legacy_pdf.write_bytes(b"preserve")
+    evidence = tmp_path / ".artifacts" / "exp001" / "numbers.json"
+    evidence.parent.mkdir(parents=True)
+    evidence.write_text("{}")
+    monkeypatch.setattr(cli._paths, "require_lab_root", lambda: tmp_path)
+
+    assert cli.cmd_clean(cli._build_parser().parse_args(["clean"])) == 0
+
+    assert not (tmp_path / ".demolab").exists()
+    assert not (tmp_path / "artifacts" / "site").exists()
+    assert legacy_pdf.read_bytes() == b"preserve"
+    assert evidence.read_text() == "{}"

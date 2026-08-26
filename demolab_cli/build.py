@@ -8,16 +8,17 @@ compiles; the static typ/main.typ reads that manifest and does
 the rest (imports, documents, assets) in plain Typst — there is no generated source.
 
 One `typst compile --format bundle --features bundle,html .demolab/bundle/main.typ` emits,
-into artifacts/site/:
+into .demolab/site/:
   index.html            — homepage index of writings
   <id>.html             — per-entry web page (figures inline, video plays)
   <id>.mp4              — video assets
   pdfs/<id>.pdf         — per-entry individual PDF
   pdfs/book.pdf         — every entry concatenated into one PDF (book mode)
 
-The site (artifacts/site/) is a self-contained build output (gitignored, deployed to
-Pages). Unless `pdfs: false` is set in demolab.yaml, PDFs are also mirrored to the
-committed artifacts/pdfs/ as shareable deliverables.
+The site (.demolab/site/) is a self-contained generated output (gitignored and deployed to
+Pages). Unless `pdfs: false` is set in demolab.yaml, PDFs are also copied to the generated
+.demolab/pdfs/ publication directory. Tracked publication evidence lives in `.artifacts/`;
+Demolab reads it but never creates or deletes it.
 
 Each writings/<id>.typ exposes `#let meta = (...)` and `#let body = [...]`.
 Entries not yet in that convention are skipped (incremental migration).
@@ -46,8 +47,8 @@ MAIN = BUILD / "main.typ"                  # staged copy of the packaged typ/mai
 ENTRY_MAIN = BUILD / "entry.typ"           # staged single-entry PDF wrapper
 MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ reads
 DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedded as assets
-SITE = ROOT / "artifacts" / "site"         # bundle output (HTML + mp4 + pdfs/), gitignored
-PDFS = ROOT / "artifacts" / "pdfs"         # committed copy of the PDFs (shareable)
+SITE = ROOT / ".demolab" / "site"          # bundle output (HTML + mp4 + linked pdfs/)
+PDFS = ROOT / ".demolab" / "pdfs"          # optional standalone generated PDFs
 
 
 def pdfs_enabled() -> bool:
@@ -236,7 +237,7 @@ def compile_bundle(ids: list[str], deck_ids: list[str], *, publish_pdfs: bool = 
 
 
 def compile_entry(entry_id: str, ids: list[str]) -> None:
-    """Compile one ordinary writing directly to its committed standalone PDF."""
+    """Compile one ordinary writing directly to its generated standalone PDF."""
     if entry_id not in ids:
         slide = WRITINGS / f"{entry_id}.slide.typ"
         detail = " (it is a slide deck; use `demolab slides`)" if slide.exists() else ""
@@ -265,7 +266,7 @@ def main() -> None:
     # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
     # those PDFs exist (a full build ran first); a bare `demolab build` never skips.
     skip_decks = "--skip-decks" in sys.argv
-    no_mirror = "--no-mirror" in sys.argv
+    no_pdf_copy = "--no-pdf-copy" in sys.argv
     entry_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
     if len(entry_args) > 1:
         raise SystemExit("error: build accepts at most one entry id")
@@ -291,7 +292,7 @@ def main() -> None:
     if not publish_pdfs:
         # Bundle compilation updates named outputs but does not prune outputs from an earlier
         # build. The site tree is regenerable, so remove stale PDFs before a web-only compile;
-        # the committed artifacts/pdfs/ record remains deliberately untouched.
+        # Any legacy artifacts/pdfs/ deliverables remain deliberately untouched.
         shutil.rmtree(SITE / "pdfs", ignore_errors=True)
     if generate_only:
         print(f"wrote manifest for {len(ids)} entries: {', '.join(ids)}"
@@ -301,20 +302,21 @@ def main() -> None:
     # whole site — compile_bundle flags it and retries.
     broken = compile_bundle(ids, good_decks, publish_pdfs=publish_pdfs)
     good = [i for i in ids if i not in broken]
-    # mirror the compiled PDFs (entries, book, and decks) to the committed artifacts/pdfs/
-    if publish_pdfs and not no_mirror:
+    # Copy the site's compiled PDFs (entries, book, and decks) to .demolab/pdfs/.
+    if publish_pdfs and not no_pdf_copy:
+        shutil.rmtree(PDFS, ignore_errors=True)
         PDFS.mkdir(parents=True, exist_ok=True)
         for pdf in sorted((SITE / "pdfs").glob("*.pdf")):
             shutil.copy(pdf, PDFS / pdf.name)
-    # The verbose detail (which ids built / stubbed, where the PDFs mirror) goes on its own line;
+    # The verbose detail (which ids built / stubbed, where the generated PDFs live) gets its own line;
     # the CONCISE summary is printed LAST, because the dev-server watch loop echoes only build.py's
     # final stdout line on each rebuild. So a `demolab dev` session shows a terse one-liner, while a
     # one-shot `demolab build` still prints the full id list above it.
     print(f"  entries: {', '.join(good)}"
           + (f"  ·  decks: {', '.join(good_decks)}" if good_decks else "")
           + (f"  ·  ⚠ stubbed: {', '.join(sorted(broken))}" if broken else "")
-          + (f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/" if publish_pdfs and not no_mirror
-             else "  ·  preview PDFs left untracked" if publish_pdfs
+          + (f"  ·  pdfs -> {PDFS.relative_to(ROOT)}/" if publish_pdfs and not no_pdf_copy
+             else "  ·  preview PDFs kept in site output" if publish_pdfs
              else "  ·  PDF publishing disabled"))
     summary = f"built {len(good)} entries" + (f" + {len(good_decks)} decks" if good_decks else "")
     if broken:

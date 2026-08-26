@@ -61,9 +61,13 @@ jobs:
         run: |
           uv build
           # Noise that must never ship (untracked locally, but belt-and-braces).
-          if unzip -l dist/demolab_cli-*.whl | grep -E 'demo/temp/|demo/artifacts/site/|__pycache__|\.demolab/'; then
+          if unzip -l dist/demolab_cli-*.whl | grep -E '(^|/)(temp|artifacts/site|\.demolab)/|__pycache__'; then
             echo "wheel carries build noise" && exit 1
           fi
+          # Packaged workflows and scaffold must encode the generated/user-owned boundary.
+          unzip -p dist/demolab_cli-*.whl 'demolab_cli/deploy/deploy.yml' | grep -F 'folder: .demolab/site'
+          unzip -p dist/demolab_cli-*.whl 'demolab_cli/deploy/preview.yml' | grep -F 'source-dir: .demolab/site'
+          ! unzip -p dist/demolab_cli-*.whl 'demolab_cli/scaffold/root/gitignore' | grep -Fx 'artifacts/'
           mkdir /tmp/lab && cd /tmp/lab
           uvx --from "$(ls "$GITHUB_WORKSPACE"/dist/demolab_cli-*.whl)" demolab-cli init
           test -f demolab.yaml && test -f .demolab/lib.typ && test -f AGENTS.md

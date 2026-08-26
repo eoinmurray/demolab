@@ -13,6 +13,20 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-08-26
+
+### Changed
+- **All engine-owned output now lives under `.demolab/`.** Private staging remains in
+  `.demolab/bundle/`, while the generated site and optional PDFs move to `.demolab/site/` and
+  `.demolab/pdfs/`. Tracked publication evidence moves from `artifacts/data/` to `.artifacts/`;
+  `demolab clean` preserves `.artifacts/`, removes legacy `artifacts/site/`, and preserves legacy
+  `artifacts/pdfs/`.
+
+### Fixed
+- **The developer-documentation theme is now strictly a visual skin.** Themed collection and
+  article pages retain the default width, type scale, spacing, metadata, navigation, table layout,
+  ordering, and responsive structure; only typography, colour, and surface styling differ.
+
 ## [3.5.0] — 2026-08-26
 
 ### Changed

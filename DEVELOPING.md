@@ -9,6 +9,7 @@ end-to-end fixture. Preview it with `demolab dev`. That content is not packaged 
 
 Run `uv run pytest` for tests and `uv build` to produce the wheel and source distribution. A wheel
 must contain `typ/`, `guides/`, and `scaffold/`, but not engine tests or generated demo output.
+An end-to-end build must write `.demolab/site/index.html` and must not create `artifacts/site/`.
 
 `demolab_cli/VERSION` is authoritative. A push to `main` that changes it publishes to PyPI through
 trusted publishing and creates the matching `v<VERSION>` tag.

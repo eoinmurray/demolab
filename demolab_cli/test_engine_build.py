@@ -1,6 +1,7 @@
 """End-to-end tests for generic writings, assets, and optional PDFs."""
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -19,7 +20,8 @@ def _assemble(root: Path, *, demo: bool = True) -> None:
         source = _paths.PACKAGE.parent
         shutil.copy2(source / "demolab.yaml", root / "demolab.yaml")
         shutil.copytree(source / "writings", root / "writings", dirs_exist_ok=True)
-        shutil.copytree(source / "assets", root / "assets", dirs_exist_ok=True)
+        if (source / "assets").is_dir():
+            shutil.copytree(source / "assets", root / "assets", dirs_exist_ok=True)
 
 
 def _build(root: Path, entry: str | None = None) -> None:
@@ -61,18 +63,22 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     (legacy_demo / "stale.txt").write_text("old demo scratch")
     (root / "temp" / "experiment.txt").write_text("preserve user scratch")
     _build(root)
+    assert (root / ".demolab" / "site" / "index.html").is_file()
+    assert not (root / "artifacts" / "site").exists()
     assert not legacy_bundle.exists()
     assert not legacy_demo.exists()
     assert (root / "temp" / "experiment.txt").read_text() == "preserve user scratch"
     assert (root / ".demolab" / "bundle" / "main.typ").is_file()
     assert (root / ".demolab" / "bundle" / "index.json").is_file()
-    first = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
+    first = {p.name: _sha256(p) for p in (root / ".demolab" / "pdfs").glob("*.pdf")}
+    stale_pdf = root / ".demolab" / "pdfs" / "removed-entry.pdf"
+    stale_pdf.write_bytes(b"stale")
     _build(root)
-    second = {p.name: _sha256(p) for p in (root / "artifacts" / "pdfs").glob("*.pdf")}
+    second = {p.name: _sha256(p) for p in (root / ".demolab" / "pdfs").glob("*.pdf")}
     assert first == second
-    site = root / "artifacts" / "site"
+    assert not stale_pdf.exists()
+    site = root / ".demolab" / "site"
     assert (site / "welcome.html").exists()
-    assert (site / "assets" / "example.json").exists() or (site / "example.json").exists()
     assert "Writings" in (site / "all.html").read_text()
     assert "Experiments" not in (site / "all.html").read_text()
     assert 'class="theme-docs"' in (site / "api.html").read_text()
@@ -141,20 +147,52 @@ def test_flat_collection_config_remains_backward_compatible(tmp_path: Path) -> N
         '#let body = [Body.]\n'
     )
     _build(root)
-    site = root / "artifacts" / "site"
+    site = root / ".demolab" / "site"
     assert (site / "notes.html").exists()
     assert 'href="notes">Notes</a>' in (site / "index.html").read_text()
     assert 'href="note">Note</a>' in (site / "notes.html").read_text()
+
+
+def test_docs_theme_changes_skin_without_changing_functional_markup(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Theme parity\npdfs: false\ncollections:\n"
+        "  plain:\n    label: Plain\n    description: Same description.\n"
+        "  docs:\n    label: Docs\n    description: Same description.\n    theme: docs\n"
+    )
+    for entry_id, collection in (("plain-note", "plain"), ("docs-note", "docs")):
+        (root / "writings" / f"{entry_id}.typ").write_text(
+            '#let meta = (title: "Same title", created_at: "2026-08-26", '
+            f'collection: "{collection}", status: "ExpStudy")\n'
+            '#let body = [Same body.\n\n== Same section\n\nSame text.]\n'
+        )
+
+    _build(root)
+    site = root / ".demolab" / "site"
+
+    def functional_body(path: Path) -> str:
+        body = path.read_text().split("<body>", 1)[1]
+        body = re.sub(r'<div class="theme-docs" aria-hidden="true"></div>', "", body)
+        return (body
+                .replace("plain-note", "entry").replace("docs-note", "entry")
+                .replace('href="plain"', 'href="collection"')
+                .replace('href="docs"', 'href="collection"')
+                .replace(">Plain<", ">Collection<").replace(">Docs<", ">Collection<"))
+
+    assert functional_body(site / "plain-note.html") == functional_body(site / "docs-note.html")
+    assert functional_body(site / "plain.html") == functional_body(site / "docs.html")
 
 
 def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:
     root = tmp_path / "presentation"
     root.mkdir()
     _assemble(root)
-    shutil.rmtree(root / "artifacts" / "pdfs", ignore_errors=True)
+    shutil.rmtree(root / ".demolab" / "pdfs", ignore_errors=True)
     _build(root, "welcome")
-    assert sorted(p.name for p in (root / "artifacts" / "pdfs").glob("*.pdf")) == ["welcome.pdf"]
-    assert not (root / "artifacts" / "site").exists()
+    assert sorted(p.name for p in (root / ".demolab" / "pdfs").glob("*.pdf")) == ["welcome.pdf"]
+    assert not (root / ".demolab" / "site").exists()
 
 
 def test_web_only_build_prunes_site_pdfs_but_preserves_shareable_files(tmp_path: Path) -> None:
@@ -165,15 +203,20 @@ def test_web_only_build_prunes_site_pdfs_but_preserves_shareable_files(tmp_path:
     (root / "demolab.yaml").write_text(
         (root / "demolab.yaml").read_text() + "\npdfs: false\n", encoding="utf-8"
     )
-    committed = root / "artifacts" / "pdfs"
-    shutil.rmtree(committed)
-    committed.mkdir(parents=True)
-    sentinel = committed / "existing.pdf"
-    sentinel.write_bytes(b"keep")
+    generated = root / ".demolab" / "pdfs"
+    shutil.rmtree(generated)
+    generated.mkdir(parents=True)
+    generated_sentinel = generated / "existing.pdf"
+    generated_sentinel.write_bytes(b"keep")
+    legacy = root / "artifacts" / "pdfs"
+    legacy.mkdir(parents=True)
+    legacy_sentinel = legacy / "committed.pdf"
+    legacy_sentinel.write_bytes(b"keep legacy")
     _build(root)
-    site = root / "artifacts" / "site"
+    site = root / ".demolab" / "site"
     assert not (site / "pdfs").exists()
-    assert sentinel.read_bytes() == b"keep"
+    assert generated_sentinel.read_bytes() == b"keep"
+    assert legacy_sentinel.read_bytes() == b"keep legacy"
     assert 'class="row-pdf"' not in (site / "all.html").read_text()
     assert 'class="entry-pdf"' not in (site / "welcome.html").read_text()
 
@@ -200,7 +243,7 @@ def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None
         '#let body = [#image("/assets/missing.svg")]\n'
     )
     _build(root)
-    site = root / "artifacts" / "site"
+    site = root / ".demolab" / "site"
     assert (site / "welcome.html").exists()
     assert (site / "broken.html").exists()
     assert "failed to build" in (site / "broken.html").read_text().lower()
@@ -243,7 +286,7 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
 
     _build(root)
 
-    page = (root / "artifacts" / "site" / "lifecycle.html").read_text()
+    page = (root / ".demolab" / "site" / "lifecycle.html").read_text()
     expected = ("scout-plan", "scout", "study-plan", "study", "untyped")
     positions = [page.index(f'href="{entry_id}"') for entry_id in expected]
     assert positions == sorted(positions)
@@ -272,7 +315,7 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
 
     _build(root)
 
-    site = root / "artifacts" / "site"
+    site = root / ".demolab" / "site"
     changed = (site / "changed.html").read_text()
     listing = (site / "dates.html").read_text()
     expected = (
@@ -349,7 +392,7 @@ def test_default_homepage_remains_collection_directory(tmp_path: Path) -> None:
 
     _build(root)
 
-    index = (root / "artifacts" / "site" / "index.html").read_text()
+    index = (root / ".demolab" / "site" / "index.html").read_text()
     assert '<ul class="coll-list">' in index
     assert "Recently worked on" not in index
     assert 'href="note"' not in index
@@ -386,7 +429,7 @@ def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> Non
 
     _build(root)
 
-    index_path = root / "artifacts" / "site" / "index.html"
+    index_path = root / ".demolab" / "site" / "index.html"
     index = index_path.read_text()
     recent = index[index.index("Recently worked on"):index.index('href="second"')]
     assert recent.index('href="alpha"') < recent.index('href="gamma"')
@@ -431,7 +474,7 @@ def test_expanded_homepage_can_omit_recent_section(
 
     _build(root)
 
-    index = (root / "artifacts" / "site" / "index.html").read_text()
+    index = (root / ".demolab" / "site" / "index.html").read_text()
     assert "Recently worked on" not in index
     assert 'href="note"' in index
 

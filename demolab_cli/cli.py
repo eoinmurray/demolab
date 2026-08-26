@@ -32,8 +32,8 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("publishing", [
         ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (PORT overrides the auto-picked 3000)"),
-        ("build", "📦 Build the publication → artifacts/site/ (web) + optional artifacts/pdfs/"),
-        ("clean", "🧹 Delete regenerable build output (.demolab/bundle/, artifacts/site/)"),
+        ("build", "📦 Build the publication → .demolab/site/ (web) + optional .demolab/pdfs/"),
+        ("clean", "🧹 Delete generated output under .demolab/ + legacy artifacts/site/"),
     ]),
 ]
 
@@ -243,9 +243,9 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 def cmd_clean(args: argparse.Namespace) -> int:
     lab = _paths.require_lab_root()
-    for rel in (".demolab/bundle", "artifacts/site"):
+    for rel in (".demolab", "artifacts/site"):
         shutil.rmtree(lab / rel, ignore_errors=True)
-    print("✓ removed .demolab/bundle/ and artifacts/site/")
+    print("✓ removed .demolab/ and legacy artifacts/site/ (legacy artifacts/pdfs/ preserved)")
     return 0
 
 

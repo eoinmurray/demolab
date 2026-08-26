@@ -2,7 +2,7 @@
 name: Example Site
 book-title: Example Site — collected pages
 contents-title: Example Site — contents
-description: A tiny Demolab site with ordinary pages, an asset, and developer documentation.
+description: A tiny Demolab site with ordinary pages and developer documentation.
 links:
   - label: Developer docs
     url: documentation

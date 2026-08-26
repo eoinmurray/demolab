@@ -32,7 +32,7 @@ from demolab_cli import build as _build_mod
 
 ROOT = _build_mod.ROOT
 SITE = _build_mod.SITE
-# Source trees whose changes trigger a rebuild. SOURCES only — never artifacts/site (build.py
+# Source trees whose changes trigger a rebuild. SOURCES only — never .demolab/site (build.py
 # writes it, which would loop). Add/remove within these dirs is detected too (the file set is
 # part of the signature), which is what lets new entries appear. The engine's own sources
 # (typ assets + these .py files) are watched too: inert in an installed lab (site-packages
@@ -44,7 +44,7 @@ WATCH_DIRS = [
     (_paths.TYP, "*.css"),
     (_paths.TYP, "*.js"),
     (_paths.PACKAGE, "*.py"),                     # build.py / devserver.py themselves
-    (ROOT / "artifacts" / "data", "**/*"),        # runner outputs (figures, videos, numbers)
+    (ROOT / ".artifacts", "**/*"),                # tracked publication evidence
 ]
 WATCH_FILES = [ROOT / "demolab.yaml",             # brand config (the lab marker)
                ROOT / "landing.typ"]              # optional custom landing page (may not exist)
@@ -134,10 +134,10 @@ def snapshot() -> dict:
 
 
 def deck_affecting(changed: set) -> bool:
-    """A deck PDF depends only on its own `.slide.typ` and the `artifacts/data` assets it embeds
+    """A deck PDF depends only on its own `.slide.typ` and the `.artifacts` evidence it embeds
     (decks import touying, not lib.typ). So a prose/CSS/lib edit can't change any deck — only a
     slide-source or data-asset change can, and just then do we pay to recompile decks."""
-    return any(p.endswith(".slide.typ") or "/artifacts/data/" in p for p in changed)
+    return any(p.endswith(".slide.typ") or "/.artifacts/" in p for p in changed)
 
 
 def build(skip_decks: bool = False) -> tuple[bool, str]:
@@ -145,7 +145,7 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
     Returns (ok, error_text). On failure the combined output carries Typst's error.
     DEMOLAB_ROOT pins the child to this server's ROOT (which may itself be a test override)."""
     cmd = [sys.executable, "-m", "demolab_cli.build"]
-    cmd.append("--no-mirror")
+    cmd.append("--no-pdf-copy")
     if skip_decks:
         cmd.append("--skip-decks")
     try:

@@ -6,12 +6,13 @@ my-presentation/
 ├── assets/            images, video, downloads, and data read by writings
 ├── demolab.yaml       configuration and project-root marker
 ├── landing.typ        optional custom homepage body
-├── artifacts/
-│   ├── site/            generated static website
-│   └── pdfs/           optional generated PDFs
+├── .artifacts/        tracked publication evidence; travels with the repository
 ├── temp/              optional experiment scratch
-└── .demolab/          generated engine and private build staging
+└── .demolab/          engine-owned generated output
+    ├── bundle/        private build staging
+    ├── site/          generated static website
+    └── pdfs/          optional generated PDFs
 ```
 
 The installed `demolab-cli` package owns the renderer and theme. The presentation owns its
-writings, assets, and configuration. Updating the package never overwrites those files.
+writings, assets, `.artifacts`, and configuration. Updating the package never overwrites those files.

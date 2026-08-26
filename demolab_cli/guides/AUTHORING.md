@@ -28,7 +28,9 @@ Put static inputs under `assets/`. Typst can read them from absolute project pat
 `#image("/assets/chart.svg")` or `#let data = json("/assets/results.json")`. Static files are
 copied into the website at the same relative path; `#video("clip.mp4")` references an asset.
 
-Use `demolab dev` for live preview and `demolab build` for a complete publication.
+Use `demolab dev` for live preview and `demolab build` for a complete publication. Generated web
+and PDF output lives under `.demolab/site/` and `.demolab/pdfs/`; reserve `.artifacts/` for tracked
+publication evidence owned by your project.
 
 The homepage remains a compact collection directory by default. To expand collection contents
 and optionally show recently updated ordinary writings, add this to `demolab.yaml`:
@@ -65,6 +67,8 @@ collections:
 The parent page is generated even when no writing belongs directly to it. It lists children in
 the authored order with their labels, descriptions, and recursive entry counts. Every child must
 be registered under `collections`; a child can have only one parent, and cycles are rejected.
+`theme: docs` is a visual skin only: themed collections and writings use the same components,
+metadata, navigation, ordering, and responsive layout as ordinary collections and writings.
 
 Children inherit `theme` and homepage visibility from their parent unless they set their own
 theme. A parent's `homepage: false` always keeps its full subtree out of homepage directories and

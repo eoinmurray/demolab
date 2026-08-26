@@ -91,14 +91,14 @@ def test_make_server_accepts_both_loopbacks():
 def test_deck_affecting_triggers_on_slide_and_data():
     # A deck PDF depends only on its own source and the data assets it embeds.
     assert devserver.deck_affecting({"/repo/writings/ar004.slide.typ"})
-    assert devserver.deck_affecting({"/repo/artifacts/data/exp000/lif.svg"})
+    assert devserver.deck_affecting({"/repo/.artifacts/exp000/lif.svg"})
     # A prose / CSS / lib edit can't change a deck, so decks are skipped.
     assert not devserver.deck_affecting({"/repo/writings/exp000.typ"})
     assert not devserver.deck_affecting({"/pkg/demolab_cli/typ/lib.typ"})
     assert not devserver.deck_affecting(set())
 
 
-def test_dev_build_never_mirrors_preview_pdfs(monkeypatch):
+def test_dev_build_does_not_copy_preview_pdfs_to_publication_dir(monkeypatch):
     captured = {}
 
     def run(cmd, **kwargs):
@@ -107,4 +107,4 @@ def test_dev_build_never_mirrors_preview_pdfs(monkeypatch):
 
     monkeypatch.setattr(devserver.subprocess, "run", run)
     assert devserver.build() == (True, "built")
-    assert "--no-mirror" in captured["cmd"]
+    assert "--no-pdf-copy" in captured["cmd"]

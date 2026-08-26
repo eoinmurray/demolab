@@ -5,7 +5,7 @@ from demolab_cli import build
 
 def test_entry_from_error_parses_the_failing_id():
     err = (
-        "error: file not found (searched at /x/artifacts/data/exp044/dt_sweep.svg)\n"
+        "error: file not found (searched at /x/.artifacts/exp044/dt_sweep.svg)\n"
         "  ┌─ writings/exp044.typ:50:10\n"
         "while importing `/writings/exp044.typ` at .demolab/bundle/main.typ:32:2"
     )
