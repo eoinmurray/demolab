@@ -5,7 +5,7 @@ contents-title: Example Site — contents
 description: A tiny Demolab site with ordinary pages, an asset, and developer documentation.
 links:
   - label: Developer docs
-    url: developer.html
+    url: documentation.html
   - label: Source
     url: https://github.com/eoinmurray/demolab
 
@@ -13,13 +13,26 @@ index:
   mode: expanded
   recent: 3
 
-collection-order: [pages, developer]
+collection-order: [pages, documentation]
 collections:
   pages:
     label: Example pages
     description: "Enough content to demonstrate navigation, writing metadata, and assets."
-  developer:
-    label: Developer guide
-    description: "A documentation collection using the developer-oriented visual theme."
+  documentation:
+    label: Documentation
+    description: "Developer documentation grouped by project."
     theme: docs
     homepage: false
+    children: [pinglab-docs, snnlang-docs, snnsim-docs, snnviz-docs]
+  pinglab-docs:
+    label: Pinglab docs
+    description: "Developer guides and API notes for Pinglab."
+  snnlang-docs:
+    label: SNNLANG docs
+    description: "Language reference and integration guides for SNNLANG."
+  snnsim-docs:
+    label: SNNSIM docs
+    description: "Simulation APIs and runtime documentation for SNNSIM."
+  snnviz-docs:
+    label: SNNVIZ docs
+    description: "Visualisation components and usage guides for SNNVIZ."

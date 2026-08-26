@@ -41,12 +41,15 @@ description: A Typst presentation published as a website with optional PDFs.
 # `theme: docs` to give a collection page and all its articles a light developer-documentation
 # web treatment. Set `homepage: false` to omit a collection and its recent entries from the
 # homepage while retaining its collection page, article URLs, all-entries listing, and PDFs.
+# A parent may explicitly set `children: [child-one, child-two]`; every child must have its own
+# entry below. Child order is authored here, while theme and hidden-homepage state inherit.
 collection-order: [notes, slides]
 collections:
   notes:
     label: Notes
     description: The presentation's main writings.
     # homepage: false
+    # children: [project-a-docs, project-b-docs]
   slides:
     label: Talks & slides
     description: Deck PDFs from talks — paged-only, linked as PDF.

@@ -339,6 +339,10 @@ ol.refs .doi:hover { color: var(--ink); }
 .coll-list { list-style: none; padding-left: 0; margin: 1.25rem 0; }
 .coll-row { padding: .55rem 0; }
 .coll-title { font-size: 1.15rem; }
+.child-coll-row { padding: .8rem 0; border-bottom: 1px solid var(--rule); }
+.child-coll-row:first-child { border-top: 1px solid var(--rule); }
+.child-coll-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.coll-count { flex: 0 0 auto; font-size: var(--fs-small); color: var(--muted); }
 .coll-desc { margin: .2rem 0 0; line-height: 1.45; }
 
 /* Index rows: mono id in a left column; title + a quiet meta sub-line (date · status · pdf)

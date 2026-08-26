@@ -41,3 +41,32 @@ index:
 
 Omit `recent` or set it to `0` to remove “Recently worked on”. Recent work is ranked only by
 authored `updated_at ?? created_at`, then by ID descending; slides are excluded.
+
+## Nested collections
+
+Collections are flat unless a parent explicitly lists `children` in `demolab.yaml`:
+
+```yaml
+collections:
+  documentation:
+    label: Documentation
+    description: Developer documentation grouped by project.
+    theme: docs
+    homepage: false
+    children: [pinglab-docs, snnlang-docs]
+  pinglab-docs:
+    label: Pinglab docs
+    description: Guides and API notes for Pinglab.
+  snnlang-docs:
+    label: SNNLANG docs
+    description: Language reference and integration guides.
+```
+
+The parent page is generated even when no writing belongs directly to it. It lists children in
+the authored order with their labels, descriptions, and recursive entry counts. Every child must
+be registered under `collections`; a child can have only one parent, and cycles are rejected.
+
+Children inherit `theme` and homepage visibility from their parent unless they set their own
+theme. A parent's `homepage: false` always keeps its full subtree out of homepage directories and
+recent work; direct pages, the all-entries index, and PDFs remain available. Hierarchy never
+changes authored dates or writing order, and Demolab never infers parentage from collection slugs.

@@ -208,12 +208,61 @@
 #let title-case(slug) = slug.split("-").map(w => if w.len() > 0 { upper(w.slice(0, 1)) + w.slice(1) } else { w }).join(" ")
 #let collection-label(slug, meta) = meta.at(slug, default: (:)).at("label", default: title-case(slug))
 #let collection-description(slug, meta) = meta.at(slug, default: (:)).at("description", default: none)
-#let collection-theme(slug, meta) = meta.at(slug, default: (:)).at("theme", default: none)
+#let collection-children(slug, meta) = meta.at(slug, default: (:)).at("children", default: ())
+#let collection-parents(slug, meta) = meta.keys().filter(parent => slug in collection-children(parent, meta))
+#let collection-parent(slug, meta) = {
+  let parents = collection-parents(slug, meta)
+  if parents.len() == 0 { none } else { parents.first() }
+}
+#let collection-theme(slug, meta) = {
+  let own = meta.at(slug, default: (:)).at("theme", default: none)
+  let parent = collection-parent(slug, meta)
+  if own != none { own } else if parent != none { collection-theme(parent, meta) } else { none }
+}
 #let collection-homepage-visible(slug, meta) = {
   let visible = meta.at(slug, default: (:)).at("homepage", default: true)
   assert(type(visible) == bool,
     message: "demolab.yaml collection '" + slug + "' homepage must be true or false")
-  visible
+  let parent = collection-parent(slug, meta)
+  visible and (parent == none or collection-homepage-visible(parent, meta))
+}
+#let collection-root(slug, meta) = {
+  let parent = collection-parent(slug, meta)
+  if parent == none { slug } else { collection-root(parent, meta) }
+}
+#let collection-page-slugs(items, meta) = {
+  let content = items.map(it => it.coll)
+  let nested = meta.keys().filter(slug => collection-children(slug, meta).len() > 0 or collection-parent(slug, meta) != none)
+  (content + nested).dedup()
+}
+#let validate-collection-path(slug, meta, trail: ()) = {
+  assert(slug not in trail,
+    message: "demolab.yaml collection cycle: " + (trail + (slug,)).join(" -> "))
+  let parent = collection-parent(slug, meta)
+  if parent != none { validate-collection-path(parent, meta, trail: trail + (slug,)) }
+}
+#let validate-collections(meta) = {
+  assert(type(meta) == dictionary, message: "demolab.yaml 'collections' must be a mapping")
+  for (slug, spec) in meta {
+    assert(type(spec) == dictionary,
+      message: "demolab.yaml collection '" + slug + "' must be a mapping")
+    let children = spec.at("children", default: ())
+    assert(type(children) == array,
+      message: "demolab.yaml collection '" + slug + "' children must be a list")
+    for child in children {
+      assert(type(child) == str,
+        message: "demolab.yaml collection '" + slug + "' children must be collection slugs")
+      assert(child in meta,
+        message: "demolab.yaml collection '" + slug + "' has unknown child '" + child + "'")
+    }
+  }
+  for slug in meta.keys() {
+    let parents = collection-parents(slug, meta)
+    assert(parents.len() <= 1,
+      message: "demolab.yaml collection '" + slug + "' has duplicate parentage: " + parents.join(", "))
+    let _path = validate-collection-path(slug, meta)
+    let _visible = collection-homepage-visible(slug, meta)
+  }
 }
 #let theme-class(theme, base: none) = {
   let classes = if base == none { () } else { (base,) }
@@ -360,6 +409,37 @@
       [- #link(c + ".html", collection-label(c, collection-meta))]
       if desc != none { block(inset: (left: 1em), below: 0.6em, text(size: 9pt, fill: gray, desc)) }
     }
+  }
+}
+
+#let collection-entry-count(slug, items, collection-meta) = {
+  collection-children(slug, collection-meta).fold(
+    items.filter(it => it.coll == slug).len(),
+    (total, child) => total + collection-entry-count(child, items, collection-meta),
+  )
+}
+
+// A nested collection parent owns no inferred content or order. Its authored `children` list is
+// rendered verbatim as linked rows; counts include each child's descendants.
+#let child-collection-index(parent, items, collection-meta) = context {
+  let children = collection-children(parent, collection-meta)
+  if children.len() > 0 {
+    heading(level: 2, [Collections])
+    html.elem("ul", attrs: (class: "coll-list child-coll-list"), {
+      for child in children {
+        let desc = collection-description(child, collection-meta)
+        let count = collection-entry-count(child, items, collection-meta)
+        html.elem("li", attrs: (class: "coll-row child-coll-row"), {
+          html.elem("div", attrs: (class: "child-coll-head"), {
+            html.elem("a", attrs: (class: "coll-title", href: child + ".html"),
+              collection-label(child, collection-meta))
+            html.elem("span", attrs: (class: "coll-count"),
+              str(count) + if count == 1 { " entry" } else { " entries" })
+          })
+          if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
+        })
+      }
+    })
   }
 }
 
@@ -582,7 +662,12 @@
   set heading(outlined: false) // keep the homepage out of the book's TOC
   let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
   let homepage-items = items.filter(it => collection-homepage-visible(it.coll, collection-meta))
-  let colls = homepage-items.map(it => it.coll).dedup().sorted(key: c => collection-rank(c, collection-order))
+  let configured-roots = collection-meta.keys().filter(c =>
+    collection-parent(c, collection-meta) == none
+      and collection-children(c, collection-meta).len() > 0
+      and collection-homepage-visible(c, collection-meta))
+  let colls = (homepage-items.map(it => collection-root(it.coll, collection-meta)) + configured-roots)
+    .dedup().sorted(key: c => collection-rank(c, collection-order))
   let index = index-options(index-config)
   // .listing scopes the pinglab treatment: nav/index links unadorned, underline on hover
   // only (entry-body prose keeps the default underline). The homepage leads with the same
@@ -657,8 +742,9 @@
 // A per-collection page: the collection's label + description, then its entries grouped by
 // kind (Articles / Experiments / Slides), the same organisation as the all-entries page.
 // Reached from the homepage directory; the foot link returns there.
-#let collection-page(coll, items, brand: default-brand, collection-meta: (:)) = {
+#let collection-page(coll, items, all-items: none, brand: default-brand, collection-meta: (:)) = {
   web-styles(brand: brand)
+  let all-items = if all-items == none { items } else { all-items }
   let theme = collection-theme(coll, collection-meta)
   context {
     if target() == "html" and theme != none {
@@ -671,6 +757,7 @@
   html.elem("div", attrs: (class: "listing"), {
     heading(level: 1, collection-label(coll, collection-meta))
     if desc != none { html.elem("p", attrs: (class: "entry-meta"), desc) }
+    child-collection-index(coll, all-items, collection-meta)
     grouped-entry-lists(items, collection-meta: collection-meta)
     html.elem("p", attrs: (class: "page-foot"), link("index.html", "← all collections"))
   })

@@ -29,6 +29,13 @@ def _build(root: Path, entry: str | None = None) -> None:
     )
 
 
+def _build_result(root: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, "-m", "demolab_cli.build"],
+        env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
+    )
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -57,16 +64,75 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     assert "Writings" in (site / "all.html").read_text()
     assert "Experiments" not in (site / "all.html").read_text()
     assert 'class="theme-docs"' in (site / "api.html").read_text()
-    assert 'class="theme-docs"' in (site / "developer.html").read_text()
+    assert 'class="theme-docs"' in (site / "documentation.html").read_text()
+    assert 'class="theme-docs"' in (site / "pinglab-docs.html").read_text()
     assert 'class="theme-docs"' not in (site / "pages.html").read_text()
     homepage = (site / "index.html").read_text()
-    assert homepage.count('href="developer.html"') == 1  # header link only; collection stays hidden
+    assert homepage.count('href="documentation.html"') == 1  # header link only; directory stays hidden
     assert 'href="api.html"' not in homepage
     assert '<nav class="site-links" aria-label="Site links">' in homepage
-    assert '<a href="developer.html">Developer docs</a>' in homepage
+    assert '<a href="documentation.html">Developer docs</a>' in homepage
     assert '<a href="https://github.com/eoinmurray/demolab">Source</a>' in homepage
     assert 'href="api.html"' in (site / "all.html").read_text()
-    assert (site / "developer.html").exists()
+    parent = (site / "documentation.html").read_text()
+    children = ("pinglab-docs", "snnlang-docs", "snnsim-docs", "snnviz-docs")
+    assert all((site / f"{child}.html").exists() for child in children)
+    positions = [parent.index(f'href="{child}.html"') for child in children]
+    assert positions == sorted(positions)
+    assert "Pinglab docs" in parent and "Developer guides and API notes for Pinglab." in parent
+    assert '<span class="coll-count">1 entry</span>' in parent
+    assert parent.count('<span class="coll-count">0 entries</span>') == 3
+
+
+@pytest.mark.parametrize(
+    ("config", "message"),
+    (
+        (
+            "collections:\n  parent:\n    children: [missing]\n",
+            "collection 'parent' has unknown child 'missing'",
+        ),
+        (
+            "collections:\n"
+            "  first:\n    children: [child]\n"
+            "  second:\n    children: [child]\n"
+            "  child: {}\n",
+            "collection 'child' has duplicate parentage",
+        ),
+        (
+            "collections:\n"
+            "  first:\n    children: [second]\n"
+            "  second:\n    children: [third]\n"
+            "  third:\n    children: [first]\n",
+            "collection cycle:",
+        ),
+    ),
+)
+def test_nested_collection_graph_validation(tmp_path: Path, config: str, message: str) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(config)
+    proc = _build_result(root)
+    assert proc.returncode != 0
+    assert message in proc.stderr
+
+
+def test_flat_collection_config_remains_backward_compatible(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "collections:\n  notes:\n    label: Notes\n    description: Flat collection.\n"
+    )
+    (root / "writings" / "note.typ").write_text(
+        '#let meta = (title: "Note", created_at: "2026-08-26", collection: "notes")\n'
+        '#let body = [Body.]\n'
+    )
+    _build(root)
+    site = root / "artifacts" / "site"
+    assert (site / "notes.html").exists()
+    assert 'href="notes.html">Notes</a>' in (site / "index.html").read_text()
+    assert 'href="note.html">Note</a>' in (site / "notes.html").read_text()
 
 
 def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:

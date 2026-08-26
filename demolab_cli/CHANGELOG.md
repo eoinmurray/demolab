@@ -13,6 +13,15 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [3.4.0] — 2026-08-26
+
+### Added
+- **Collections can form an explicit validated hierarchy.** A registered collection may list
+  `children`; its page is generated even without direct writings and shows authored child rows
+  with descriptions and recursive entry counts. Themes and hidden-homepage state inherit through
+  the tree, while unknown children, duplicate parentage, and cycles fail with clear errors. Flat
+  configurations, authored dates, and existing ordering remain unchanged.
+
 ## [3.3.0] — 2026-08-26
 
 ### Added

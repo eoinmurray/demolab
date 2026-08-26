@@ -28,6 +28,10 @@ Demolab has one pipeline: `writings/ + assets/ -> artifacts/`.
    `collection-order`. Collection writings combine into one ID-descending list: status and curated
    `order` remain visible metadata but never affect this homepage order. Slides are not recent and
    keep their existing separate treatment. `index.recent` defaults to `0` and cannot be negative.
+9. Collection nesting is authored only through a registered collection's `children` list. Child
+   order is the list order; every child has at most one parent; unknown children and cycles fail
+   the build. Children inherit the nearest configured theme and cannot override a hidden parent's
+   homepage visibility. Nesting never infers dates, parentage, or writing order.
 
 Demolab does not run source code, validate claims, manage research, or guarantee where numbers
 came from. Authors own their content and evidence.

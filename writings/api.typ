@@ -4,7 +4,7 @@
   title: "Reading a JSON asset",
   created_at: "2026-08-26",
   description: "A small API-style page using the developer documentation theme.",
-  collection: "developer",
+  collection: "pinglab-docs",
   order: 1,
 )
 
