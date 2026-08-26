@@ -95,21 +95,3 @@ def test_dev_build_never_mirrors_preview_pdfs(monkeypatch):
     monkeypatch.setattr(devserver.subprocess, "run", run)
     assert devserver.build() == (True, "built")
     assert "--no-mirror" in captured["cmd"]
-
-
-def test_sync_landing_source_copies_updates_and_removal(tmp_path):
-    source = tmp_path / "package" / "site" / "landing.typ"
-    target = tmp_path / "preview" / "landing.typ"
-    source.parent.mkdir(parents=True)
-    source.write_text("#let body = [first]\n")
-
-    devserver.sync_landing_source(source, target)
-    assert target.read_text() == "#let body = [first]\n"
-
-    source.write_text("#let body = [updated]\n")
-    devserver.sync_landing_source(source, target)
-    assert target.read_text() == "#let body = [updated]\n"
-
-    source.unlink()
-    devserver.sync_landing_source(source, target)
-    assert not target.exists()

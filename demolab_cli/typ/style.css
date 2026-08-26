@@ -231,8 +231,7 @@ ol.refs .doi:hover { color: var(--ink); }
 .empty-lead { font-size: 1.2rem; color: var(--ink); margin: 0 0 .6rem; }
 .empty-state p:not(.empty-lead) { color: var(--muted); }
 
-/* Landing-page building blocks for a custom landing.typ (pitch, links, command boxes) —
-   used by the upstream demo's site/landing.typ; a lab's own landing.typ may reuse them. */
+/* Reusable building blocks for a presentation's optional custom landing.typ. */
 .welcome { margin: 0 0 2.75rem; max-width: 36rem; }
 .welcome-body { margin: 0 0 1rem; }
 .welcome-links {

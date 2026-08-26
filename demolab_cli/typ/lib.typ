@@ -553,8 +553,8 @@
 // after, by first appearance. Entry rows live on the per-collection pages.
 // An optional landing.typ at the content root (see main.typ) passes its `body` in as
 // `landing`; it replaces the collection directory below the brand header — a full custom
-// landing page. Used by the upstream demo site; absent on a normal lab. The landing body
-// owns its markup (html.elem); the .welcome-* classes in style.css are there to reuse.
+// landing page. The landing body owns its markup (html.elem); the .welcome-* classes in
+// style.css are reusable building blocks.
 #let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)

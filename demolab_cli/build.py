@@ -35,8 +35,8 @@ from pathlib import Path
 from demolab_cli import _paths
 
 # The lab being built. Normally found by walking up from the cwd for demolab.yaml;
-# DEMOLAB_ROOT overrides it (the test fixtures and `demolab dev --demo` build materialised
-# labs in scratch dirs). Falls back to the cwd so an empty dir still gets the friendly
+# DEMOLAB_ROOT overrides it (the tests build materialised labs in scratch dirs). Falls back
+# to the cwd so an empty dir still gets the friendly
 # empty-state build rather than an import-time error.
 ROOT = Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd()).resolve()
 WRITINGS = ROOT / "writings"

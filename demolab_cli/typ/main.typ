@@ -32,8 +32,7 @@
 
 // The optional custom landing page: a landing.typ at the lab root (exporting `#let body`)
 // replaces the homepage's collection directory with its own content. build.py sets has_landing
-// (Typst can't stat). Absent on a normal lab; the upstream Pages deploy copies
-// scaffold/demo/site/landing.typ to the root before building.
+// (Typst can't stat). Absent unless the presentation author creates one.
 #let landing = if manifest.at("has_landing", default: false) {
   import "/landing.typ": body
   body

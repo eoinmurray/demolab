@@ -35,11 +35,6 @@ pattern = "^(?P<version>\\S+)$"
 [tool.hatch.build.targets.wheel]
 packages = ["demolab_cli"]
 exclude = [
-  # Untracked build noise `demolab dev --demo` leaves inside the demo overlay (gitignored,
-  # but wheels build from disk — CI's clean checkout is the backstop).
-  "demolab_cli/scaffold/demo/temp",
-  "demolab_cli/scaffold/demo/artifacts/site",
-  "demolab_cli/scaffold/demo/landing.typ",
   # Engine tests run in this repo's CI, not in user labs.
   "demolab_cli/test_*.py",
   "**/__pycache__",

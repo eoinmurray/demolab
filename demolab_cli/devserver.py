@@ -19,7 +19,6 @@ Run: `demolab dev [port]` (defaults to the first free port from 3000). Ctrl-C to
 import http.server
 import os
 import queue
-import shutil
 import socket
 import subprocess
 import sys
@@ -33,12 +32,6 @@ from demolab_cli import build as _build_mod
 
 ROOT = _build_mod.ROOT
 SITE = _build_mod.SITE
-LANDING_SOURCE = (
-    Path(os.environ["DEMOLAB_LANDING_SOURCE"]).resolve()
-    if os.environ.get("DEMOLAB_LANDING_SOURCE")
-    else None
-)
-
 # Source trees whose changes trigger a rebuild. SOURCES only — never artifacts/site (build.py
 # writes it, which would loop). Add/remove within these dirs is detected too (the file set is
 # part of the signature), which is what lets new entries appear. The engine's own sources
@@ -55,8 +48,6 @@ WATCH_DIRS = [
 ]
 WATCH_FILES = [ROOT / "demolab.yaml",             # brand config (the lab marker)
                ROOT / "landing.typ"]              # optional custom landing page (may not exist)
-if LANDING_SOURCE is not None:
-    WATCH_FILES.append(LANDING_SOURCE)              # --demo --landing's real package source
 POLL_SECONDS = 0.4
 DEBOUNCE_SECONDS = 0.15
 BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow — surface it, don't hang
@@ -142,23 +133,6 @@ def snapshot() -> dict:
     return sig
 
 
-def sync_landing_source(source: Path | None, target: Path) -> None:
-    """Mirror `--demo --landing`'s real source into the disposable lab before a build.
-
-    Typst cannot follow a symlink outside `--root`, so the preview must contain a real file.
-    The CLI passes the package source through DEMOLAB_LANDING_SOURCE; watching that path and
-    copying on change keeps the scratch file live without weakening Typst's filesystem boundary.
-    A removed source removes the mirror, restoring the normal collection homepage.
-    """
-    if source is None or source == target.resolve():
-        return
-    if source.exists():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-    else:
-        target.unlink(missing_ok=True)
-
-
 def deck_affecting(changed: set) -> bool:
     """A deck PDF depends only on its own `.slide.typ` and the `artifacts/data` assets it embeds
     (decks import touying, not lib.typ). So a prose/CSS/lib edit can't change any deck — only a
@@ -169,8 +143,7 @@ def deck_affecting(changed: set) -> bool:
 def build(skip_decks: bool = False) -> tuple[bool, str]:
     """Run build.py with the current interpreter (already inside the uv env, so no uv spawn).
     Returns (ok, error_text). On failure the combined output carries Typst's error.
-    DEMOLAB_ROOT pins the child to this server's ROOT (which may itself be an override —
-    `demolab dev --demo` serves a materialised scratch lab)."""
+    DEMOLAB_ROOT pins the child to this server's ROOT (which may itself be a test override)."""
     cmd = [sys.executable, "-m", "demolab_cli.build"]
     cmd.append("--no-mirror")
     if skip_decks:
@@ -318,7 +291,6 @@ def pick_port(argv) -> int:
 
 def watch_loop():
     """Poll the source signature; on a settled change, rebuild and tell the browser."""
-    sync_landing_source(LANDING_SOURCE, ROOT / "landing.typ")
     ok, msg = build()  # first build always compiles decks so their PDFs exist for later skips
     _last_error[0] = "" if ok else msg
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
@@ -337,8 +309,6 @@ def watch_loop():
                     break
                 cur = nxt
             changed = {k for k in set(cur) | set(last) if cur.get(k) != last.get(k)}
-            if LANDING_SOURCE is not None and str(LANDING_SOURCE) in changed:
-                sync_landing_source(LANDING_SOURCE, ROOT / "landing.typ")
             skip = not deck_affecting(changed)
             ok, msg = build(skip_decks=skip)
             last = snapshot()

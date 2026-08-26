@@ -42,7 +42,7 @@ jobs:
       - name: Install typst (Linux — unskips the engine build tests)
         if: runner.os == 'Linux'
         env:
-          TYPST_VERSION: "0.15.0"  # match the engine's toolchain (see landing.yml)
+          TYPST_VERSION: "0.15.0"  # match the engine's local toolchain
         run: |
           curl -sL "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz" \
             | tar -xJf - -C /usr/local/bin --strip-components=1 "typst-x86_64-unknown-linux-musl/typst"

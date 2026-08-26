@@ -1,3 +1,4 @@
+// Source-checkout demo content and end-to-end fixture.
 #import "/.demolab/lib.typ": *
 
 #let meta = (

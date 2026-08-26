@@ -16,10 +16,10 @@ pytestmark = pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI
 def _assemble(root: Path, *, demo: bool = True) -> None:
     shutil.copytree(_paths.SCAFFOLD / "skeleton", root, dirs_exist_ok=True)
     if demo:
-        shutil.copytree(
-            _paths.SCAFFOLD / "demo", root, dirs_exist_ok=True,
-            ignore=shutil.ignore_patterns("landing.typ", "temp", "site"),
-        )
+        source = _paths.PACKAGE.parent
+        shutil.copy2(source / "demolab.yaml", root / "demolab.yaml")
+        shutil.copytree(source / "writings", root / "writings", dirs_exist_ok=True)
+        shutil.copytree(source / "assets", root / "assets", dirs_exist_ok=True)
 
 
 def _build(root: Path, entry: str | None = None) -> None:

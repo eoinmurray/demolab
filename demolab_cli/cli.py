@@ -31,7 +31,7 @@ GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("deploy-setup", "🚀 Opt in to GitHub Pages — copy the deploy + preview workflows into .github/workflows/"),
     ]),
     ("publishing", [
-        ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (--demo serves the shipped demo, add --landing for its landing page; PORT overrides the auto-picked 3000)"),
+        ("dev", "🔥 Serve the site with hot-reload + in-browser build errors (PORT overrides the auto-picked 3000)"),
         ("build", "📦 Build the publication → artifacts/site/ (web) + optional artifacts/pdfs/"),
         ("clean", "🧹 Delete regenerable build output (temp/, artifacts/site/)"),
     ]),
@@ -132,13 +132,12 @@ def _git_init(target: Path) -> None:
 
 
 def _doc_files() -> dict[str, Path]:
-    """Every guide shipped in the package, plus the manual, changelog, and demo."""
+    """Every guide shipped in the package, plus the manual and changelog."""
     docs: dict[str, Path] = {}
     for p in sorted(_paths.GUIDES.glob("*.md")):
         docs[p.stem] = p
     docs["AGENT"] = _paths.PACKAGE / "AGENT.md"
     docs["CHANGELOG"] = _paths.PACKAGE / "CHANGELOG.md"
-    docs["DEMO"] = _paths.SCAFFOLD / "demo"
     return docs
 
 
@@ -189,7 +188,6 @@ def cmd_docs(args: argparse.Namespace) -> int:
     print("  reference")
     print("    AGENT      this manual (the text above)")
     print("    CHANGELOG  what changed in each engine version")
-    print("    DEMO       the published demo's source")
     return 0
 
 
@@ -221,28 +219,7 @@ def cmd_deploy_setup(args: argparse.Namespace) -> int:
 # ── publishing ─────────────────────────────────────────────────────────────
 def cmd_dev(args: argparse.Namespace) -> int:
     port_args = [str(args.port)] if args.port else []
-    if not args.demo:
-        if args.landing:
-            print("--landing only applies to --demo. For your own lab, create a landing.typ at the",
-                  file=sys.stderr)
-            print("lab root and `demolab dev` renders it (and hot-reloads it).", file=sys.stderr)
-            return 2
-        return _mod("devserver", *port_args, cwd=_paths.require_lab_root())
-    # --demo: materialise the shipped demo as a disposable lab under temp/ and serve that.
-    # (The demo ships in site-packages, which Typst can't read from and we never write into.)
-    lab = _paths.require_lab_root()
-    scratch = lab / "temp" / "demo-preview"
-    shutil.rmtree(scratch, ignore_errors=True)
-    overlay(_paths.SCAFFOLD / "skeleton", scratch)
-    overlay(_paths.SCAFFOLD / "demo", scratch, exclude=("site", "temp"))
-    env = {**os.environ, "DEMOLAB_ROOT": str(scratch)}
-    if args.landing:
-        landing_source = (_paths.SCAFFOLD / "demo" / "site" / "landing.typ").resolve()
-        shutil.copy2(landing_source, scratch / "landing.typ")
-        env["DEMOLAB_LANDING_SOURCE"] = str(landing_source)
-        print("→ previewing the upstream landing page too (site/landing.typ)")
-    print(f"→ serving the shipped demo from a scratch copy ({scratch.relative_to(lab)})")
-    return _mod("devserver", *port_args, cwd=scratch, env=env)
+    return _mod("devserver", *port_args, cwd=_paths.require_lab_root())
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -310,9 +287,6 @@ def _build_parser() -> argparse.ArgumentParser:
             sp.add_argument("--print", action="store_true", help="print the document instead of its path")
         elif name == "dev":
             sp.add_argument("port", nargs="?", type=int, help="port to serve on (default: first free from 3000)")
-            sp.add_argument("--demo", action="store_true", help="serve the shipped demo instead of your lab")
-            sp.add_argument("--landing", action="store_true",
-                            help="with --demo: preview the upstream landing page too")
         elif name == "build":
             sp.add_argument("entry", nargs="?",
                             help="build only this entry PDF; omit for the complete publication")

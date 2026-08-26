@@ -1,0 +1,11 @@
+# Internal demo config for the source checkout's end-to-end fixture.
+name: Demolab
+book-title: Demolab — the book
+contents-title: Demolab — contents
+description: Typst writings and assets, published as a website with optional PDFs.
+
+collection-order: [guide]
+collections:
+  guide:
+    label: Guide
+    description: "The complete presentation system, in three short pages."
