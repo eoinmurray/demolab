@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-08-26
+
+### Fixed
+- **Local preview accepts trailing slashes on entry and collection URLs.** Paths such as
+  `/welcome/` now resolve to the same generated HTML as `/welcome`, while real directories retain
+  their own `index.html` resolution.
+
 ## [4.0.0] — 2026-08-26
 
 ### Changed

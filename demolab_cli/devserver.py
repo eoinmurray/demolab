@@ -164,18 +164,20 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
 
 
 def html_file_for_path(path: str, site: Path) -> Path:
-    """Map a URL path to its HTML artifact, accepting both `/entry` and `/entry.html`.
+    """Map a URL path to its HTML artifact, accepting `/entry`, `/entry/`, and `/entry.html`.
 
     Generated links use the bare form; the explicit extension remains a compatible alias.
     Directories continue to resolve through their own index.html.
     """
     fs = site / path.lstrip("/")
-    if path.endswith("/") or fs.is_dir():
+    if fs.is_dir():
         return fs / "index.html"
     if not fs.exists():
         bare_html = Path(str(fs) + ".html")
         if bare_html.is_file() and _within(bare_html, site):
             return bare_html
+    if path.endswith("/"):
+        return fs / "index.html"
     return fs
 
 

@@ -57,17 +57,24 @@ def test_within_blocks_traversal(tmp_path):
     assert not devserver._within(site / ".." / ".." / "etc" / "hosts.html", site)
 
 
-def test_html_file_for_path_accepts_bare_and_explicit_urls(tmp_path):
+def test_html_file_for_path_accepts_bare_trailing_slash_and_explicit_urls(tmp_path):
     site = tmp_path / "site"
     site.mkdir()
     page = site / "report.v2.html"
     page.write_text("report")
     (site / "index.html").write_text("home")
+    section = site / "section"
+    section.mkdir()
+    section_index = section / "index.html"
+    section_index.write_text("section")
 
     assert devserver.html_file_for_path("/report.v2", site) == page
+    assert devserver.html_file_for_path("/report.v2/", site) == page
     assert devserver.html_file_for_path("/report.v2.html", site) == page
     assert devserver.html_file_for_path("/", site) == site / "index.html"
+    assert devserver.html_file_for_path("/section/", site) == section_index
     assert devserver.html_file_for_path("/missing", site) == site / "missing"
+    assert devserver.html_file_for_path("/missing/", site) == site / "missing" / "index.html"
 
 
 def test_make_server_accepts_both_loopbacks():
