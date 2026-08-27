@@ -13,8 +13,8 @@
   "benchmark-b": "benchmark-b-run-002",
 )
 #let data-file = data-file.with(article: "benchmark-gallery", sources: sources)
-#let result-a = json(data-file("benchmark-a/numbers.json"))
-#let result-b = json(data-file("benchmark-b/numbers.json"))
+#let result-a = data-json(data-file("benchmark-a/numbers.json"))
+#let result-b = data-json(data-file("benchmark-b/numbers.json"))
 
 #let body = [
   *Synthetic demo data, not experimental evidence.* Case 2: one article assembles presentation
@@ -23,22 +23,32 @@
 
   == Benchmark A
 
-  Run *#result-a.run_id* (#result-a.label) correctly classifies
-  *#result-a.correct of #result-a.total* examples: *#result-a.accuracy_percent% accuracy*.
+  #if result-a == none [Awaiting a run. Numerical results will appear here.] else [
+    Run *#result-a.run_id* (#result-a.label) correctly classifies
+    *#result-a.correct of #result-a.total* examples: *#result-a.accuracy_percent% accuracy*.
+  ]
 
   #figure(
-    image(data-file("benchmark-a/accuracy.svg"), width: 100%, alt: "Gallery benchmark A accuracy: " + str(result-a.accuracy_percent) + " percent."),
-    caption: [Benchmark A: #result-a.accuracy_percent% accuracy, read through `benchmark-a`.],
+    data-image(data-file("benchmark-a/accuracy.svg"), width: 100%,
+      alt: if result-a != none { "Gallery benchmark A accuracy: " + str(result-a.accuracy_percent) + " percent." }),
+    caption: [Benchmark A#if result-a != none [: #result-a.accuracy_percent% accuracy], read through `benchmark-a`.],
+    kind: image,
+    supplement: [Figure],
   )
 
   == Benchmark B
 
-  Run *#result-b.run_id* (#result-b.label) correctly classifies
-  *#result-b.correct of #result-b.total* examples: *#result-b.accuracy_percent% accuracy*.
+  #if result-b == none [Awaiting a run. Numerical results will appear here.] else [
+    Run *#result-b.run_id* (#result-b.label) correctly classifies
+    *#result-b.correct of #result-b.total* examples: *#result-b.accuracy_percent% accuracy*.
+  ]
 
   #figure(
-    image(data-file("benchmark-b/accuracy.svg"), width: 100%, alt: "Gallery benchmark B accuracy: " + str(result-b.accuracy_percent) + " percent."),
-    caption: [Benchmark B: #result-b.accuracy_percent% accuracy, read through `benchmark-b`.],
+    data-image(data-file("benchmark-b/accuracy.svg"), width: 100%,
+      alt: if result-b != none { "Gallery benchmark B accuracy: " + str(result-b.accuracy_percent) + " percent." }),
+    caption: [Benchmark B#if result-b != none [: #result-b.accuracy_percent% accuracy], read through `benchmark-b`.],
+    kind: image,
+    supplement: [Figure],
   )
 
   These are separate benchmark results, not a before/after comparison or a combined score.

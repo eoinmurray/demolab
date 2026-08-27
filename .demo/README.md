@@ -7,13 +7,14 @@ articles, data, and discovery script live here; all generated runtime stays in t
 `.demolab/`. Ordinary user labs keep their existing layout.
 
 Run `uv run demolab dev` from the repository root. The homepage's data-source
-collection and the welcome page link to all three cases:
+collection and the welcome page link to all four cases:
 
 | Article | Case | Initial Latest preview | Ordinary build |
 | --- | --- | --- | --- |
 | `/benchmark-a` | One run | 88%, one figure | 64% |
 | `/benchmark-gallery` | Multiple experiments | 88% and 92%, two figures | 64% and 92% |
 | `/benchmark-comparison` | Paired comparisons | 88% / 88% and 92% / 92%, zero differences | 64% / 88% (+24 pp), 72% / 92% (+20 pp) |
+| `/benchmark-empty` | No runs yet | Empty selector, pending image/video, awaiting results | Authored pending state |
 
 ## Run data
 
@@ -49,6 +50,23 @@ Each article binds `data-file.with(article: "<its-id>", sources: sources)` befor
 inputs. Comparison keys are `baseline.benchmark-a`, `candidate.benchmark-a`, and equivalent
 B keys; its `sources` dictionary defines the separate publication choices. Hardcoded paths
 are deliberately not used for selectable demo inputs.
+
+## Try the empty state
+
+Open `/benchmark-empty`: no configuration changes are needed. Its explicitly attached
+`benchmark-empty` experiment has no run directories. The article demonstrates the disabled
+selector, awaiting numerical results, and themed image/video placeholders alongside readable
+prose. Ordinary builds deliberately author the same pending content without reading data files.
+
+Temporarily change `preview.discover` in `.demo/demolab.yaml` to
+`[python, -c, "print('[]')"]`, then Reset to default in any article with a pinned selection.
+The other three articles also retain their prose and headings, show pending figures and awaiting-run
+numerical results, and have disabled **No runs available** selectors. No data files need moving
+or deleting. Restore `[python, scripts/discover_runs.py]` to populate Latest again.
+The single-input article is explicitly attached in YAML so it also works with an empty catalogue
+on the very first build. Without that declaration, automatic matching begins with the first run.
+`data-json()` / `data-image()` plus native conditionals implement these states; `video()` accepts
+the same missing-input sentinel for articles with videos.
 
 Dev watches configuration, writings, source data, and the discovery script. It reads run
 inputs directly. Preview state/output stay under `.demolab/preview/`; errors leave the last

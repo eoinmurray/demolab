@@ -8,9 +8,10 @@
 )
 
 // Article ID, experiment, and data key agree: the ordinary one-input case.
+// Empty-aware readers keep this article useful before its first preview run.
 #let sources = ("benchmark-a": "benchmark-a-run-001")
 #let data-file = data-file.with(article: "benchmark-a", sources: sources)
-#let result = json(data-file("benchmark-a/numbers.json"))
+#let result = data-json(data-file("benchmark-a/numbers.json"))
 
 #let body = [
   *Synthetic demo data, not experimental evidence.* Case 1: one article, one data key, one run.
@@ -19,12 +20,17 @@
 
   == Current result
 
-  Run *#result.run_id* (#result.label), created #result.created_at, correctly classifies
-  *#result.correct of #result.total* examples: *#result.accuracy_percent% accuracy*.
+  #if result == none [Awaiting a run. Numerical results will appear here.] else [
+    Run *#result.run_id* (#result.label), created #result.created_at, correctly classifies
+    *#result.correct of #result.total* examples: *#result.accuracy_percent% accuracy*.
+  ]
 
   #figure(
-    image(data-file("benchmark-a/accuracy.svg"), width: 100%, alt: "Synthetic benchmark A accuracy: " + str(result.accuracy_percent) + " percent."),
+    data-image(data-file("benchmark-a/accuracy.svg"), width: 100%,
+      alt: if result != none { "Synthetic benchmark A accuracy: " + str(result.accuracy_percent) + " percent." }),
     caption: [Accuracy from the same run as the numerical prose, through `benchmark-a`.],
+    kind: image,
+    supplement: [Figure],
   )
 
   Initial preview follows Latest; select run 001 to see the baseline. Reset to default returns to Latest.

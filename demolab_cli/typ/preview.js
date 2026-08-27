@@ -1,11 +1,14 @@
 // Development-only controls. A fragment restores one article atomically; it never reaches builds.
 function demolabPreviewOptions(runs, choice) {
+  if (!runs.length && choice === 'latest') {
+    return {options: [['latest', 'No runs available']], value: 'latest', disabled: true};
+  }
   // A pinned run that is currently newest uses the same displayed option as Latest.
   const value = runs.length && choice === 'run:' + runs[0].id ? 'latest' : choice;
   const options = [['latest', 'Latest' + (runs.length ? ' — ' + runs[0].id : '')],
     ...runs.slice(1).map(run => ['run:' + run.id, run.id])];
   if (!options.some(option => option[0] === value)) options.push([value, value.replace(/^run:/, '')]);
-  return {options, value};
+  return {options, value, disabled: false};
 }
 
 (() => {
@@ -53,10 +56,12 @@ function demolabPreviewOptions(runs, choice) {
       .entry-meta:has(+ .demolab-preview:not([hidden])) {margin-bottom:0}
       .demolab-preview {font:inherit;font-size:var(--fs-small,.85rem);color:var(--muted,#666);margin:1.25rem 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem 1rem}
       .demolab-preview:not([hidden]) + * {margin-top:0}
-      .demolab-preview-inputs {display:flex;flex-wrap:wrap;gap:.35rem 1rem;min-width:0}
+      .demolab-preview-inputs {display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;min-width:0}
+      .demolab-preview-inputs:has(> label + label) {flex-basis:100%}
       .demolab-preview label {display:flex;align-items:baseline;gap:.4rem;min-width:0;max-width:100%}
       .demolab-preview label span {overflow-wrap:anywhere}
       .demolab-preview select {font:inherit;color:var(--ink,#1a1a1a);background:var(--paper,#fff);border:0;border-bottom:1px solid var(--rule-strong,#d8d5cd);border-radius:0;padding:.12rem 0;min-width:0;max-width:100%;cursor:pointer}
+      .demolab-preview select:disabled {color:var(--muted,#666);cursor:default;opacity:1}
       .demolab-preview button {font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;white-space:nowrap}
       .demolab-preview :is(select,button):focus-visible {outline:2px solid var(--ink,#1a1a1a);outline-offset:3px}
       .demolab-preview-actions {display:flex;align-items:center;gap:.75rem;white-space:nowrap}
@@ -166,7 +171,7 @@ function demolabPreviewOptions(runs, choice) {
       const control = controls.get(input.key);
       const runs = state.runs.filter(run => run.experiment === input.experiment);
       const choice = desired[input.key] || 'latest';
-      const {options, value} = demolabPreviewOptions(runs, choice);
+      const {options, value, disabled} = demolabPreviewOptions(runs, choice);
       const signature = JSON.stringify(options);
       if (signature !== control.options) {
         control.select.replaceChildren();
@@ -174,6 +179,7 @@ function demolabPreviewOptions(runs, choice) {
         control.options = signature;
       }
       control.select.value = value;
+      control.select.disabled = disabled;
     });
     if (localError || state.error) showError(localError || (state.stale ? 'Sources unavailable.\n' : '') + state.error);
     else {

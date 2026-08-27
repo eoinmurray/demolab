@@ -19,6 +19,8 @@ Every compile path (site, book, entry PDF, and deck) receives the same layout.
 The three data-source demo articles bind `data-file()` with article IDs and Typst `sources` dictionaries:
 one run, a multi-experiment gallery, and paired baseline/candidate comparisons. Two synthetic
 experiments have two runs each; directory names do not imply default/latest status.
+A fourth article, `benchmark-empty`, explicitly attaches an experiment with no runs and
+demonstrates pending numerical results, an image, and a video without changing discovery.
 Unmapped data keys retain the helper's existing root-relative resolution. The demo's opt-in
 `preview` configuration discovers these fixtures through `.demo/scripts/discover_runs.py`.
 Dev starts each input at Latest; ordinary builds keep the authored `sources` dictionaries.
@@ -32,6 +34,9 @@ validation, and per-article selections. Commands run without a shell from the co
 directory with `DEMOLAB_PREVIEW_SOURCE` set to the absolute source directory. The renderer
 receives only an article/data-key → presentation-directory mapping. No Pingstore contract is
 embedded in the engine. See AUTHORING for the protocol and resolver binding.
+An explicitly empty Latest input maps to JSON null, which `data-file()` exposes as Typst `none`.
+The opt-in `data-json()` / `data-image()` helpers and `video()` handle that sentinel; articles
+guard numerical prose with native conditionals. Real selected-run file failures remain strict.
 
 `devserver.py` serializes preview requests through its existing watcher/build worker. A
 loopback-only, same-origin, token-protected endpoint queues selections; `typ/preview.js`

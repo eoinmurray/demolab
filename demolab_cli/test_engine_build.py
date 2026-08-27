@@ -279,6 +279,7 @@ def test_source_demo_renders_single_gallery_and_comparison_cases(
         "benchmark-a": ["benchmark-a-run-001"],
         "benchmark-gallery": ["benchmark-a-run-001", "benchmark-b-run-002"],
         "benchmark-comparison": sorted(runs),
+        "benchmark-empty": [],
     }
     assert {entry["id"] for entry in manifest["entries"]} == {"api", "welcome", *cases}
     for article, selected in cases.items():
@@ -298,6 +299,10 @@ def test_source_demo_renders_single_gallery_and_comparison_cases(
             for difference in (24, 20):
                 assert f"{difference} percentage points" in page
                 assert f"{difference} percentage points" in pdf
+        if article == "benchmark-empty":
+            assert page.count('class="fig-pending"') == 2
+            assert "Awaiting a run." in page and "Awaiting a run." in pdf
+            assert "Image pending" in page and "Video pending" in page
         assert f'href="{article}"' in (site / "welcome.html").read_text()
         assert f'href="{article}"' in (site / "data-source-demos.html").read_text()
     assert 'href="data-source-demos"' in (site / "index.html").read_text()

@@ -28,6 +28,16 @@ def test_selector_lists_each_run_once_including_pinned_latest(choice):
     assert data["value"] == ("latest" if choice in ("latest", "run:new") else choice)
 
 
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node required for pure JavaScript unit test")
+def test_empty_selector_is_explicit_and_disabled():
+    helper = (_paths.TYP / "preview.js").read_text(encoding="utf-8").split("\n(() => {", 1)[0]
+    result = subprocess.run([shutil.which("node"), "-e", helper +
+        '\nconsole.log(JSON.stringify(demolabPreviewOptions([], "latest")));'],
+        capture_output=True, encoding="utf-8", check=True)
+    assert json.loads(result.stdout) == {
+        "options": [["latest", "No runs available"]], "value": "latest", "disabled": True}
+
+
 @pytest.fixture
 def lab(tmp_path):
     layout = _paths.layout_for(tmp_path)
@@ -191,6 +201,31 @@ def test_failed_discovery_retains_automatic_controls_and_missing_run_is_not_repl
     assert session.inputs["exp"]
 
 
+def test_no_runs_compile_with_explicit_absence_and_recover(lab, monkeypatch):
+    layout, config = lab
+    config = dataclasses.replace(config, articles={"gallery": ["exp", "other"]})
+    session = preview.Session(layout)
+    supply(monkeypatch, [])
+
+    def compile_empty():
+        assert json.loads((session.runtime / "input.json").read_text()) == {
+            "gallery": {"exp": None, "other": None}}
+        return True, "empty article built"
+
+    assert session.rebuild(config, ["exp", "gallery"], compile_empty)[0]
+    assert not session.error and not session.stale
+    assert session.rendered == {"gallery": {"exp": None, "other": None}}
+    assert "exp" not in session.inputs  # no inferred attachment before the first run
+    supply(monkeypatch, records())
+    assert session.rebuild(config, ["exp", "gallery"], lambda: (True, "built"))[0]
+    assert session.rendered == {"gallery": {"exp": "new", "other": None}, "exp": {"exp": "new"}}
+    # Previously matched automatic inputs stay visible when their runs disappear.
+    supply(monkeypatch, [])
+    assert session.rebuild(config, ["exp", "gallery"], lambda: (True, "built"))[0]
+    assert session.rendered["exp"] == {"exp": None}
+    assert session.inputs["exp"]
+
+
 def test_pending_choice_during_compile_is_not_lost(lab, monkeypatch):
     layout, config = lab
     supply(monkeypatch, records())
@@ -342,6 +377,74 @@ def test_http_preview_api_and_first_build_error_shell(lab, monkeypatch):
 
 
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI not installed")
+def test_empty_and_partial_demo_preview_renders_and_recovers(tmp_path):
+    from demolab_cli.test_engine_build import _assemble_demo, _build, _pdf_text
+    root = tmp_path / "lab"
+    _assemble_demo(root)
+    layout = _paths.layout_for(root)
+    single = layout.content / "writings/benchmark-a.typ"
+    single.write_text(single.read_text() + '\n#let body = [#body #if result == none {\n'
+                      '  video(data-file("benchmark-a/demo.mp4"), caption: [Pending demonstration])\n'
+                      '}]\n')
+    config = preview.load_config(layout)
+    real_config = dataclasses.replace(config, command=(sys.executable, *config.command[1:]))
+    empty_config = dataclasses.replace(config, command=(sys.executable, "-c", "print('[]')"))
+    session = preview.Session(layout)
+    ids = ["benchmark-a", "benchmark-gallery", "benchmark-comparison", "benchmark-empty"]
+    authored = {p: p.read_bytes() for p in layout.content.rglob("*") if p.is_file()}
+
+    def compile_preview():
+        result = subprocess.run([sys.executable, "-m", "demolab_cli.build", "--preview", "--no-pdf-copy"],
+                                env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True)
+        return result.returncode == 0, result.stdout + result.stderr
+
+    def rebuild(config):
+        ok, message = session.rebuild(config, ids, compile_preview)
+        assert ok, message
+        assert not session.error and not session.stale
+
+    def page(name):
+        return (session.runtime / "site" / (name + ".html")).read_text()
+
+    # Successful first build, not a stale-site/error-shell fallback. Authored defaults
+    # are present but must not leak into the empty preview.
+    rebuild(empty_config)
+    for name, count in [("benchmark-a", 2), ("benchmark-gallery", 2), ("benchmark-comparison", 4)]:
+        html = page(name)
+        assert 'class="entry-meta"' in html and "Synthetic demo data" in html
+        assert html.count('class="fig-pending"') == count
+        assert "Awaiting a run." in html and "<img " not in html
+        assert "64% accuracy" not in html and "88% accuracy" not in html
+        assert "Awaiting a run." in _pdf_text(session.runtime / "site/pdfs" / (name + ".pdf"))
+    assert "Video pending" in page("benchmark-a") and "<video" not in page("benchmark-a")
+    assert "Pending demonstration" in page("benchmark-a")
+    assert page("benchmark-comparison").count("Comparison pending") == 2
+    assert "percentage points" not in page("benchmark-comparison")
+
+    # Independently empty inputs don't hide working inputs in a gallery/comparison.
+    catalogue = preview.discover(real_config, layout)
+    only_b = [{**run, "presentation": (layout.root / run["presentation"].lstrip("/")).relative_to(config.source).as_posix()}
+              for run in catalogue if run["experiment"] == "benchmark-b"]
+    partial_config = dataclasses.replace(config, command=(sys.executable, "-c", "print(" + repr(json.dumps(only_b)) + ")"))
+    rebuild(partial_config)
+    assert "92% accuracy" in page("benchmark-gallery")
+    assert page("benchmark-gallery").count('class="fig-pending"') == 1
+    assert page("benchmark-comparison").count("Comparison pending") == 1
+    assert page("benchmark-comparison").count("0 percentage points") == 1
+
+    # Normal builds ignore the null preview map and still use publication inputs.
+    _build(root)
+    ordinary_page = (layout.runtime / "site/benchmark-a.html").read_text()
+    assert "64% accuracy" in ordinary_page and 'class="fig-pending"' not in ordinary_page
+    rebuild(real_config)
+    assert "88% accuracy" in page("benchmark-a")
+    assert 'class="fig-pending"' not in page("benchmark-a")
+    assert "Awaiting a run." not in page("benchmark-gallery")
+    assert page("benchmark-comparison").count("0 percentage points") == 2
+    assert authored == {p: p.read_bytes() for p in authored}
+
+
+@pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI not installed")
 def test_real_demo_preview_prose_figures_pdfs_and_production_isolation(tmp_path):
     from demolab_cli.test_engine_build import _assemble_demo, _build, _pdf_text
     root = tmp_path / "lab"
@@ -353,7 +456,7 @@ def test_real_demo_preview_prose_figures_pdfs_and_production_isolation(tmp_path)
     config = preview.load_config(layout)
     config = dataclasses.replace(config, command=(sys.executable, *config.command[1:]))
     session = preview.Session(layout)
-    ids = ["benchmark-a", "benchmark-gallery", "benchmark-comparison", "welcome", "api"]
+    ids = ["benchmark-a", "benchmark-gallery", "benchmark-comparison", "benchmark-empty", "welcome", "api"]
 
     def compile_preview():
         result = subprocess.run([sys.executable, "-m", "demolab_cli.build", "--preview", "--no-pdf-copy"],
@@ -368,6 +471,11 @@ def test_real_demo_preview_prose_figures_pdfs_and_production_isolation(tmp_path)
         return (session.runtime / "site" / (name + ".html")).read_text()
 
     rebuild()
+    assert session.rendered["benchmark-empty"] == {"benchmark-empty": None}
+    assert not any(run["experiment"] == "benchmark-empty" for run in session.catalogue)
+    assert page("benchmark-empty").count('class="fig-pending"') == 2
+    assert "Awaiting a run." in page("benchmark-empty")
+    assert "Image pending" in page("benchmark-empty") and "Video pending" in page("benchmark-empty")
     assert "88% accuracy" in page("benchmark-a")
     assert "88% accuracy" in page("benchmark-gallery") and "92% accuracy" in page("benchmark-gallery")
     assert page("benchmark-comparison").count("0 percentage points") == 2

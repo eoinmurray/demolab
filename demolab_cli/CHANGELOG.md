@@ -13,6 +13,23 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [4.2.0] — 2026-08-27
+
+### Added
+- **Empty-data authoring for local preview.** Latest inputs with no runs show a disabled
+  "No runs available" selector and resolve to `none`. Opt-in `data-json()` and `data-image()`
+  helpers, plus `video(none)`, let articles retain their text and show themed media placeholders.
+  Numerical prose and calculations use explicit Typst conditionals; selected-run file errors
+  remain strict, and ordinary builds continue using authored inputs.
+- **A no-runs demo article.** `/benchmark-empty` demonstrates an empty selector, pending
+  numerical results, and image/video placeholders without altering the other demo runs.
+
+### Fixed
+- **Multiple preview selectors stack vertically.** The reset control and inline activity
+  indicator remain together below the inputs.
+- **Unavailable-run errors point to current controls.** Recovery instructions now name
+  another run or Reset to default, rather than removed controls.
+
 ## [4.1.0] — 2026-08-27
 
 ### Added

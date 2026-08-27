@@ -20,11 +20,12 @@
 
   == Data-source demos
 
-  Three articles exercise presentation inputs through `data-file()`:
+  Four articles exercise presentation inputs through `data-file()`:
 
   - #link("benchmark-a")[One run]: one experiment's prose and figure from one run.
   - #link("benchmark-gallery")[Multiple inputs]: one article assembles runs from two experiments.
   - #link("benchmark-comparison")[Paired comparisons]: baseline and candidate runs for each experiment.
+  - #link("benchmark-empty")[No runs yet]: an empty selector, pending figure, and pending video.
 
   All data is synthetic. Local preview offers independent run selectors; ordinary builds retain
   the fixed authored inputs. Initial preview selections follow Latest.

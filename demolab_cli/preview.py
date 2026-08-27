@@ -388,10 +388,16 @@ class Session:
                         rendered[article][key] = "Published/default"
                         continue
                     available = [r for r in catalogue if r["experiment"] == item["experiment"]]
+                    if choice == "latest" and not available:
+                        # Explicit absence, not an omitted override: never read publication
+                        # defaults for an input whose preview has no runs yet.
+                        mapping[article][key] = None
+                        rendered[article][key] = None
+                        continue
                     selected = (available[0] if available else None) if choice == "latest" else next(
                         (r for r in available if "run:" + r["id"] == choice), None)
                     if selected is None:
-                        raise PreviewError(f"{article} / {key}: no available run for {choice}; select Published/default or refresh sources")
+                        raise PreviewError(f"{article} / {key}: no available run for {choice}; choose another run or Reset to default")
                     directory = self.layout.root / selected["presentation"].lstrip("/")
                     validate_directory(directory, self.layout)
                     mapping[article][key] = selected["presentation"]

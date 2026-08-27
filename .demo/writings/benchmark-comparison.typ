@@ -24,9 +24,12 @@
   #for (suffix, title) in (("a", "Benchmark A"), ("b", "Benchmark B")) {
     let baseline-key = "baseline.benchmark-" + suffix
     let candidate-key = "candidate.benchmark-" + suffix
-    let baseline = json(data-file(baseline-key + "/numbers.json"))
-    let candidate = json(data-file(candidate-key + "/numbers.json"))
-    let difference = candidate.accuracy_percent - baseline.accuracy_percent
+    let baseline = data-json(data-file(baseline-key + "/numbers.json"))
+    let candidate = data-json(data-file(candidate-key + "/numbers.json"))
+    let run-label(result) = if result == none [Awaiting a run.] else [#result.run_id (#result.label)]
+    let accuracy(result) = if result != none [
+      *#result.correct of #result.total* correct: *#result.accuracy_percent% accuracy*.
+    ]
     [
       == #title
 
@@ -35,14 +38,19 @@
         gutter: 8pt,
         inset: 4pt,
         [*Baseline* · #raw(baseline-key)], [*Candidate* · #raw(candidate-key)],
-        [#baseline.run_id (#baseline.label)], [#candidate.run_id (#candidate.label)],
-        [#image(data-file(baseline-key + "/accuracy.svg"), width: 100%, alt: title + " baseline accuracy: " + str(baseline.accuracy_percent) + " percent.")],
-        [#image(data-file(candidate-key + "/accuracy.svg"), width: 100%, alt: title + " candidate accuracy: " + str(candidate.accuracy_percent) + " percent.")],
-        [*#baseline.correct of #baseline.total* correct: *#baseline.accuracy_percent% accuracy*.],
-        [*#candidate.correct of #candidate.total* correct: *#candidate.accuracy_percent% accuracy*.],
+        run-label(baseline), run-label(candidate),
+        [#data-image(data-file(baseline-key + "/accuracy.svg"), width: 100%,
+          alt: if baseline != none { title + " baseline accuracy: " + str(baseline.accuracy_percent) + " percent." })],
+        [#data-image(data-file(candidate-key + "/accuracy.svg"), width: 100%,
+          alt: if candidate != none { title + " candidate accuracy: " + str(candidate.accuracy_percent) + " percent." })],
+        accuracy(baseline), accuracy(candidate),
       )
 
-      Candidate minus baseline: *#difference percentage points*, calculated from this pair's JSON inputs.
+      #if baseline == none or candidate == none [
+        Comparison pending · awaiting both runs.
+      ] else [
+        Candidate minus baseline: *#(candidate.accuracy_percent - baseline.accuracy_percent) percentage points*, calculated from this pair's JSON inputs.
+      ]
     ]
   }
 

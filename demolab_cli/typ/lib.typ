@@ -44,7 +44,9 @@
     assert(rel.split("/").len() > 1
       and rel.split("/").all(part => part not in ("", ".", ".."))
       and not rel.contains("\\"), message: "preview data-file requires a safe key/filename")
-    return selected.at(key) + rel.slice(key.len())
+    let directory = selected.at(key)
+    // None is an explicit preview input with no available runs, never a fallback.
+    return if directory == none { none } else { directory + rel.slice(key.len()) }
   }
   let resolved = if key in sources {
     let source = sources.at(key)
@@ -55,6 +57,10 @@
   } else { rel }
   sys.inputs.at("demolab-data-root", default: "/.artifacts") + "/" + resolved
 }
+
+// Opt-in empty-data readers. Native json/image stay strict and unchanged. Only the
+// explicit no-run sentinel is tolerated; absent/corrupt files in real runs still fail.
+#let data-json(path) = if path != none { json(path) }
 
 // --- authored dates: validate and render creation/update metadata ---
 // Demolab only renders dates supplied by the author. `date` remains a deprecated fallback for
@@ -145,21 +151,6 @@
   }
 }
 
-// --- video: plays in HTML, omitted from PDF (a note points to the web edition) ---
-// Files under assets/ are emitted by build.py and referenced here by relative path.
-#let video(src, caption: none) = context {
-  if target() == "html" {
-    html.elem("video", attrs: (src: src, controls: "", style: "max-width:100%;width:640px"))[]
-    if caption != none { text(size: 9pt, fill: gray)[#caption] }
-  } else {
-    text(
-      size: 9pt,
-      style: "italic",
-      fill: gray,
-    )[[ Video#if caption != none [ — #caption] · view the web edition to play. ]]
-  }
-}
-
 // --- pending: a placeholder for a figure whose asset isn't ready yet (a re-run in flight, data
 // withheld). Drops into a #figure in place of the image, so the figure still numbers and captions
 // normally, and reserves the figure's footprint (default 16:9, H12) so the page doesn't reflow when
@@ -201,6 +192,29 @@
   kind: image,
   supplement: [Figure],
 )
+
+// Accept data-file's no-run sentinel without swallowing real image errors.
+#let data-image(path, ..args) = if path == none {
+  pending([Image pending · no runs available])
+} else { image(path, ..args) }
+
+// --- video: plays in HTML, omitted from PDF (a note points to the web edition) ---
+// Files under assets/ are emitted by build.py and referenced here by relative path.
+#let video(src, caption: none) = context {
+  if src == none {
+    pending([Video pending · no runs available])
+    if caption != none { text(size: 9pt, fill: gray)[#caption] }
+  } else if target() == "html" {
+    html.elem("video", attrs: (src: src, controls: "", style: "max-width:100%;width:640px"))[]
+    if caption != none { text(size: 9pt, fill: gray)[#caption] }
+  } else {
+    text(
+      size: 9pt,
+      style: "italic",
+      fill: gray,
+    )[[ Video#if caption != none [ — #caption] · view the web edition to play. ]]
+  }
+}
 
 // --- citations: inline numbered cites + a DOI reference list ---
 // Author-managed numbering (you pass the numbers), so it's dependency-free and works the same

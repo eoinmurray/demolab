@@ -124,6 +124,8 @@ An omitted article automatically matches its filename ID to the discovered `expe
 A list declares independent experiment inputs. A mapping declares named groups with keys
 `<group>.<experiment>`; groups do not imply linked run selections. `article-id: []` disables
 selectors for that article. Use the stable basename ID, regardless of nested source folders.
+To show an empty selector before an experiment's very first run, declare the attachment
+explicitly (for example `exp022: [exp022]`); an empty catalogue cannot establish automatic matches.
 
 Bind the article scope **before reading JSON or constructing content**:
 
@@ -170,6 +172,41 @@ preview state along with other generated output.
 
 `demolab build` never runs discovery or reads preview selections, and publishes no selector
 controls. It always uses the authored paths. Keep one dev server per lab.
+
+### Articles before their first run
+
+Latest with no discovered runs is a normal empty state: the selector says **No runs available**
+and is disabled. Other inputs continue working. When discovery finds a run, the next watched
+rebuild fills the input automatically. This does not apply to a pinned run that disappeared,
+invalid discovery output, or missing/corrupt files inside an actual selected run: those are errors.
+
+For this state only, `data-file()` returns `none` instead of a path. It never reads an authored
+default in its place. Opt into empty-aware content using `data-json()` and `data-image()`;
+`video()` also accepts `none`. Images and videos use the existing themed 16:9 pending panel.
+Numerical prose and calculations need an explicit Typst conditional—Demolab cannot invent
+the fields or results of absent JSON:
+
+```typ
+#let data-file = data-file.with(article: "exp022")
+#let result = data-json(data-file("exp022/numbers.json"))
+#let body = [
+  This explanation remains visible before any runs exist.
+
+  #if result == none [Awaiting a run.] else [Accuracy: #result.accuracy_percent%.]
+
+  #figure(
+    data-image(data-file("exp022/accuracy.svg"), width: 100%),
+    caption: [Accuracy], kind: image, supplement: [Figure],
+  )
+  #video(data-file("exp022/demo.mp4"), caption: [Demonstration])
+]
+```
+
+`data-json(path)` otherwise calls native `json(path)`; `data-image(path, ..args)` calls native
+`image(path, ..args)`. Existing raw `json(data-file(...))` / `image(data-file(...))` calls remain
+strict and must be guarded or migrated to render an empty input. Guard data-dependent captions
+and image arguments too. In ordinary builds these helpers read the authored paths normally;
+missing publication data is not treated as an empty preview. Hardcoded paths are unaffected.
 
 The homepage remains a compact collection directory by default. To expand collection contents
 and optionally show recently updated ordinary writings, add this to `demolab.yaml`:
