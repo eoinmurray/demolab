@@ -81,6 +81,57 @@ static authored resolution; it does not discover runs, infer Latest, or create a
 An unmapped key retains `.artifacts/<key>/` compatibility, and a missing mapped file fails rather
 than falling back to the key's ordinary directory.
 
+### Fixed inputs for publication builds
+
+Use a committed `build.sources` mapping to pin presentation directories per article:
+
+```yaml
+build:
+  sources:
+    exp022:
+      exp022: runs/chosen-training-run/presentation
+    exp092:
+      exp023: runs/chosen-baseline-run/presentation
+      exp025: runs/chosen-trained-run/presentation
+    exp093:
+      legacy.exp025: runs/older-run/presentation
+      current.exp025: runs/newer-run/presentation
+```
+
+These are illustrative directories, not a storage convention. Paths are relative to
+`demolab.yaml`; they must exist inside the lab, outside `.demolab/`, with no parent traversal,
+symlinks, or special files. No discovery command, run-ID parser, or storage-specific metadata
+is required. Use immutable directories if repeatable inputs matter; Demolab does not lock or
+hash their contents, validate scientific provenance, or acquire missing runs.
+
+Bind `data-file` to the article as shown below for preview. During `demolab build`, these pins
+take precedence over its Typst `sources` dictionary. Each configured article must pin every
+key it reads through the bound `data-file()`; missing keys and files are errors, never fallback
+or preview empty states. Unconfigured articles keep their authored resolution. Hardcoded paths
+and unbound calls remain outside this mapping.
+
+The build freezes one mapping and file inventory for the website, book, and standalone article
+PDFs. With any article configured, a failed compilation aborts publication instead of producing
+error stubs, preserving the last successful site and publication PDFs. Without build pins,
+the existing tolerant build behavior is unchanged. Remove `build.sources` to return to authored
+defaults; old generated mappings are not reused.
+
+`demolab dev` with preview enabled ignores build pins (including unavailable build directories)
+and keeps its discovery, Latest, and selection behavior. Without preview enabled, dev uses the
+ordinary build path. Neither browser fragments nor `.demolab/preview/` state affect publication.
+
+`video(data-file("exp022/demo.mp4"))` exports videos from selected presentation directories to
+generated `_demolab-data/` URLs in the site, in both pinned builds and selected previews. Supported
+extensions are `.mp4`, `.webm`, `.ogg`, `.ogv`, `.mov`, and `.m4v`; browser codec support still
+depends on the encoded file. Videos in those directories are packaged once per source path;
+other run files are not automatically published as downloads. Existing `assets/` videos and
+external URLs keep their behavior. Reserve `assets/_demolab-data` for the engine.
+
+Commit the configuration and ensure the same presentation files are available to CI before
+running `demolab build`. A local directory in `.gitignore` will not appear in a clean checkout
+merely because it is pinned here. There is no automatic copying into `.artifacts/`, upload,
+download, or “publish the current preview” step.
+
 ### Optional article-scoped run selectors
 
 Add `preview` to `demolab.yaml` to enable development-only selectors:
@@ -171,7 +222,8 @@ Reset to default also recovers malformed local state. `demolab clean` removes
 preview state along with other generated output.
 
 `demolab build` never runs discovery or reads preview selections, and publishes no selector
-controls. It always uses the authored paths. Keep one dev server per lab.
+controls. It uses committed build pins when configured, otherwise the authored paths. Keep one
+dev server per lab.
 
 ### Articles before their first run
 

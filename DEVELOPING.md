@@ -23,7 +23,8 @@ A fourth article, `benchmark-empty`, explicitly attaches an experiment with no r
 demonstrates pending numerical results, an image, and a video without changing discovery.
 Unmapped data keys retain the helper's existing root-relative resolution. The demo's opt-in
 `preview` configuration discovers these fixtures through `.demo/scripts/discover_runs.py`.
-Dev starts each input at Latest; ordinary builds keep the authored `sources` dictionaries.
+Dev starts each input at Latest; ordinary builds use the committed `build.sources` mapping.
+The Typst `sources` dictionaries remain compatible defaults when those build pins are removed.
 
 Ordinary labs still use root `demolab.yaml`, `writings/`, `assets/`, `.artifacts/`, and
 `.demolab/`. Demo content is not shipped in the wheel or installed by `demolab init`, which
@@ -37,6 +38,15 @@ embedded in the engine. See AUTHORING for the protocol and resolver binding.
 An explicitly empty Latest input maps to JSON null, which `data-file()` exposes as Typst `none`.
 The opt-in `data-json()` / `data-image()` helpers and `video()` handle that sentinel; articles
 guard numerical prose with native conditionals. Real selected-run file failures remain strict.
+
+`data_sources.py` owns fixed `build.sources` configuration and source-file validation. Builds
+do not consult preview discovery/state. One `.demolab/bundle/data-inputs.json` inventory supplies
+every compiler invocation; the preview worker writes its own equivalent inside `.demolab/preview/`.
+Configured articles require every bound key and file to resolve, and builds with pins abort on
+compile errors instead of stubbing articles. Standalone pinned PDF builds replace output only
+after successful compilation. These guarantees do not change legacy unconfigured builds.
+Selected directories' video files are emitted as bundle assets at hashed `_demolab-data/` paths;
+`video()` uses the same inventory to link them. No presentation-data staging copy is introduced.
 
 `devserver.py` serializes preview requests through its existing watcher/build worker. A
 loopback-only, same-origin, token-protected endpoint queues selections; `typ/preview.js`

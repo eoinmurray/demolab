@@ -18,3 +18,7 @@ gitignored. Writings may read assets directly with root-relative Typst paths suc
 user-supplied discovery command for article-scoped data selectors; see AUTHORING. Demolab does
 not execute experiments, enforce provenance, validate claims, or manage research workflows;
 content remains the author's responsibility.
+
+Optional committed `build.sources` mappings pin presentation directories per article for
+publication. These builds ignore preview choices, validate every bound input, and fail rather
+than publish error stubs. See AUTHORING for fixed inputs and run-backed video output.

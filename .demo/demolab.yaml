@@ -1,5 +1,17 @@
 # Internal demo content; generated runtime stays in the repository's .demolab/.
 name: Example Site
+build:
+  sources:
+    benchmark-a:
+      benchmark-a: data/benchmark-a-run-001
+    benchmark-gallery:
+      benchmark-a: data/benchmark-a-run-001
+      benchmark-b: data/benchmark-b-run-002
+    benchmark-comparison:
+      baseline.benchmark-a: data/benchmark-a-run-001
+      candidate.benchmark-a: data/benchmark-a-run-002
+      baseline.benchmark-b: data/benchmark-b-run-001
+      candidate.benchmark-b: data/benchmark-b-run-002
 preview:
   source: data
   discover: [python, scripts/discover_runs.py]

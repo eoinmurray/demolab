@@ -13,6 +13,16 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+### Added
+- **Fixed article-scoped inputs for publication.** Committed `build.sources` mappings pin
+  presentation directories without discovery or preview state. Every compiler target uses the
+  same mapping; missing pins/files and compilation errors fail pinned builds while preserving
+  successful publication output. Unconfigured labs retain their existing behavior.
+- **Run-backed video assets.** Selected presentation videos receive generated public URLs in
+  pinned builds and previews, so published pages do not link to private source directories.
+- **Fixed-run demo configuration and regression coverage.** The existing single-run, gallery,
+  and comparison articles now demonstrate separate publication pins alongside preview choices.
+
 ## [4.2.0] — 2026-08-27
 
 ### Added

@@ -36,17 +36,32 @@
 #let preview-sources = if "demolab-preview-file" in sys.inputs {
   json(sys.inputs.at("demolab-preview-file"))
 } else { (:) }
+#let data-inputs = if "demolab-data-inputs" in sys.inputs {
+  json(sys.inputs.at("demolab-data-inputs"))
+} else { (:) }
+#let build-sources = if "demolab-preview-file" in sys.inputs { (:) } else {
+  data-inputs.at("sources", default: (:))
+}
 #let data-file(rel, sources: (:), article: none) = {
   // Optional authored key-to-directory mapping, relative to the data root.
   let key = rel.split("/").first()
-  let selected = if article != none { preview-sources.at(article, default: (:)) } else { (:) }
+  let selected = if article != none {
+    preview-sources.at(article, default: build-sources.at(article, default: (:)))
+  } else { (:) }
+  if article != none and article in build-sources {
+    assert(key in selected, message: "build.sources." + article + " has no pin for data key '" + key + "'")
+  }
   if key in selected {
     assert(rel.split("/").len() > 1
       and rel.split("/").all(part => part not in ("", ".", ".."))
-      and not rel.contains("\\"), message: "preview data-file requires a safe key/filename")
+      and not rel.contains("\\"), message: "selected data-file requires a safe key/filename")
     let directory = selected.at(key)
     // None is an explicit preview input with no available runs, never a fallback.
-    return if directory == none { none } else { directory + rel.slice(key.len()) }
+    let path = if directory == none { none } else { directory + rel.slice(key.len()) }
+    if article != none and article in build-sources {
+      assert(path in data-inputs.files, message: "missing pinned data file: " + path)
+    }
+    return path
   }
   let resolved = if key in sources {
     let source = sources.at(key)
@@ -201,11 +216,16 @@
 // --- video: plays in HTML, omitted from PDF (a note points to the web edition) ---
 // Files under assets/ are emitted by build.py and referenced here by relative path.
 #let video(src, caption: none) = context {
+  let media = data-inputs.at("media", default: (:))
+  if type(src) == str and data-inputs.at("directories", default: ()).any(dir => src.starts-with(dir + "/")) {
+    assert(src in media, message: "missing or unsupported run-backed video: " + src)
+  }
+  let url = if type(src) == str { media.at(src, default: src) } else { src }
   if src == none {
     pending([Video pending · no runs available])
     if caption != none { text(size: 9pt, fill: gray)[#caption] }
   } else if target() == "html" {
-    html.elem("video", attrs: (src: src, controls: "", style: "max-width:100%;width:640px"))[]
+    html.elem("video", attrs: (src: url, controls: "", style: "max-width:100%;width:640px"))[]
     if caption != none { text(size: 9pt, fill: gray)[#caption] }
   } else {
     text(

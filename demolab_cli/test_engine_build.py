@@ -44,6 +44,13 @@ def _build(root: Path, entry: str | None = None) -> None:
     )
 
 
+def _unpin_demo(root: Path) -> None:
+    """Exercise legacy Typst-only defaults independently of the demo's fixed build pins."""
+    config = _paths.layout_for(root).config
+    text = config.read_text()
+    config.write_text(text[:text.index("build:\n")] + text[text.index("preview:\n"):])
+
+
 def _build_result(root: Path) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, "-m", "demolab_cli.build"],
@@ -383,6 +390,7 @@ def test_demo_binding_changes_only_its_article_and_input(
 ) -> None:
     root = tmp_path / "engine"
     _assemble_demo(root)
+    _unpin_demo(root)
     _build(root)
     site = root / ".demolab/site"
     unchanged = {name: (site / f"{name}.html").read_bytes()
@@ -416,6 +424,7 @@ def test_demo_binding_changes_only_its_article_and_input(
 def test_demo_missing_data_produces_visible_stub(tmp_path: Path, run: str, filename: str) -> None:
     root = tmp_path / "engine"
     _assemble_demo(root)
+    _unpin_demo(root)
     (root / ".demo/data" / run / filename).unlink()
     _build(root)
     site = root / ".demolab" / "site"
@@ -603,6 +612,7 @@ def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None
     root = tmp_path / "presentation"
     root.mkdir()
     _assemble(root)
+    _unpin_demo(root)
     (root / "writings" / "broken.typ").write_text(
         '#let meta = (title: "Broken", date: "2026-08-23")\n'
         '#let body = [#image("/assets/missing.svg")]\n'

@@ -48,8 +48,18 @@ Pingstore store or a Pingstore contract validator.
 
 Each article binds `data-file.with(article: "<its-id>", sources: sources)` before reading
 inputs. Comparison keys are `baseline.benchmark-a`, `candidate.benchmark-a`, and equivalent
-B keys; its `sources` dictionary defines the separate publication choices. Hardcoded paths
+B keys. `build.sources` in `demolab.yaml` pins the ordinary build's run directories; the Typst
+`sources` dictionaries remain the fallback when build pins are removed. Hardcoded paths
 are deliberately not used for selectable demo inputs.
+
+## Try a fixed build
+
+Run `uv run demolab build`: the three populated examples use the fixed runs in the table above,
+regardless of preview selections. Change only `build.sources.benchmark-a.benchmark-a` to
+`data/benchmark-a-run-002` and build again: that article becomes 88%, without changing the gallery
+or paired comparison. Restore `data/benchmark-a-run-001` for the baseline. Paths are relative to
+this directory; inputs are read directly, not copied into another publication-data directory.
+The no-runs demo is intentionally unpinned and keeps its explicitly authored pending state.
 
 ## Try the empty state
 

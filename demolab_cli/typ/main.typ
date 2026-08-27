@@ -59,6 +59,10 @@
 #for path in manifest.at("assets", default: ()) {
   asset(path, read(content-root + "/assets/" + path, encoding: none))
 }
+// Run-backed videos receive collision-free public paths, never private filesystem URLs.
+#for (source, url) in manifest.at("data_assets", default: (:)) {
+  asset(url, read(source, encoding: none))
+}
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {
   asset("pdfs/" + d.id + ".pdf", read(bundle-root + "/decks/" + d.id + ".pdf", encoding: none))

@@ -35,7 +35,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from demolab_cli import _paths
+from demolab_cli import _paths, data_sources
 
 # The lab being built. Discovery recognises ordinary labs and the engine's .demo/;
 # DEMOLAB_ROOT overrides it (the tests build materialised labs in scratch dirs). Falls back
@@ -52,6 +52,8 @@ DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedd
 SITE = LAYOUT.runtime / "site"             # bundle output (HTML + mp4 + linked pdfs/)
 PDFS = LAYOUT.runtime / "pdfs"             # optional standalone generated PDFs
 PREVIEW = False                           # enabled only by the dev worker's explicit flag
+BUILD_SOURCES = {}                         # committed, fixed publication mapping
+DATA_INPUTS = {}                           # frozen paths and public video URLs
 
 
 def preview_paths() -> None:
@@ -92,6 +94,8 @@ def typst_compile(*args: str) -> list[str]:
     inputs = [*LAYOUT.typst_inputs(), "--input", f"demolab-bundle-root={LAYOUT.typst_path(BUILD)}"]
     if PREVIEW:
         inputs += ["--input", "demolab-preview-file=" + LAYOUT.typst_path(LAYOUT.runtime / "preview/input.json")]
+    if DATA_INPUTS:
+        inputs += ["--input", "demolab-data-inputs=" + LAYOUT.typst_path(BUILD / "data-inputs.json")]
     return [TYPST, "compile", "--creation-timestamp", timestamp, *inputs, *args]
 
 
@@ -177,6 +181,7 @@ def write_manifest(ids: dict[str, Path], deck_ids: dict[str, Path], broken: dict
         "pdfs_enabled": publish_pdfs,
         "has_brand_config": LAYOUT.config.exists(),
         "has_landing": LAYOUT.landing.exists(),
+        "data_assets": DATA_INPUTS.get("media", {}),
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
 
@@ -204,8 +209,9 @@ def compile_decks(deck_ids: dict[str, Path]) -> dict[str, Path]:
         else:
             # A later CSS-only rebuild must not resurrect a stale/partial deck PDF.
             output.unlink(missing_ok=True)
-            if PREVIEW:
-                raise _paths.LayoutError(f"preview deck {d} compilation failed:\n" + proc.stdout + proc.stderr)
+            if PREVIEW or BUILD_SOURCES:
+                mode = "preview" if PREVIEW else "pinned build"
+                raise _paths.LayoutError(f"{mode} deck {d} compilation failed:\n" + proc.stdout + proc.stderr)
             print(f"  ⚠ deck {d} failed to build — skipping it: "
                   + _error_excerpt(proc.stdout + proc.stderr).splitlines()[0], flush=True)
     return good
@@ -255,8 +261,9 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
         )
         if proc.returncode == 0:
             return broken
-        if PREVIEW:
-            raise _paths.LayoutError("preview compilation failed:\n" + proc.stdout + proc.stderr)
+        if PREVIEW or BUILD_SOURCES:
+            mode = "preview" if PREVIEW else "pinned build"
+            raise _paths.LayoutError(mode + " compilation failed:\n" + proc.stdout + proc.stderr)
         err = proc.stdout + proc.stderr
         bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
         if bad is None:
@@ -275,21 +282,27 @@ def compile_entry(entry_id: str, ids: dict[str, Path], decks: dict[str, Path]) -
         detail = " (it is a slide deck; use `demolab slides`)" if entry_id in decks else ""
         raise SystemExit(f"error: no buildable entry named {entry_id!r}{detail}")
     PDFS.mkdir(parents=True, exist_ok=True)
+    output = BUILD / "entry-next.pdf" if BUILD_SOURCES else PDFS / f"{entry_id}.pdf"
     proc = subprocess.run(
         typst_compile("--root", str(ROOT), "--input", f"entry={entry_id}",
                       "--input", f"entry-source={LAYOUT.typst_path(ids[entry_id])}",
                       "--input", f"has-brand={str(LAYOUT.config.exists()).lower()}",
-                      str(ENTRY_MAIN), str(PDFS / f"{entry_id}.pdf")),
+                      str(ENTRY_MAIN), str(output)),
         capture_output=True, text=True,
     )
     if proc.returncode != 0:
+        if BUILD_SOURCES:
+            output.unlink(missing_ok=True)
         sys.stderr.write(proc.stdout + proc.stderr)
         raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
+    if BUILD_SOURCES:
+        output.replace(PDFS / f"{entry_id}.pdf")
     print(f"built {entry_id} -> {PDFS.relative_to(ROOT)}/{entry_id}.pdf"
           " (site and book not updated)", flush=True)
 
 
 def main() -> None:
+    global BUILD_SOURCES, DATA_INPUTS
     if "--preview" in sys.argv:
         preview_paths()
     # --generate-only writes the manifest + deck PDFs without compiling the bundle: a hand
@@ -308,7 +321,13 @@ def main() -> None:
     # Validate configuration and collisions before writing generated files.
     ids, decks = discover()
     publish_pdfs = pdfs_enabled()
+    BUILD_SOURCES = {} if PREVIEW else data_sources.load_build_sources(LAYOUT, ids)
+    selected = (json.loads((LAYOUT.runtime / "preview/input.json").read_text(encoding="utf-8"))
+                if PREVIEW else BUILD_SOURCES)
+    DATA_INPUTS = data_sources.inventory(LAYOUT, selected) if selected else {}
     stage()
+    if DATA_INPUTS:
+        (BUILD / "data-inputs.json").write_text(json.dumps(DATA_INPUTS) + "\n", encoding="utf-8")
     if entry_args:
         if not publish_pdfs:
             raise SystemExit("error: PDF publishing is disabled by demolab.yaml (pdfs: false)")
