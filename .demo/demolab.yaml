@@ -1,5 +1,13 @@
 # Internal demo content; generated runtime stays in the repository's .demolab/.
 name: Example Site
+preview:
+  source: data
+  discover: [python, scripts/discover_runs.py]
+  articles:
+    benchmark-gallery: [benchmark-a, benchmark-b]
+    benchmark-comparison:
+      baseline: [benchmark-a, benchmark-b]
+      candidate: [benchmark-a, benchmark-b]
 book-title: Example Site — collected pages
 contents-title: Example Site — contents
 description: A tiny Demolab site with ordinary pages, three data-source demos, and developer documentation.
@@ -20,7 +28,7 @@ collections:
     description: "Enough content to demonstrate navigation, writing metadata, and assets."
   data-source-demos:
     label: Data-source demos
-    description: "Single-run presentation, multi-input gallery, and paired comparisons, ready for later preview selection."
+    description: "Single-run presentation, multi-input gallery, and paired comparisons with local run selectors."
   documentation:
     label: Documentation
     description: "Developer documentation grouped by project."

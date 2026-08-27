@@ -81,6 +81,90 @@ static authored resolution; it does not discover runs, infer Latest, or create a
 An unmapped key retains `.artifacts/<key>/` compatibility, and a missing mapped file fails rather
 than falling back to the key's ordinary directory.
 
+### Optional article-scoped run selectors
+
+Add `preview` to `demolab.yaml` to enable development-only selectors:
+
+```yaml
+preview:
+  source: .pingstore/runs
+  discover: [python, scripts/discover_runs.py]
+  articles:
+    exp092: [exp023, exp025, exp038, exp048]
+    exp093:
+      legacy: [exp025, exp038, exp049]
+      current: [exp025, exp038, exp049]
+```
+
+`source` is relative to `demolab.yaml`, inside the lab root and outside `.demolab/`.
+`discover` is an argument array executed exactly as given, **without a shell**, with the
+configuration directory as its working directory. Use commands you trust: enabling preview
+authorizes this local command to run at startup, on watched changes, and on Refresh sources.
+The absolute source directory is passed in `DEMOLAB_PREVIEW_SOURCE`, not appended to arguments.
+Demolab imposes a 30-second timeout and a 4 MiB limit on each output stream.
+
+The command prints a JSON array to stdout (diagnostics belong on stderr):
+
+```json
+[
+  {"id": "run-001", "experiment": "exp023", "label": "Baseline",
+   "created_at": "2026-08-25T10:00:00Z", "presentation": "run-001/presentation"}
+]
+```
+
+IDs must be unique across the catalogue. `label` is optional; other fields are required.
+`created_at` must include a timezone; Latest means greatest timestamp, then greatest ID on
+ties. `presentation` is relative to `source`. Directories are read in place, without copying;
+paths escaping the lab, runtime paths, and symlinks are rejected. The command owns discovery
+conventions and storage-contract checks, including which runs are completed. For Pingstore,
+read authoritative `run.json` metadata and validate `pingstore.run/v2` in your script; Demolab
+itself has no Pingstore dependency or built-in assumptions about run-directory names.
+
+An omitted article automatically matches its filename ID to the discovered `experiment`.
+A list declares independent experiment inputs. A mapping declares named groups with keys
+`<group>.<experiment>`; groups do not imply linked run selections. `article-id: []` disables
+selectors for that article. Use the stable basename ID, regardless of nested source folders.
+
+Bind the article scope **before reading JSON or constructing content**:
+
+```typ
+#import "/.demolab/lib.typ": *
+#let data-file = data-file.with(article: "exp092")
+#let result = json(data-file("exp023/numbers.json"))
+```
+
+For named groups, use qualified keys and optionally specify authored publication directories:
+
+```typ
+#let sources = ("legacy.exp025": "old-exp025", "current.exp025": "exp025")
+#let data-file = data-file.with(article: "exp093", sources: sources)
+#let legacy = json(data-file("legacy.exp025/numbers.json"))
+#let current = json(data-file("current.exp025/numbers.json"))
+```
+
+Without `sources`, those default to `.artifacts/legacy.exp025/` and
+`.artifacts/current.exp025/`. Bind once per article, not per figure. Reusable helpers should
+accept this resolver as an argument; importing another article's already-constructed body
+retains that other article's scope. Hardcoded paths and unbound calls remain unchanged and
+are not controlled by the selector.
+
+In `demolab dev`, the article's Data sources panel offers Latest, individual runs, and
+Published/default. Every input initially follows Latest unless an explicit local choice was
+remembered. Each choice affects only that article and key, including all its figures,
+numerical prose, and preview PDFs. Groups each start at Latest, so paired comparisons may
+initially compare a run against itself. Source files, configuration, and script arguments
+that name local files are watched; use Refresh sources for other discovery dependencies.
+
+Selections are remembered in `.demolab/preview/state.json`; preview output lives in
+`.demolab/preview/site/`. Compilation or discovery errors are visible in the panel. Failed
+changes never save a new accepted choice or replace the last successful site. Missing files
+do not fall back to another run. A disappeared saved run remains an error until changed;
+Reset all selections to Latest also recovers malformed local state. `demolab clean` removes
+preview state along with other generated output.
+
+`demolab build` never runs discovery or reads preview selections, and publishes no selector
+controls. It always uses the authored paths. Keep one dev server per lab.
+
 The homepage remains a compact collection directory by default. To expand collection contents
 and optionally show recently updated ordinary writings, add this to `demolab.yaml`:
 

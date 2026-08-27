@@ -51,6 +51,17 @@ MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ re
 DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedded as assets
 SITE = LAYOUT.runtime / "site"             # bundle output (HTML + mp4 + linked pdfs/)
 PDFS = LAYOUT.runtime / "pdfs"             # optional standalone generated PDFs
+PREVIEW = False                           # enabled only by the dev worker's explicit flag
+
+
+def preview_paths() -> None:
+    """Keep every preview build product separate from ordinary build output."""
+    global PREVIEW, BUILD, MAIN, ENTRY_MAIN, MANIFEST, DECKS, SITE, PDFS
+    PREVIEW = True
+    runtime = LAYOUT.runtime / "preview"
+    BUILD, SITE, PDFS = runtime / "bundle", runtime / "site", runtime / "pdfs"
+    MAIN, ENTRY_MAIN = BUILD / "main.typ", BUILD / "entry.typ"
+    MANIFEST, DECKS = BUILD / "index.json", BUILD / "decks"
 
 
 def pdfs_enabled() -> bool:
@@ -78,7 +89,10 @@ DEFAULT_CREATION_TIMESTAMP = "946684800"  # 2000-01-01T00:00:00Z
 def typst_compile(*args: str) -> list[str]:
     """A reproducible Typst compile command shared by every PDF-producing path."""
     timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
-    return [TYPST, "compile", "--creation-timestamp", timestamp, *LAYOUT.typst_inputs(), *args]
+    inputs = [*LAYOUT.typst_inputs(), "--input", f"demolab-bundle-root={LAYOUT.typst_path(BUILD)}"]
+    if PREVIEW:
+        inputs += ["--input", "demolab-preview-file=" + LAYOUT.typst_path(LAYOUT.runtime / "preview/input.json")]
+    return [TYPST, "compile", "--creation-timestamp", timestamp, *inputs, *args]
 
 
 def stage() -> None:
@@ -89,12 +103,13 @@ def stage() -> None:
     # Older engines leaked bundle and demo-preview staging into the user-facing temp/ tree. Remove
     # only those known generated subtrees; preserve any experiment scratch alongside them.
     legacy_temp = ROOT / "temp"
-    for generated in (legacy_temp / "bundle", legacy_temp / "demo-preview"):
+    for generated in (() if PREVIEW else (legacy_temp / "bundle", legacy_temp / "demo-preview")):
         shutil.rmtree(generated, ignore_errors=True)
-    try:
-        legacy_temp.rmdir()  # remove temp/ only when generated engine scratch was its last content
-    except OSError:
-        pass
+    if not PREVIEW:
+        try:
+            legacy_temp.rmdir()  # remove temp/ only when generated engine scratch was its last content
+        except OSError:
+            pass
     BUILD.mkdir(parents=True, exist_ok=True)
     shutil.copy2(_paths.TYP / "main.typ", MAIN)
     shutil.copy2(_paths.TYP / "entry.typ", ENTRY_MAIN)
@@ -189,6 +204,8 @@ def compile_decks(deck_ids: dict[str, Path]) -> dict[str, Path]:
         else:
             # A later CSS-only rebuild must not resurrect a stale/partial deck PDF.
             output.unlink(missing_ok=True)
+            if PREVIEW:
+                raise _paths.LayoutError(f"preview deck {d} compilation failed:\n" + proc.stdout + proc.stderr)
             print(f"  ⚠ deck {d} failed to build — skipping it: "
                   + _error_excerpt(proc.stdout + proc.stderr).splitlines()[0], flush=True)
     return good
@@ -238,6 +255,8 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
         )
         if proc.returncode == 0:
             return broken
+        if PREVIEW:
+            raise _paths.LayoutError("preview compilation failed:\n" + proc.stdout + proc.stderr)
         err = proc.stdout + proc.stderr
         bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
         if bad is None:
@@ -271,6 +290,8 @@ def compile_entry(entry_id: str, ids: dict[str, Path], decks: dict[str, Path]) -
 
 
 def main() -> None:
+    if "--preview" in sys.argv:
+        preview_paths()
     # --generate-only writes the manifest + deck PDFs without compiling the bundle: a hand
     # tool for inspecting what the compiler will see. (Dev serving is devserver.py, which runs
     # a full build on each change; it doesn't use this flag.)
@@ -302,6 +323,8 @@ def main() -> None:
         good_decks = {d: source for d, source in deck_ids.items() if (DECKS / f"{d}.pdf").exists()}
     else:
         good_decks = compile_decks(deck_ids)
+    if PREVIEW and len(good_decks) != len(deck_ids):
+        raise _paths.LayoutError("preview deck compilation failed; see diagnostics above")
     write_manifest(ids, good_decks, publish_pdfs=publish_pdfs)
     if generate_only:
         print(f"wrote manifest for {len(ids)} entries: {', '.join(ids)}"
@@ -314,6 +337,9 @@ def main() -> None:
     candidate = BUILD / "site-next"
     try:
         broken = compile_bundle(ids, good_decks, publish_pdfs=publish_pdfs, destination=candidate)
+        if PREVIEW and broken:
+            raise _paths.LayoutError("preview compilation failed:\n" + "\n".join(
+                f"{entry}: {error}" for entry, error in broken.items()))
         if SITE.exists():
             shutil.rmtree(SITE)
         candidate.replace(SITE)

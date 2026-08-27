@@ -1,19 +1,19 @@
 # Internal Demolab demo
 
 These are tiny, hand-authored synthetic presentation inputs for this checkout's
-internal demo, not scientific results or a new Demolab configuration format.
+internal demo, not scientific results.
 No Pinglab files, dependencies, or real runs are used. All demo configuration,
-articles, and data live here; all generated runtime stays in the repository's
+articles, data, and discovery script live here; all generated runtime stays in the repository's
 `.demolab/`. Ordinary user labs keep their existing layout.
 
 Run `uv run demolab dev` from the repository root. The homepage's data-source
 collection and the welcome page link to all three cases:
 
-| Article | Case | Fixed inputs | Expected result |
+| Article | Case | Initial Latest preview | Ordinary build |
 | --- | --- | --- | --- |
-| `/benchmark-a` | One run | `benchmark-a` → A run 001 | 64%, one figure |
-| `/benchmark-gallery` | Multiple experiments | `benchmark-a` → A run 001; `benchmark-b` → B run 002 | 64% and 92%, two figures |
-| `/benchmark-comparison` | Paired comparisons | `baseline-a` / `candidate-a` → A runs 001 / 002; `baseline-b` / `candidate-b` → B runs 001 / 002 | 64% / 88% (+24 pp) and 72% / 92% (+20 pp), four figures |
+| `/benchmark-a` | One run | 88%, one figure | 64% |
+| `/benchmark-gallery` | Multiple experiments | 88% and 92%, two figures | 64% and 92% |
+| `/benchmark-comparison` | Paired comparisons | 88% / 88% and 92% / 92%, zero differences | 64% / 88% (+24 pp), 72% / 92% (+20 pp) |
 
 ## Run data
 
@@ -29,44 +29,27 @@ All contain the same filenames and JSON fields. Each SVG has a 0–100% scale an
 bar whose width agrees with the JSON. Run IDs, labels, and timestamps in
 `numbers.json` describe these fixtures only, not the Pingstore contract.
 
-## Current behaviour
+`scripts/discover_runs.py` reads this metadata and emits the generic discovery protocol;
+`data_key` identifies the fixture experiment, not article aliases. This is not a synthetic
+Pingstore store or a Pingstore contract validator.
 
-- Every article reads JSON and SVG through `data-file()`, with explicit Typst
-  bindings. For example, the comparison article binds:
+## Try the selectors
 
-  ```typ
-  #let sources = (
-    "baseline-a": "benchmark-a-run-001",
-    "candidate-a": "benchmark-a-run-002",
-    "baseline-b": "benchmark-b-run-001",
-    "candidate-b": "benchmark-b-run-002",
-  )
-  #let data-file = data-file.with(sources: sources)
-  ```
+1. Open `benchmark-comparison`. Both groups initially follow Latest. Choose A run 001
+   for `baseline.benchmark-a`: its prose and figure become 64%, and the difference becomes
+   24 percentage points. Choose B run 001 for `baseline.benchmark-b`: its difference becomes 20.
+2. Open `benchmark-a` and `benchmark-gallery`: both still use A run 002, independently.
+3. Choose Published/default for the single-run article: it returns to the authored 64%.
+4. Reload or restart dev: explicit choices remain. Reset all selections to Latest starts over.
+5. Run `uv run demolab build`: ordinary `.demolab/site/` and PDFs retain authored defaults,
+   regardless of local preview choices. No controls are written into publication output.
 
-  This maps each data key to a directory beneath the data root; it does not
-  discover runs, infer Latest, or introduce a browser selector. Omitting the
-  optional mapping preserves ordinary labs' `.artifacts/<key>/` resolution.
-- Each pair refers to runs of the same fixture experiment.
-  The `data_key` field in the fixture JSON identifies the experiment, not the
-  article's aliases. No new discovery metadata contract is introduced here.
-- Dev and ordinary builds show the same authored choices listed above. Each input
-  supplies its own figure and numerical prose; no direct-path reads bypass the keys.
-- The single-run article's ID equals its experiment and key, exercising the proposed
-  automatic-match convention. The gallery and comparison require explicit attachments
-  in the future selector. No unimplemented preview configuration is added here.
-- The gallery shares `benchmark-a` with the single-run article. Changing its local
-  binding must leave the other article unchanged. Comparison cells are likewise
-  independent; differences are calculated from the selected JSON inputs, never hardcoded.
-- Dev watches `.demo/writings/`, `.demo/data/` (including alternative metadata),
-  optional `.demo/assets/`, configuration, and the engine sources. It does not
-  watch generated `.demolab/` output.
-- `uv run demolab clean` removes generated output, never this directory.
-  `uv run demolab build` recreates output from these inputs without modifying them.
-- No run selection or automatic Latest policy is implemented.
+Each article binds `data-file.with(article: "<its-id>", sources: sources)` before reading
+inputs. Comparison keys are `baseline.benchmark-a`, `candidate.benchmark-a`, and equivalent
+B keys; its `sources` dictionary defines the separate publication choices. Hardcoded paths
+are deliberately not used for selectable demo inputs.
 
-## Later increments, not implemented here
-
-Use these fixtures to add source selection, a Latest policy, and isolated
-preview output. Add a separately validated synthetic Pingstore store when those behaviours are
-implemented. Do not mutate or replace the defaults merely to simulate a selector.
+Dev watches configuration, writings, source data, and the discovery script. It reads run
+inputs directly. Preview state/output stay under `.demolab/preview/`; errors leave the last
+successful site visible with a warning and usable selectors. `uv run demolab clean` removes
+generated state/output, never this directory. See AUTHORING for the full optional protocol.

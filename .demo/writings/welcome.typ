@@ -26,5 +26,6 @@
   - #link("benchmark-gallery")[Multiple inputs]: one article assembles runs from two experiments.
   - #link("benchmark-comparison")[Paired comparisons]: baseline and candidate runs for each experiment.
 
-  All data is synthetic. Run selection and automatic latest-run defaults are not implemented yet.
+  All data is synthetic. Local preview offers independent run selectors; ordinary builds retain
+  the fixed authored inputs. Initial preview selections follow Latest.
 ]

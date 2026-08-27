@@ -14,5 +14,7 @@ files under `.demolab/`; `.artifacts/` is tracked, user-owned publication eviden
 gitignored. Writings may read assets directly with root-relative Typst paths such as
 `/assets/chart.svg` or `/assets/data.json`.
 
-`demolab docs` lists the short authoring guides. Demolab does not run code, enforce provenance,
-validate claims, or manage research workflows; content remains the author's responsibility.
+`demolab docs` lists the short authoring guides. Optional `preview` configuration runs a trusted,
+user-supplied discovery command for article-scoped data selectors; see AUTHORING. Demolab does
+not execute experiments, enforce provenance, validate claims, or manage research workflows;
+content remains the author's responsibility.

@@ -118,8 +118,9 @@ def test_dev_build_does_not_copy_preview_pdfs_to_publication_dir(monkeypatch):
         return SimpleNamespace(returncode=0, stdout="built\n", stderr="")
 
     monkeypatch.setattr(devserver.subprocess, "run", run)
-    assert devserver.build() == (True, "built")
+    assert devserver._compile() == (True, "built")
     assert "--no-pdf-copy" in captured["cmd"]
+    assert "--preview" not in captured["cmd"]
 
 
 def test_demo_watch_inputs_include_alternatives_but_exclude_runtime(tmp_path, monkeypatch):

@@ -9,21 +9,21 @@
 
 // Four independent inputs, grouped into two comparisons by the article's layout.
 #let sources = (
-  "baseline-a": "benchmark-a-run-001",
-  "candidate-a": "benchmark-a-run-002",
-  "baseline-b": "benchmark-b-run-001",
-  "candidate-b": "benchmark-b-run-002",
+  "baseline.benchmark-a": "benchmark-a-run-001",
+  "candidate.benchmark-a": "benchmark-a-run-002",
+  "baseline.benchmark-b": "benchmark-b-run-001",
+  "candidate.benchmark-b": "benchmark-b-run-002",
 )
-#let data-file = data-file.with(sources: sources)
+#let data-file = data-file.with(article: "benchmark-comparison", sources: sources)
 
 #let body = [
   *Synthetic demo data, not experimental evidence.* Case 3: one article compares multiple runs.
-  Each experiment has independent baseline and candidate data keys. These are fixed authored
-  choices; grouping them visually does not introduce a campaign selector or automatic Latest policy.
+  Each experiment has independent baseline and candidate data keys. Both groups initially follow
+  Latest in preview, so their differences start at zero. Choose an older baseline to compare runs.
 
   #for (suffix, title) in (("a", "Benchmark A"), ("b", "Benchmark B")) {
-    let baseline-key = "baseline-" + suffix
-    let candidate-key = "candidate-" + suffix
+    let baseline-key = "baseline.benchmark-" + suffix
+    let candidate-key = "candidate.benchmark-" + suffix
     let baseline = json(data-file(baseline-key + "/numbers.json"))
     let candidate = json(data-file(candidate-key + "/numbers.json"))
     let difference = candidate.accuracy_percent - baseline.accuracy_percent

@@ -11,7 +11,8 @@ my-presentation/
 └── .demolab/          engine-owned generated output
     ├── bundle/        private build staging
     ├── site/          generated static website
-    └── pdfs/          optional generated PDFs
+    ├── pdfs/          optional generated PDFs
+    └── preview/       opt-in dev selections, build scratch, and isolated site
 ```
 
 The installed `demolab-cli` package owns the renderer and theme. The presentation owns its

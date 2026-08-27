@@ -16,15 +16,31 @@ touching `.demo/`; the next build recreates it. There is no need to copy or syml
 `demolab.yaml` takes precedence as an ordinary lab. Typst's root remains the checkout root;
 internal compiler inputs route config, writings, assets, and `data-file()` to the demo.
 Every compile path (site, book, entry PDF, and deck) receives the same layout.
-The three data-source demo articles bind `data-file()` with Typst `sources` dictionaries:
+The three data-source demo articles bind `data-file()` with article IDs and Typst `sources` dictionaries:
 one run, a multi-experiment gallery, and paired baseline/candidate comparisons. Two synthetic
 experiments have two runs each; directory names do not imply default/latest status.
-Unmapped data keys retain the helper's existing root-relative resolution. There is no
-automatic run selection.
+Unmapped data keys retain the helper's existing root-relative resolution. The demo's opt-in
+`preview` configuration discovers these fixtures through `.demo/scripts/discover_runs.py`.
+Dev starts each input at Latest; ordinary builds keep the authored `sources` dictionaries.
 
 Ordinary labs still use root `demolab.yaml`, `writings/`, `assets/`, `.artifacts/`, and
 `.demolab/`. Demo content is not shipped in the wheel or installed by `demolab init`, which
-still installs only the stub skeleton. This layout does not implement run selection.
+still installs only the stub skeleton.
+
+`demolab_cli/preview.py` owns the storage-neutral JSON discovery protocol, configuration,
+validation, and per-article selections. Commands run without a shell from the configuration
+directory with `DEMOLAB_PREVIEW_SOURCE` set to the absolute source directory. The renderer
+receives only an article/data-key → presentation-directory mapping. No Pingstore contract is
+embedded in the engine. See AUTHORING for the protocol and resolver binding.
+
+`devserver.py` serializes preview requests through its existing watcher/build worker. A
+loopback-only, same-origin, token-protected endpoint queues selections; `typ/preview.js`
+provides the HTTP-injected controls. Preview state, frozen compiler input, scratch, PDFs,
+and site live under `.demolab/preview/`. The private build-worker `--preview` flag selects
+those paths and treats article stubs as failures before site replacement. Ordinary builds
+never invoke discovery or consume local selections. Failed builds retain the last successful
+site and accepted state; pending choices remain editable in the error panel. One dev server
+per lab is supported; concurrent servers would share preview state and build paths.
 
 `demolab.yaml` may override `writings` with a relative directory, defaulting to `writings/`.
 `LabLayout` validates it and recursively enumerates visible source files. Typst's `eval` command

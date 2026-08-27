@@ -17,7 +17,8 @@
 
 // The manifest build.py wrote: { entries: [{id, kind, source}], decks: [{id, source}],
 // has_brand_config, has_landing }.
-#let manifest = json("/.demolab/bundle/index.json")
+#let bundle-root = sys.inputs.at("demolab-bundle-root", default: "/.demolab/bundle")
+#let manifest = json(bundle-root + "/index.json")
 
 // The optional content-root demolab.yaml (build.py sets has_brand_config after checking it exists
 // — Typst can't stat). Branding merges over engine defaults; collection label/order are
@@ -60,7 +61,7 @@
 }
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {
-  asset("pdfs/" + d.id + ".pdf", read("/.demolab/bundle/decks/" + d.id + ".pdf", encoding: none))
+  asset("pdfs/" + d.id + ".pdf", read(bundle-root + "/decks/" + d.id + ".pdf", encoding: none))
 }
 // site favicon (a lab-notebook mark), linked from every page's <head> by lib.typ
 #asset("favicon.svg", read("/.demolab/favicon.svg", encoding: none))

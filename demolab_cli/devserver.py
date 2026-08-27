@@ -16,7 +16,10 @@ incremental recompile. Simpler, and it makes the dev path honest. No Node, no ne
 
 Run: `demolab dev [port]` (defaults to the first free port from 3000). Ctrl-C to stop.
 """
+import hmac
 import http.server
+import ipaddress
+import json
 import os
 import queue
 import socket
@@ -25,14 +28,16 @@ import sys
 import threading
 import time
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 from demolab_cli import _paths
 from demolab_cli import build as _build_mod
+from demolab_cli import preview
 
 ROOT = _build_mod.ROOT
 SITE = _build_mod.SITE
 LAYOUT = _build_mod.LAYOUT
+PREVIEW = None
 
 
 def source_watch_dirs(layout: _paths.LabLayout) -> list[tuple[Path, str]]:
@@ -62,6 +67,7 @@ RELOAD_JS = r"""
 (function () {
   var overlay;
   function show(msg) {
+    if (window.__demolabPreviewError) { window.__demolabPreviewError(msg); return; }
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.id = '__demolab_dev_error';
@@ -149,6 +155,8 @@ def snapshot() -> dict:
             sig[str(p)] = p.stat().st_mtime_ns
         except OSError:
             pass  # optional / absent
+    if PREVIEW is not None:
+        sig.update(PREVIEW.watch())
     return sig
 
 
@@ -163,12 +171,14 @@ def deck_affecting(changed: set) -> bool:
                or Path(p).is_relative_to(LAYOUT.assets) for p in changed)
 
 
-def build(skip_decks: bool = False) -> tuple[bool, str]:
+def _compile(skip_decks: bool = False, *, selected: bool = False) -> tuple[bool, str]:
     """Run build.py with the current interpreter (already inside the uv env, so no uv spawn).
     Returns (ok, error_text). On failure the combined output carries Typst's error.
     DEMOLAB_ROOT pins the child to this server's ROOT (which may itself be a test override)."""
     cmd = [sys.executable, "-m", "demolab_cli.build"]
     cmd.append("--no-pdf-copy")
+    if selected:
+        cmd.append("--preview")
     if skip_decks:
         cmd.append("--skip-decks")
     try:
@@ -184,6 +194,29 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
         tail = proc.stdout.strip().splitlines()
         return True, (tail[-1] if tail else "built")
     return False, (proc.stdout + proc.stderr).strip() or f"build.py exited {proc.returncode}"
+
+
+def build(skip_decks: bool = False) -> tuple[bool, str]:
+    global PREVIEW, SITE
+    try:
+        config = preview.load_config(LAYOUT)
+        if config is None:
+            PREVIEW = None
+            SITE = LAYOUT.runtime / "site"
+            return _compile(skip_decks)
+        if PREVIEW is None:
+            PREVIEW = preview.Session(LAYOUT)
+        SITE = PREVIEW.runtime / "site"
+        ids, _ = _build_mod.discover()
+        return PREVIEW.rebuild(config, ids, lambda: _compile(selected=True))
+    except (preview.PreviewError, _paths.LayoutError, OSError, ValueError) as exc:
+        # Even an invalid first configuration needs a recoverable error panel.
+        if PREVIEW is None:
+            PREVIEW = preview.Session(LAYOUT)
+        PREVIEW.error = str(exc)
+        PREVIEW.pending = False
+        SITE = PREVIEW.runtime / "site"
+        return False, str(exc)
 
 
 def html_file_for_path(path: str, site: Path) -> Path:
@@ -212,10 +245,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass  # quiet — build status is printed by the watch loop instead
 
     def do_GET(self):
+        endpoint = self.path.split("?", 1)[0]
+        if endpoint == "/__preview":
+            if not self._local_origin():
+                return self.send_error(403)
+            return self._json(PREVIEW.status() if PREVIEW else {"disabled": True})
+        if endpoint == "/__preview.js":
+            if PREVIEW is None:
+                return self.send_error(404)
+            data = (_paths.TYP / "preview.js").read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if self.path.split("?", 1)[0] == "/__dev":
             return self._sse()
         path = unquote(self.path.split("?", 1)[0])
         fs = html_file_for_path(path, SITE)
+        if PREVIEW is not None and not fs.exists() and not fs.suffix and _within(fs, SITE):
+            return self._serve_html(fs.with_suffix(".html"))
         # Serve in-tree .html through the reload-injecting path; everything else (assets, or a
         # crafted `..` path) falls to SimpleHTTPRequestHandler, whose translate_path already confines
         # to the served dir. _within re-checks so a `..%2f….html` can't escape SITE via this path.
@@ -229,10 +280,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # overlay still has somewhere to render.
         if fs.is_file():
             html = fs.read_text()
-        elif fs.name == "index.html":
+        elif fs.name == "index.html" or PREVIEW is not None:
             html = "<!doctype html><meta charset=utf-8><title>demolab dev</title><body></body>"
         else:
             return super().do_GET()
+        if PREVIEW is not None:
+            script = '<script src="/__preview.js"></script>'
+            html = html.replace("</body>", script + "</body>") if "</body>" in html else html + script
         data = inject_reload(html).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -243,6 +297,46 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(data)
         except _BENIGN_DISCONNECT:
             pass
+
+    def _local_origin(self):
+        host = self.headers.get("Host", "")
+        try:
+            address = ipaddress.ip_address(self.client_address[0])
+            address = getattr(address, "ipv4_mapped", None) or address
+            parsed = urlsplit("http://" + host)
+            return (address.is_loopback and parsed.hostname in ("localhost", "127.0.0.1", "::1")
+                    and parsed.port == self.server.server_port)
+        except ValueError:
+            return False
+
+    def _json(self, value, status=200):
+        data = json.dumps(value, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_POST(self):
+        if self.path != "/__preview" or PREVIEW is None:
+            return self.send_error(404)
+        token = self.headers.get("X-Demolab-Token", "")
+        if (not self._local_origin() or self.headers.get("Origin") != "http://" + self.headers.get("Host", "")
+                or not token.isascii() or not hmac.compare_digest(token, PREVIEW.token)):
+            return self.send_error(403)
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 8192 or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
+                raise preview.PreviewError("expected a small JSON request")
+            self.connection.settimeout(5)
+            data = json.loads(self.rfile.read(length))
+            if not isinstance(data, dict):
+                raise preview.PreviewError("expected a JSON object")
+            PREVIEW.request(data)
+            return self._json({"queued": True}, 202)
+        except (ValueError, OSError) as exc:
+            return self._json({"error": str(exc)}, 400)
 
     def _sse(self):
         self.send_response(200)
@@ -334,11 +428,12 @@ def watch_loop():
     ok, msg = build()  # first build always compiles decks so their PDFs exist for later skips
     _last_error[0] = "" if ok else msg
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
+    broadcast("reload" if ok else "error\n" + msg)
     while True:
         try:
             time.sleep(POLL_SECONDS)
             cur = snapshot()
-            if cur == last:
+            if cur == last and not (PREVIEW is not None and PREVIEW.pending):
                 continue
             # Debounce: wait for the filesystem to settle before building (editors write in bursts).
             while True:

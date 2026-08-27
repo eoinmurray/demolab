@@ -368,8 +368,8 @@ def test_demo_layout_reaches_assets_landing_decks_and_pdf_config(tmp_path: Path)
          '"benchmark-a": "benchmark-a-run-002"', ["benchmark-a-run-002"]),
         ("benchmark-gallery", '"benchmark-a": "benchmark-a-run-001"',
          '"benchmark-a": "benchmark-a-run-002"', ["benchmark-a-run-002", "benchmark-b-run-002"]),
-        ("benchmark-comparison", '"candidate-a": "benchmark-a-run-002"',
-         '"candidate-a": "benchmark-a-run-001"',
+        ("benchmark-comparison", '"candidate.benchmark-a": "benchmark-a-run-002"',
+         '"candidate.benchmark-a": "benchmark-a-run-001"',
          ["benchmark-a-run-001", "benchmark-a-run-001", "benchmark-b-run-001", "benchmark-b-run-002"]),
     ],
 )

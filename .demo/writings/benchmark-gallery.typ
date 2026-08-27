@@ -12,14 +12,14 @@
   "benchmark-a": "benchmark-a-run-001",
   "benchmark-b": "benchmark-b-run-002",
 )
-#let data-file = data-file.with(sources: sources)
+#let data-file = data-file.with(article: "benchmark-gallery", sources: sources)
 #let result-a = json(data-file("benchmark-a/numbers.json"))
 #let result-b = json(data-file("benchmark-b/numbers.json"))
 
 #let body = [
   *Synthetic demo data, not experimental evidence.* Case 2: one article assembles presentation
-  data from multiple experiments. Each key supplies its own prose and figure. These are fixed
-  authored choices, not a selector or automatic Latest policy.
+  data from multiple experiments. Each key supplies its own prose and figure. Local preview
+  selects each input independently; ordinary builds retain the authored choices.
 
   == Benchmark A
 
@@ -42,7 +42,7 @@
   )
 
   These are separate benchmark results, not a before/after comparison or a combined score.
-  The `benchmark-a` key also appears in #link("benchmark-a")[the single-run article]; future
-  preview selections must stay independent between the two articles.
+  The `benchmark-a` key also appears in #link("benchmark-a")[the single-run article];
+  preview selections stay independent between the two articles.
   For two runs per experiment, see the #link("benchmark-comparison")[paired comparison].
 ]

@@ -107,7 +107,7 @@ class LabLayout:
                 raise LayoutError(f"cannot read writings from {self.config}:\n{error}")
         if (not isinstance(value, str) or not value.strip() or "\x00" in value
                 or "\\" in value or PureWindowsPath(value).drive
-                or Path(value).is_absolute() or ".." in Path(value).parts
+                or value.startswith("/") or ".." in Path(value).parts
                 or Path(value) == Path(".")):
             raise LayoutError("demolab.yaml 'writings' must be a relative directory using forward slashes")
         path = self.content / value

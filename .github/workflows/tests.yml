@@ -41,11 +41,13 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
-      - name: Install typst (Linux — unskips the engine build tests)
+      - name: Install typst and PDF text tools (Linux — unskips engine build tests)
         if: runner.os == 'Linux'
         env:
           TYPST_VERSION: "0.15.0"  # match the engine's local toolchain
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
           curl -sL "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz" \
             | tar -xJf - -C /usr/local/bin --strip-components=1 "typst-x86_64-unknown-linux-musl/typst"
 

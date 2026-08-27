@@ -9,13 +9,13 @@
 
 // Article ID, experiment, and data key agree: the ordinary one-input case.
 #let sources = ("benchmark-a": "benchmark-a-run-001")
-#let data-file = data-file.with(sources: sources)
+#let data-file = data-file.with(article: "benchmark-a", sources: sources)
 #let result = json(data-file("benchmark-a/numbers.json"))
 
 #let body = [
   *Synthetic demo data, not experimental evidence.* Case 1: one article, one data key, one run.
   The `benchmark-a` key supplies both the numerical prose and the figure below.
-  This is a fixed authored choice; there is no selector or automatic Latest behaviour yet.
+  In local preview the selector chooses the run; ordinary builds use the authored default.
 
   == Current result
 
@@ -27,7 +27,7 @@
     caption: [Accuracy from the same run as the numerical prose, through `benchmark-a`.],
   )
 
-  The newer run remains available as fixture data, but is not read by this article.
+  Initial preview follows Latest; select Published/default to see the authored baseline.
   Also see the #link("benchmark-gallery")[multi-run gallery] and
   #link("benchmark-comparison")[paired comparison].
 ]

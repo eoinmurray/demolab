@@ -31,11 +31,21 @@
 }
 
 // Internal compiler inputs keep source-demo content separate from generated runtime.
-// Defaults preserve ordinary labs and direct Typst invocation. No discovery or preview selection.
+// Defaults preserve ordinary labs and direct Typst invocation.
 #let content-root = sys.inputs.at("demolab-content-root", default: "")
-#let data-file(rel, sources: (:)) = {
+#let preview-sources = if "demolab-preview-file" in sys.inputs {
+  json(sys.inputs.at("demolab-preview-file"))
+} else { (:) }
+#let data-file(rel, sources: (:), article: none) = {
   // Optional authored key-to-directory mapping, relative to the data root.
   let key = rel.split("/").first()
+  let selected = if article != none { preview-sources.at(article, default: (:)) } else { (:) }
+  if key in selected {
+    assert(rel.split("/").len() > 1
+      and rel.split("/").all(part => part not in ("", ".", ".."))
+      and not rel.contains("\\"), message: "preview data-file requires a safe key/filename")
+    return selected.at(key) + rel.slice(key.len())
+  }
   let resolved = if key in sources {
     let source = sources.at(key)
     assert(type(source) == str and not source.starts-with("/")
