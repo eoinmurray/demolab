@@ -35,7 +35,8 @@ embedded in the engine. See AUTHORING for the protocol and resolver binding.
 
 `devserver.py` serializes preview requests through its existing watcher/build worker. A
 loopback-only, same-origin, token-protected endpoint queues selections; `typ/preview.js`
-provides the HTTP-injected controls. Preview state, frozen compiler input, scratch, PDFs,
+provides the HTTP-injected, theme-native row below article metadata. URL fragments restore
+all inputs of one article atomically; reset affects only that article. Preview state, frozen compiler input, scratch, PDFs,
 and site live under `.demolab/preview/`. The private build-worker `--preview` flag selects
 those paths and treats article stubs as failures before site replacement. Ordinary builds
 never invoke discovery or consume local selections. Failed builds retain the last successful

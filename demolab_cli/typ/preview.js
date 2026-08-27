@@ -1,7 +1,20 @@
-// Injected by the development server only. The generated site never contains this control.
+// Development-only controls. A fragment restores one article atomically; it never reaches builds.
+function demolabPreviewOptions(runs, choice) {
+  // A pinned run that is currently newest uses the same displayed option as Latest.
+  const value = runs.length && choice === 'run:' + runs[0].id ? 'latest' : choice;
+  const options = [['latest', 'Latest' + (runs.length ? ' — ' + runs[0].id : '')],
+    ...runs.slice(1).map(run => ['run:' + run.id, run.id])];
+  if (!options.some(option => option[0] === value)) options.push([value, value.replace(/^run:/, '')]);
+  return {options, value};
+}
+
 (() => {
   const article = decodeURIComponent(location.pathname).replace(/\/$/, '').split('/').pop().replace(/\.html$/, '');
-  let token = '', panel, fields, message, summary, structure = '', lastState;
+  const automaticReload = history.state?.demolabPreviewReload === location.href;
+  if (automaticReload) history.replaceState({...history.state, demolabPreviewReload: null}, '');
+  let token, panel, fields, message, activity, state, structure = '', initialized = false, desired = {};
+  let anchor = '', sending = 0, reloadPending = false, updating = false, localError = '';
+  let requests = Promise.resolve();
   const controls = new Map();
   const node = (tag, text, parent) => {
     const element = document.createElement(tag);
@@ -9,63 +22,123 @@
     if (parent) parent.append(element);
     return element;
   };
+
+  function readFragment() {
+    const parts = location.hash.slice(1).split('&');
+    anchor = parts[0] && !parts[0].includes('=') ? parts.shift() : '';
+    const choices = {};
+    for (const [key, value] of new URLSearchParams(parts.join('&'))) {
+      if (!key.startsWith('run.')) continue;
+      const input = key.slice(4);
+      if (Object.hasOwn(choices, input)) throw new Error('Duplicate input in preview URL: ' + input);
+      choices[input] = value;
+    }
+    return choices;
+  }
+
+  function writeFragment(push = false) {
+    const params = new URLSearchParams();
+    for (const [key, choice] of Object.entries(desired)) params.set('run.' + key, choice);
+    const fragment = [anchor, params.toString()].filter(Boolean).join('&');
+    const url = location.pathname + location.search + (fragment ? '#' + fragment : '');
+    if (url !== location.pathname + location.search + location.hash) {
+      history[push ? 'pushState' : 'replaceState'](history.state, '', url);
+    }
+  }
+
   function mount() {
     if (panel) return;
     const style = node('style');
     style.textContent = `
-      .demolab-preview {font:14px/1.5 system-ui,sans-serif;border:1px solid #8888;border-radius:8px;padding:12px;margin:16px 0;background:#f5f7f6;color:#172d2b}
-      .demolab-preview summary {cursor:pointer;font-weight:600;overflow-wrap:anywhere}
-      .demolab-preview fieldset {border:1px solid #8886;margin:12px 0;min-width:0}
-      .demolab-preview label {display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
-      .demolab-preview label span {min-width:100px;overflow-wrap:anywhere}
-      .demolab-preview select {flex:1;min-width:0;max-width:100%;padding:5px;font:inherit}
-      .demolab-preview small {display:block;flex-basis:100%;overflow-wrap:anywhere}
-      .demolab-preview button {font:inherit;padding:5px 10px;margin:8px 8px 0 0;cursor:pointer}
-      .demolab-preview [role=status] {white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;max-height:16em;overflow:auto}
-      .demolab-preview .error {color:#9f2323}
-      .demolab-preview a {margin-right:12px}
+      .entry-meta:has(+ .demolab-preview:not([hidden])) {margin-bottom:0}
+      .demolab-preview {font:inherit;font-size:var(--fs-small,.85rem);color:var(--muted,#666);margin:1.25rem 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem 1rem}
+      .demolab-preview:not([hidden]) + * {margin-top:0}
+      .demolab-preview-inputs {display:flex;flex-wrap:wrap;gap:.35rem 1rem;min-width:0}
+      .demolab-preview label {display:flex;align-items:baseline;gap:.4rem;min-width:0;max-width:100%}
+      .demolab-preview label span {overflow-wrap:anywhere}
+      .demolab-preview select {font:inherit;color:var(--ink,#1a1a1a);background:var(--paper,#fff);border:0;border-bottom:1px solid var(--rule-strong,#d8d5cd);border-radius:0;padding:.12rem 0;min-width:0;max-width:100%;cursor:pointer}
+      .demolab-preview button {font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;white-space:nowrap}
+      .demolab-preview :is(select,button):focus-visible {outline:2px solid var(--ink,#1a1a1a);outline-offset:3px}
+      .demolab-preview-actions {display:flex;align-items:center;gap:.75rem;white-space:nowrap}
+      .demolab-preview [role=status] {display:inline-block;width:8ch;min-height:1.6em;line-height:1.6}
+      .demolab-preview [role=alert] {flex-basis:100%;white-space:pre-wrap;overflow-wrap:anywhere;max-height:12em;overflow:auto}
+      .demolab-preview [role=alert]:empty {display:none}
+      .demolab-preview .error {color:var(--ink,#1a1a1a);border-left:2px solid currentColor;padding-left:.6rem}
+      .demolab-preview[hidden] {display:none}
     `;
     document.head.append(style);
-    panel = node('details');
+    panel = node('section');
     panel.className = 'demolab-preview';
-    panel.open = true;
-    summary = node('summary', 'Data sources', panel);
+    panel.setAttribute('aria-label', 'Preview data sources');
     fields = node('div', undefined, panel);
-    message = node('div', '', panel);
-    message.setAttribute('role', 'status');
-    message.setAttribute('aria-live', 'polite');
-    const refresh = node('button', 'Refresh sources', panel);
-    refresh.type = 'button';
-    refresh.onclick = () => send({action: 'refresh'});
-    const reset = node('button', 'Reset all selections to Latest', panel);
+    fields.className = 'demolab-preview-inputs';
+    const actions = node('div', undefined, panel);
+    actions.className = 'demolab-preview-actions';
+    const reset = node('button', 'Reset to default', actions);
     reset.type = 'button';
-    reset.onclick = () => send({action: 'reset'});
-    document.body.prepend(panel);
+    reset.onclick = () => {
+      desired = {};
+      writeFragment(true);
+      send(true);
+    };
+    activity = node('span', '', actions);
+    activity.setAttribute('role', 'status');
+    activity.setAttribute('aria-live', 'polite');
+    message = node('div', '', panel);
+    message.setAttribute('role', 'alert');
+    const metadata = document.querySelector('.entry-meta');
+    if (metadata) metadata.after(panel);
+    else document.body.prepend(panel); // failed first build: still allow recovery
   }
-  async function send(payload) {
-    try {
-      message.textContent = 'Change queued; displayed results stay unchanged until compilation succeeds.';
-      const response = await fetch('/__preview', {
-        method: 'POST', headers: {'Content-Type': 'application/json', 'X-Demolab-Token': token},
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Preview request rejected');
-      await update();
-    } catch (error) { showError(String(error)); }
-  }
+
   function showError(error) {
     mount();
     panel.hidden = false;
-    panel.open = true;
-    lastState = undefined;
+    activity.textContent = '';
     message.className = 'error';
-    message.textContent = error + '\nDisplayed results may be from the last successful build. Choose another input or fix the source.';
+    message.textContent = error + '\nShowing the last successful build.';
   }
   window.__demolabPreviewError = showError;
-  function render(state) {
-    token = state.token;
+  window.__demolabPreviewReload = () => {
+    if (sending) { reloadPending = true; return; }
+    // An automatic reload adopts the shared preview, rather than fighting another tab's URL.
+    // Manual refresh and Back/Forward still restore the fragment as requested.
+    history.replaceState({...history.state, demolabPreviewReload: location.href}, '');
+    location.reload();
+  };
+
+  function send(reset = false) {
+    const selections = {...desired};
+    localError = '';
+    sending++;
+    render();
+    requests = requests.then(async () => {
+      try {
+        const response = await fetch('/__preview', {
+          method: 'POST', headers: {'Content-Type': 'application/json', 'X-Demolab-Token': token},
+          body: JSON.stringify({action: 'article', article, selections, reset})
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || 'Preview request rejected');
+        }
+      } catch (error) { localError = String(error); }
+      finally {
+        sending--;
+        await update();
+        render();
+        if (!sending && reloadPending) {
+          reloadPending = false;
+          if (!localError) window.__demolabPreviewReload();
+        }
+      }
+    });
+  }
+
+  function render() {
+    if (!state || state.disabled) return;
     const inputs = state.articles[article] || [];
-    if (!inputs.length && !state.error && !state.busy) {
+    if (!inputs.length && !state.error && !localError) {
       if (panel) panel.hidden = true;
       return;
     }
@@ -76,69 +149,79 @@
       structure = nextStructure;
       fields.replaceChildren();
       controls.clear();
-      const groups = new Map();
       inputs.forEach(input => {
-        let group = groups.get(input.group);
-        if (!group) {
-          group = node('fieldset', undefined, fields);
-          node('legend', input.group || 'Inputs', group);
-          groups.set(input.group, group);
-        }
-        const label = node('label', undefined, group);
-        node('span', input.experiment, label);
+        const label = node('label', undefined, fields);
+        if (inputs.length > 1) node('span', input.key, label);
         const select = node('select', undefined, label);
         select.setAttribute('aria-label', input.key + ' run');
-        const active = node('small', '', label);
-        select.onchange = () => send({action: 'select', article, key: input.key, choice: select.value});
-        controls.set(input.key, {select, active, options: ''});
+        select.onchange = () => {
+          desired[input.key] = select.value;
+          writeFragment(true);
+          send();
+        };
+        controls.set(input.key, {select, options: ''});
       });
-      if (!inputs.length) {
-        Object.keys(state.articles).forEach(id => {
-          const link = node('a', id, fields);
-          link.href = '/' + encodeURIComponent(id);
-        });
-      }
     }
-    const rendered = [];
     inputs.forEach(input => {
       const control = controls.get(input.key);
       const runs = state.runs.filter(run => run.experiment === input.experiment);
-      const choice = (state.selections[article] || {})[input.key] || 'latest';
-      const options = [
-        ['latest', 'Latest' + (runs.length ? ' — ' + runs[0].id : ' — no available runs')],
-        ['published', 'Published/default'],
-        ...runs.map(run => ['run:' + run.id, run.label + ' — ' + run.id])
-      ];
-      if (!options.some(option => option[0] === choice)) options.push([choice, 'Unavailable — ' + choice.replace(/^run:/, '')]);
+      const choice = desired[input.key] || 'latest';
+      const {options, value} = demolabPreviewOptions(runs, choice);
       const signature = JSON.stringify(options);
       if (signature !== control.options) {
         control.select.replaceChildren();
-        options.forEach(([value, label]) => { const option = node('option', label, control.select); option.value = value; });
+        options.forEach(([value, text]) => { const option = node('option', text, control.select); option.value = value; });
         control.options = signature;
       }
-      control.select.value = choice;
-      const active = (state.rendered[article] || {})[input.key] || 'not yet built in this session';
-      control.active.textContent = 'Rendered: ' + active;
-      rendered.push(input.key + ': ' + active);
+      control.select.value = value;
     });
-    summary.textContent = 'Data sources' + (rendered.length ? ' — ' + rendered.join(' · ') : '') + (state.busy ? ' — building…' : '');
-    summary.title = rendered.join('\n');
-    if (state.error) showError((state.stale ? 'Source catalogue is stale.\n' : '') + state.error);
+    if (localError || state.error) showError(localError || (state.stale ? 'Sources unavailable.\n' : '') + state.error);
     else {
       message.className = '';
-      message.textContent = state.busy ? 'Building… displayed results have not changed yet.' : 'Preview only. Ordinary builds use authored defaults.';
+      message.textContent = '';
+      activity.textContent = sending || state.busy ? 'Updating…' : '';
     }
   }
+
   async function update() {
+    if (updating) return;
+    updating = true;
     try {
       const response = await fetch('/__preview', {cache: 'no-store'});
       if (!response.ok) throw new Error('Cannot read preview status');
-      const state = await response.json();
+      state = await response.json();
       if (state.disabled) { if (panel) panel.hidden = true; return; }
-      const signature = JSON.stringify(state);
-      if (lastState !== signature) { render(state); lastState = signature; }
-    } catch (error) { showError(String(error)); }
+      token = state.token;
+      if (!initialized && state.articles[article]?.length) {
+        initialized = true;
+        desired = readFragment();
+        if (automaticReload) {
+          desired = {...(state.selections[article] || {})};
+          // Migrate previously saved Published/default choices to the new Latest default.
+          for (const key of Object.keys(desired)) if (desired[key] === 'published') delete desired[key];
+          writeFragment();
+        }
+        const inputs = state.articles[article];
+        const current = state.selections[article] || {};
+        if (Object.keys(desired).some(key => !inputs.some(input => input.key === key)) ||
+            inputs.some(input => (desired[input.key] || 'latest') !== (current[input.key] || 'latest'))) send();
+        if (anchor) document.getElementById(decodeURIComponent(anchor))?.scrollIntoView();
+      }
+      render();
+    } catch (error) { localError = String(error); showError(localError); }
+    finally { updating = false; }
   }
+
+  window.addEventListener('hashchange', () => {
+    if (!initialized) return;
+    try {
+      const choices = readFragment();
+      // Heading links retain the selections while still scrolling to their section.
+      if (anchor && !Object.keys(choices).length) { writeFragment(); return; }
+      desired = choices;
+      send();
+    } catch (error) { localError = String(error); showError(localError); }
+  });
   update();
   setInterval(update, 1000);
 })();

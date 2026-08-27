@@ -99,7 +99,7 @@ preview:
 `source` is relative to `demolab.yaml`, inside the lab root and outside `.demolab/`.
 `discover` is an argument array executed exactly as given, **without a shell**, with the
 configuration directory as its working directory. Use commands you trust: enabling preview
-authorizes this local command to run at startup, on watched changes, and on Refresh sources.
+authorizes this local command to run at startup, on watched changes, and on selection changes.
 The absolute source directory is passed in `DEMOLAB_PREVIEW_SOURCE`, not appended to arguments.
 Demolab imposes a 30-second timeout and a 4 MiB limit on each output stream.
 
@@ -148,18 +148,24 @@ accept this resolver as an argument; importing another article's already-constru
 retains that other article's scope. Hardcoded paths and unbound calls remain unchanged and
 are not controlled by the selector.
 
-In `demolab dev`, the article's Data sources panel offers Latest, individual runs, and
-Published/default. Every input initially follows Latest unless an explicit local choice was
-remembered. Each choice affects only that article and key, including all its figures,
+In `demolab dev`, a minimal selector row below the article metadata lists each run ID once,
+marking the newest as Latest. Every input initially follows Latest unless the URL fragment specifies
+a run. Changes apply immediately. Each choice affects only that article and key, including all its figures,
 numerical prose, and preview PDFs. Groups each start at Latest, so paired comparisons may
 initially compare a run against itself. Source files, configuration, and script arguments
-that name local files are watched; use Refresh sources for other discovery dependencies.
+that name local files are watched; restart dev after changes to other discovery dependencies.
 
-Selections are remembered in `.demolab/preview/state.json`; preview output lives in
+The fragment stores choices as `#run.<data-key>=latest` or
+`#run.<data-key>=run%3A<run-id>`, joined by `&` for multiple inputs. Refreshing that URL
+restores the article's choices together. Heading anchors can precede the run parameters.
+Reset to default clears this article's fragment selections and returns its inputs to Latest,
+without resetting other articles. Automatic live reload adopts the shared server preview,
+avoiding competing rebuilds between tabs; manual refresh restores the URL choices.
+Accepted server selections remain in `.demolab/preview/state.json`; preview output lives in
 `.demolab/preview/site/`. Compilation or discovery errors are visible in the panel. Failed
 changes never save a new accepted choice or replace the last successful site. Missing files
 do not fall back to another run. A disappeared saved run remains an error until changed;
-Reset all selections to Latest also recovers malformed local state. `demolab clean` removes
+Reset to default also recovers malformed local state. `demolab clean` removes
 preview state along with other generated output.
 
 `demolab build` never runs discovery or reads preview selections, and publishes no selector

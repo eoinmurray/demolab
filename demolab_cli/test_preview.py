@@ -15,6 +15,19 @@ import pytest
 from demolab_cli import _paths, devserver, preview
 
 
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node required for pure JavaScript unit test")
+@pytest.mark.parametrize("choice", ["latest", "run:new", "run:old", "run:missing"])
+def test_selector_lists_each_run_once_including_pinned_latest(choice):
+    # Execute only the pure options helper, not the browser client or a browser runtime.
+    helper = (_paths.TYP / "preview.js").read_text(encoding="utf-8").split("\n(() => {", 1)[0]
+    program = helper + '\nconsole.log(JSON.stringify(demolabPreviewOptions([{id:"new"},{id:"old"}], ' + json.dumps(choice) + ')));'
+    result = subprocess.run([shutil.which("node"), "-e", program], capture_output=True, encoding="utf-8", check=True)
+    data = json.loads(result.stdout)
+    assert data["options"][:2] == [["latest", "Latest — new"], ["run:old", "old"]]
+    assert len(data["options"]) == (3 if choice == "run:missing" else 2)
+    assert data["value"] == ("latest" if choice in ("latest", "run:new") else choice)
+
+
 @pytest.fixture
 def lab(tmp_path):
     layout = _paths.layout_for(tmp_path)
@@ -194,6 +207,38 @@ def test_pending_choice_during_compile_is_not_lost(lab, monkeypatch):
     assert session.rebuild(config, ["exp"], lambda: (True, "built"))[0]
     assert not session.pending
     assert session.rendered["exp"]["exp"] == "old"
+
+
+def test_article_fragment_is_atomic_and_reset_is_article_scoped(lab, monkeypatch):
+    layout, config = lab
+    supply(monkeypatch, records())
+    config = dataclasses.replace(config, articles={"comparison": {"before": ["exp"], "after": ["exp"]}})
+    session = preview.Session(layout)
+    assert session.rebuild(config, ["exp", "comparison"], lambda: (True, "built"))[0]
+    session.request(dict(action="select", article="exp", key="exp", choice="run:old"))
+    session.request(dict(action="article", article="comparison", selections={
+        "before.exp": "run:old", "after.exp": "run:new"}))
+    assert session.desired["comparison"] == {"before.exp": "run:old", "after.exp": "run:new"}
+    before = session.status()["selections"]
+    with pytest.raises(preview.PreviewError, match="unavailable"):
+        session.request(dict(action="article", article="comparison", selections={
+            "before.exp": "latest", "after.exp": "run:missing"}))
+    assert session.desired == before
+    session.request(dict(action="article", article="comparison", selections={}, reset=True))
+    assert session.desired == {"exp": {"exp": "run:old"}, "comparison": {}}
+    assert session.rebuild(config, ["exp", "comparison"], lambda: (True, "built"))[0]
+    assert session.rendered["comparison"] == {"before.exp": "new", "after.exp": "new"}
+    assert session.rendered["exp"]["exp"] == "old"
+
+
+@pytest.mark.parametrize("selections", [[], None, {"unknown": "latest"}, {"exp": []}, {"exp": "published"}])
+def test_article_fragment_validation(lab, selections):
+    layout, _ = lab
+    session = preview.Session(layout)
+    session.inputs = {"exp": preview.normalize_inputs(["exp"])}
+    with pytest.raises(preview.PreviewError):
+        session.request(dict(action="article", article="exp", selections=selections))
+    assert session.desired == {} and not session.pending
 
 
 def test_corrupt_state_requires_explicit_reset(lab, monkeypatch):

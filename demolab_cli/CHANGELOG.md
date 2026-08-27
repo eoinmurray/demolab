@@ -13,6 +13,30 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-08-27
+
+### Added
+- **Optional article-scoped run selectors in local preview.** A user-owned discovery command
+  supplies storage-independent run metadata. Articles can select one experiment, several inputs,
+  or named comparison groups through `data-file()`, with Latest as the initial default.
+- **Compact, theme-native selectors beneath article metadata.** Each run appears once, with the
+  newest marked Latest. Selections apply immediately and persist in URL fragments; Reset to
+  default affects only the current article. The inline updating indicator reserves its space.
+- **Configurable, recursive writing sources.** `writings` can name a relative source directory;
+  nested articles and decks keep stable basename IDs, while helpers remain unpublished.
+
+### Changed
+- **Preview state and output are isolated under `.demolab/preview/`.** Selected presentation
+  inputs are read directly without copying or mutation. Failed selections leave the last usable
+  site intact; ordinary builds ignore preview selections and retain authored publication inputs.
+- **All internal demo content lives under `.demo/`.** The three selector examples cover a
+  single experiment, a multi-input gallery, and paired run comparisons. Installed labs retain
+  their existing layout, and demo fixtures are excluded from the wheel.
+
+### Fixed
+- **Portable writing-path validation and CI PDF checks.** Absolute paths receive consistent
+  diagnostics on Windows, and the Linux test runner includes the PDF text-extraction tool.
+
 ## [4.0.1] — 2026-08-26
 
 ### Fixed

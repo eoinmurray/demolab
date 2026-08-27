@@ -39,8 +39,9 @@ Pingstore store or a Pingstore contract validator.
    for `baseline.benchmark-a`: its prose and figure become 64%, and the difference becomes
    24 percentage points. Choose B run 001 for `baseline.benchmark-b`: its difference becomes 20.
 2. Open `benchmark-a` and `benchmark-gallery`: both still use A run 002, independently.
-3. Choose Published/default for the single-run article: it returns to the authored 64%.
-4. Reload or restart dev: explicit choices remain. Reset all selections to Latest starts over.
+3. Choose run 001 for the single-run article: it shows 64%, independently of the gallery.
+4. Selections update immediately and are stored in the URL fragment. Refresh the same URL
+   to restore them. Reset to default returns only this article's inputs to Latest.
 5. Run `uv run demolab build`: ordinary `.demolab/site/` and PDFs retain authored defaults,
    regardless of local preview choices. No controls are written into publication output.
 

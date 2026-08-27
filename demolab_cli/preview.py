@@ -283,6 +283,23 @@ class Session:
             if action == "reset":
                 self.desired = {}
                 self.state_error = ""
+            elif action == "article":
+                article = identifier(data.get("article"), "article ID")
+                selections = data.get("selections")
+                if article not in self.inputs or not isinstance(selections, dict):
+                    raise PreviewError("unknown article or invalid selections")
+                inputs = {item["key"]: item for item in self.inputs[article]}
+                for key, choice in selections.items():
+                    if key not in inputs or not isinstance(choice, str):
+                        raise PreviewError("unknown data key")
+                    allowed = {"latest"} | {"run:" + run["id"] for run in self.catalogue
+                                             if run["experiment"] == inputs[key]["experiment"]}
+                    if choice not in allowed:
+                        raise PreviewError(f"{key}: unavailable run {choice.removeprefix('run:')}")
+                # Validate the whole fragment before changing any input. Other articles stay put.
+                self.desired[article] = dict(selections)
+                if data.get("reset") is True:
+                    self.state_error = ""
             elif action == "select":
                 article, key, choice = (data.get(field) for field in ("article", "key", "choice"))
                 identifier(article, "article ID")

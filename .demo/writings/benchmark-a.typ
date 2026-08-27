@@ -27,7 +27,7 @@
     caption: [Accuracy from the same run as the numerical prose, through `benchmark-a`.],
   )
 
-  Initial preview follows Latest; select Published/default to see the authored baseline.
+  Initial preview follows Latest; select run 001 to see the baseline. Reset to default returns to Latest.
   Also see the #link("benchmark-gallery")[multi-run gallery] and
   #link("benchmark-comparison")[paired comparison].
 ]

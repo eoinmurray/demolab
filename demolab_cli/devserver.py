@@ -84,7 +84,10 @@ RELOAD_JS = r"""
   function connect() {
     var es = new EventSource('/__dev');
     es.onmessage = function (e) {
-      if (e.data === 'reload') { location.reload(); }
+      if (e.data === 'reload') {
+        if (window.__demolabPreviewReload) { window.__demolabPreviewReload(); }
+        else { location.reload(); }
+      }
       else if (e.data === 'ok') { clear(); }
       else if (e.data.slice(0, 5) === 'error') { show(e.data.slice(6)); }
     };
