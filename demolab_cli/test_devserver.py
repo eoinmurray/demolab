@@ -5,11 +5,12 @@ compile — is exercised by hand against `task dev`; these cover the two string 
 server leans on, which are easy to break silently, plus the loopback bind (sockets only, no
 HTTP request, no build) that an IPv4-only server gets wrong on Windows.
 """
+import os
 import socket
 import threading
 from types import SimpleNamespace
 
-from demolab_cli import devserver
+from demolab_cli import _paths, devserver
 
 
 def test_sse_bytes_single_line():
@@ -95,13 +96,17 @@ def test_make_server_accepts_both_loopbacks():
         server.server_close()
 
 
-def test_deck_affecting_triggers_on_slide_and_data():
-    # A deck PDF depends only on its own source and the data assets it embeds.
+def test_deck_affecting_triggers_on_slide_and_data(tmp_path, monkeypatch):
+    layout = _paths.layout_for(tmp_path)
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    # Decks can import ordinary Typst helpers as well as their own data assets.
     assert devserver.deck_affecting({"/repo/writings/ar004.slide.typ"})
-    assert devserver.deck_affecting({"/repo/.artifacts/exp000/lif.svg"})
-    # A prose / CSS / lib edit can't change a deck, so decks are skipped.
-    assert not devserver.deck_affecting({"/repo/writings/exp000.typ"})
-    assert not devserver.deck_affecting({"/pkg/demolab_cli/typ/lib.typ"})
+    assert devserver.deck_affecting({str(layout.data / "exp000/lif.svg")})
+    assert devserver.deck_affecting({str(layout.assets / "chart.svg")})
+    assert devserver.deck_affecting({str(layout.config)})
+    assert devserver.deck_affecting({"/repo/writings/exp000.typ"})
+    assert devserver.deck_affecting({"/pkg/demolab_cli/typ/lib.typ"})
+    assert not devserver.deck_affecting({"/pkg/demolab_cli/typ/style.css"})
     assert not devserver.deck_affecting(set())
 
 
@@ -115,3 +120,34 @@ def test_dev_build_does_not_copy_preview_pdfs_to_publication_dir(monkeypatch):
     monkeypatch.setattr(devserver.subprocess, "run", run)
     assert devserver.build() == (True, "built")
     assert "--no-pdf-copy" in captured["cmd"]
+
+
+def test_demo_watch_inputs_include_alternatives_but_exclude_runtime(tmp_path, monkeypatch):
+    # Parser integration is tested separately; this watcher test also runs without Typst.
+    monkeypatch.setattr(_paths, "_writings_setting", lambda *args: ("writings", None))
+    layout = _paths.LabLayout(tmp_path, tmp_path / ".demo", demo=True)
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    monkeypatch.setattr(devserver, "WATCH_DIRS", [])
+    monkeypatch.setattr(devserver, "WATCH_FILES", [layout.config, layout.landing])
+    paths = [layout.writings / "benchmark-a.typ", layout.data / "benchmark-a-run-001/numbers.json",
+             layout.data / "benchmark-a-run-002/numbers.json",
+             layout.assets / "example.txt", layout.config, layout.landing]
+    for path in paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("initial")
+    initial = devserver.snapshot()
+    assert set(initial) == {str(path) for path in paths}
+    generated = layout.runtime / "site" / "benchmark-a.html"
+    generated.parent.mkdir(parents=True)
+    generated.write_text("generated")
+    assert devserver.snapshot() == initial
+    alternative = paths[2]
+    alternative.write_text("updated alternative")
+    os.utime(alternative, ns=(initial[str(alternative)] + 1_000_000_000,) * 2)
+    assert devserver.snapshot()[str(alternative)] != initial[str(alternative)]
+    assert devserver.deck_affecting({str(alternative)})
+    added = layout.writings / "new.typ"
+    added.write_text("new article")
+    assert str(added) in devserver.snapshot()
+    added.unlink()
+    assert str(added) not in devserver.snapshot()

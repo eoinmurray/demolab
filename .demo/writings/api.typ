@@ -9,7 +9,8 @@
 )
 
 #let body = [
-  Use Typst's `json` function to read structured data stored under `assets/`.
+  Use Typst's `json` function to read structured data stored under `assets/` in an ordinary lab.
+  In this source checkout, demo inputs belong under `.demo/`.
 
   == Example
 

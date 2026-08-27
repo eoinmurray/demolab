@@ -1,4 +1,7 @@
 # demolab config — every key is optional, but keep the file: it marks the project root.
+# Source directory, relative to this file. Nested folders are searched automatically.
+# Filenames remain public IDs: articles/physics/gravity.typ publishes as gravity.html.
+# writings: articles
 name: Demolab
 book-title: Demolab — the book
 contents-title: Demolab — contents

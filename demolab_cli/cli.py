@@ -5,6 +5,8 @@ The engine lives in this package (site-packages); a lab is a plain directory of 
 content marked by its demolab.yaml. Every command finds the lab by walking up from the
 cwd, like git finding its root — so it works from any subdirectory. `demolab init` starts
 a new presentation; `demolab docs` lists the authoring guides that ship in the package.
+The engine source checkout instead keeps its authored presentation under .demo/;
+its shared layout leaves all generated runtime under the checkout's .demolab/.
 Run `demolab` with no arguments for the command list. The CLI is pure stdlib Python;
 Typst performs the rendering.
 """
@@ -177,6 +179,11 @@ def cmd_docs(args: argparse.Namespace) -> int:
         return 0
     # Bare `demolab docs` IS the agent's orientation: the full manual, then the menu —
     # one command, complete operating context, always in step with the installed engine.
+    root = _paths.find_lab_root()
+    if root is not None and _paths.layout_for(root).demo:
+        print("Source checkout: authored demo inputs live in .demo/; generated runtime lives in "
+              ".demolab/. Run dev, build, and clean from the repository root. "
+              "See DEVELOPING.md. The following guides describe ordinary user labs.\n")
     print((_paths.PACKAGE / "AGENT.md").read_text(encoding="utf-8"))
     print("## Guides")
     print("## `demolab docs <NAME>` prints a guide's path.\n")
@@ -242,9 +249,9 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 
 def cmd_clean(args: argparse.Namespace) -> int:
-    lab = _paths.require_lab_root()
-    for rel in (".demolab", "artifacts/site"):
-        shutil.rmtree(lab / rel, ignore_errors=True)
+    layout = _paths.layout_for(_paths.require_lab_root())
+    for path in (layout.runtime, layout.root / "artifacts/site"):
+        shutil.rmtree(path, ignore_errors=True)
     print("✓ removed .demolab/ and legacy artifacts/site/ (legacy artifacts/pdfs/ preserved)")
     return 0
 

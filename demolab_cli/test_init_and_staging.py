@@ -32,6 +32,65 @@ def test_walk_up_none_without_marker(tmp_path):
     assert _paths.find_lab_root(tmp_path) is None
 
 
+def test_demo_layout_separates_content_and_runtime_from_every_subdirectory(tmp_path, monkeypatch):
+    # Keep this path/staging unit test independent of an installed compiler.
+    monkeypatch.setattr(_paths, "_writings_setting", lambda *args: ("writings", None))
+    demo = tmp_path / ".demo"
+    nested = demo / "data" / "benchmark-a-run-001"
+    nested.mkdir(parents=True)
+    (demo / "demolab.yaml").write_text("name: Demo\n")
+    engine = tmp_path / "demolab_cli"
+    engine.mkdir()
+    (engine / "build.py").write_text("# source marker\n")
+    (engine / "VERSION").write_text("1.0.0\n")
+    for start in (tmp_path, demo, nested, engine):
+        assert _paths.find_lab_root(start) == tmp_path
+    layout = _paths.layout_for(tmp_path)
+    assert layout == _paths.layout_for(demo)
+    assert layout.demo
+    assert layout.content == demo
+    assert layout.runtime == tmp_path / ".demolab"
+    assert layout.data == demo / "data"
+    assert layout.writings == demo / "writings"
+    assert layout.typst_inputs() == [
+        "--input", "demolab-content-root=/.demo",
+        "--input", "demolab-data-root=/.demo/data",
+    ]
+    assert _paths.stage(demo) == layout.runtime
+    assert not (demo / ".demolab").exists()
+    # A real nested lab still owns its own commands.
+    (nested / "demolab.yaml").write_text("name: Nested lab\n")
+    assert _paths.find_lab_root(nested) == nested
+
+
+def test_ordinary_lab_wins_over_demo_directory(tmp_path):
+    (tmp_path / "demolab.yaml").write_text("name: Ordinary\n")
+    demo = tmp_path / ".demo"
+    demo.mkdir()
+    (demo / "demolab.yaml").write_text("name: Nested\n")
+    engine = tmp_path / "demolab_cli"
+    engine.mkdir()
+    (engine / "build.py").write_text("# marker\n")
+    (engine / "VERSION").write_text("1.0.0\n")
+    layout = _paths.layout_for(tmp_path)
+    assert not layout.demo
+    assert layout.content == tmp_path
+    assert layout.data == tmp_path / ".artifacts"
+    assert layout.typst_inputs() == [
+        "--input", "demolab-content-root=", "--input", "demolab-data-root=/.artifacts",
+    ]
+    assert _paths.find_lab_root(demo) == demo
+
+
+def test_demo_directory_alone_does_not_turn_an_ordinary_project_into_engine_checkout(tmp_path):
+    demo = tmp_path / ".demo"
+    demo.mkdir()
+    (demo / "demolab.yaml").write_text("name: Nested\n")
+    assert not _paths.layout_for(tmp_path).demo
+    assert _paths.find_lab_root(tmp_path) is None
+    assert _paths.find_lab_root(demo) == demo
+
+
 # ── staging ─────────────────────────────────────────────────────────────────
 def test_stage_materialises_and_stamps(tmp_path):
     dot = _paths.stage(tmp_path)

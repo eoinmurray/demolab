@@ -14,11 +14,13 @@ on:
   push:
     branches: [main]
     paths:
+      - ".demo/**"
       - "demolab_cli/**"
       - "pyproject.toml"
       - ".github/workflows/tests.yml"
   pull_request:
     paths:
+      - ".demo/**"
       - "demolab_cli/**"
       - "pyproject.toml"
       - ".github/workflows/tests.yml"
@@ -63,6 +65,9 @@ jobs:
           # Noise that must never ship (untracked locally, but belt-and-braces).
           if unzip -l dist/demolab_cli-*.whl | grep -E '(^|/)(temp|artifacts/site|\.demolab)/|__pycache__'; then
             echo "wheel carries build noise" && exit 1
+          fi
+          if unzip -Z1 dist/demolab_cli-*.whl | grep -E '^\.demo/|^demolab_cli/test_'; then
+            echo "wheel carries internal demo content or tests" && exit 1
           fi
           # Packaged workflows and scaffold must encode the generated/user-owned boundary.
           unzip -p dist/demolab_cli-*.whl 'demolab_cli/deploy/deploy.yml' | grep -F 'folder: .demolab/site'

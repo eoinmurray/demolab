@@ -3,9 +3,37 @@
 This repository is the source of `demolab-cli`. The package is installed editable, so
 `uv run demolab` executes the working tree.
 
-This checkout is the internal demo lab: its root `demolab.yaml`, `writings/`, and `assets/` are the
-end-to-end fixture. Preview it with `demolab dev`. That content is not packaged into projects;
-`demolab init` still installs only the stub skeleton.
+All internal demo inputs live in `.demo/`: `demolab.yaml`, `writings/`, four peer run
+directories under `data/`, and optional `assets/` or `landing.typ`. See [.demo/README.md](.demo/README.md).
+Generated files live only in the repository's `.demolab/`, never inside `.demo/`.
+
+From the repository root (or a demo subdirectory), run `uv run demolab dev`,
+`uv run demolab build`, or `uv run demolab clean`. Clean removes generated output without
+touching `.demo/`; the next build recreates it. There is no need to copy or symlink inputs.
+
+`demolab_cli/_paths.py` owns the shared layout. The engine checkout is recognised by
+`.demo/demolab.yaml` plus `demolab_cli/build.py` and `demolab_cli/VERSION`; a root
+`demolab.yaml` takes precedence as an ordinary lab. Typst's root remains the checkout root;
+internal compiler inputs route config, writings, assets, and `data-file()` to the demo.
+Every compile path (site, book, entry PDF, and deck) receives the same layout.
+The three data-source demo articles bind `data-file()` with Typst `sources` dictionaries:
+one run, a multi-experiment gallery, and paired baseline/candidate comparisons. Two synthetic
+experiments have two runs each; directory names do not imply default/latest status.
+Unmapped data keys retain the helper's existing root-relative resolution. There is no
+automatic run selection.
+
+Ordinary labs still use root `demolab.yaml`, `writings/`, `assets/`, `.artifacts/`, and
+`.demolab/`. Demo content is not shipped in the wheel or installed by `demolab init`, which
+still installs only the stub skeleton. This layout does not implement run selection.
+
+`demolab.yaml` may override `writings` with a relative directory, defaulting to `writings/`.
+`LabLayout` validates it and recursively enumerates visible source files. Typst's `eval` command
+parses the setting lazily, cached by configuration contents (including parse errors), so the engine
+keeps zero Python runtime dependencies and setup/docs/clean do not need Typst. Build manifests
+carry each article/deck's stable basename ID and root-relative source path; imports never reconstruct
+paths from IDs. The dev watcher refreshes its source root after config edits and includes nested
+helpers. Full builds compile a fresh `.demolab/bundle/site-next/` candidate and replace the generated
+site only on success, pruning obsolete outputs without touching authored inputs.
 
 Run `uv run pytest` for tests and `uv build` to produce the wheel and source distribution. A wheel
 must contain `typ/`, `guides/`, and `scaffold/`, but not engine tests or generated demo output.

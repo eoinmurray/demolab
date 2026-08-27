@@ -30,8 +30,21 @@
   links
 }
 
-// Root-relative path to tracked publication evidence (Typst --root is the lab root).
-#let data-file(rel) = "/.artifacts/" + rel
+// Internal compiler inputs keep source-demo content separate from generated runtime.
+// Defaults preserve ordinary labs and direct Typst invocation. No discovery or preview selection.
+#let content-root = sys.inputs.at("demolab-content-root", default: "")
+#let data-file(rel, sources: (:)) = {
+  // Optional authored key-to-directory mapping, relative to the data root.
+  let key = rel.split("/").first()
+  let resolved = if key in sources {
+    let source = sources.at(key)
+    assert(type(source) == str and not source.starts-with("/")
+      and source.split("/").all(part => part not in ("", ".", "..")),
+      message: "data-file source for '" + key + "' must be a safe relative directory")
+    source + rel.slice(key.len())
+  } else { rel }
+  sys.inputs.at("demolab-data-root", default: "/.artifacts") + "/" + resolved
+}
 
 // --- authored dates: validate and render creation/update metadata ---
 // Demolab only renders dates supplied by the author. `date` remains a deprecated fallback for
@@ -682,7 +695,7 @@
 // `landing`; it replaces the collection directory below the brand header — a full custom
 // landing page. The landing body owns its markup (html.elem); the .welcome-* classes in
 // style.css are reusable building blocks.
-#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true) = {
+#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true, writings-dir: "writings") = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
@@ -736,7 +749,7 @@
       html.elem("div", attrs: (class: "empty-state"), {
         html.elem("p", attrs: (class: "empty-lead"), [Your lab is ready.])
         html.elem("p", [
-          Nothing is published here yet. Add a Typst file under writings/ and it will appear here.
+          Nothing is published here yet. Add a Typst file under #writings-dir/ and it will appear here.
         ])
       })
     } else if landing != none {

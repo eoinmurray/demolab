@@ -1,4 +1,4 @@
-"""Discover writings/*.typ, write a JSON manifest, and compile the configured targets.
+"""Discover recursive Typst sources, write a JSON manifest, and compile the configured targets.
 
 build.py does only what Typst can't: it globs the filesystem (Typst has no directory
 listing) and orchestrates the compiler. It stages the engine's Typst surface into the lab
@@ -20,8 +20,10 @@ Pages). Unless `pdfs: false` is set in demolab.yaml, PDFs are also copied to the
 .demolab/pdfs/ publication directory. Tracked publication evidence lives in `.artifacts/`;
 Demolab reads it but never creates or deletes it.
 
-Each writings/<id>.typ exposes `#let meta = (...)` and `#let body = [...]`.
+Each <configured-writings>/**/<id>.typ exposes `#let meta = (...)` and `#let body = [...]`.
 Entries not yet in that convention are skipped (incremental migration).
+The shared LabLayout routes source-checkout inputs beneath .demo/ without
+copying them; generated runtime remains .demolab/ for both layouts.
 """
 from __future__ import annotations
 
@@ -35,20 +37,20 @@ from pathlib import Path
 
 from demolab_cli import _paths
 
-# The lab being built. Normally found by walking up from the cwd for demolab.yaml;
+# The lab being built. Discovery recognises ordinary labs and the engine's .demo/;
 # DEMOLAB_ROOT overrides it (the tests build materialised labs in scratch dirs). Falls back
 # to the cwd so an empty dir still gets the friendly
 # empty-state build rather than an import-time error.
-ROOT = Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd()).resolve()
-WRITINGS = ROOT / "writings"
-ASSETS = ROOT / "assets"
-BUILD = ROOT / ".demolab" / "bundle"       # private scratch: main.typ + manifest + deck PDFs
+LAYOUT = _paths.layout_for(Path(os.environ.get("DEMOLAB_ROOT") or _paths.find_lab_root() or Path.cwd()))
+ROOT = LAYOUT.root
+ASSETS = LAYOUT.assets
+BUILD = LAYOUT.runtime / "bundle"          # private scratch: main.typ + manifest + deck PDFs
 MAIN = BUILD / "main.typ"                  # staged copy of the packaged typ/main.typ
 ENTRY_MAIN = BUILD / "entry.typ"           # staged single-entry PDF wrapper
 MANIFEST = BUILD / "index.json"            # scratch: id/asset lists main.typ reads
 DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedded as assets
-SITE = ROOT / ".demolab" / "site"          # bundle output (HTML + mp4 + linked pdfs/)
-PDFS = ROOT / ".demolab" / "pdfs"          # optional standalone generated PDFs
+SITE = LAYOUT.runtime / "site"             # bundle output (HTML + mp4 + linked pdfs/)
+PDFS = LAYOUT.runtime / "pdfs"             # optional standalone generated PDFs
 
 
 def pdfs_enabled() -> bool:
@@ -57,7 +59,7 @@ def pdfs_enabled() -> bool:
     demolab.yaml intentionally has no Python YAML dependency. This reads the one supported
     top-level boolean directly; Typst remains the authority for the rest of the config.
     """
-    config = ROOT / "demolab.yaml"
+    config = LAYOUT.config
     if not config.is_file():
         return True
     text = config.read_text(encoding="utf-8")
@@ -69,25 +71,14 @@ def pdfs_enabled() -> bool:
     return True
 
 
-def _find_typst() -> str:
-    """The typst CLI — needs --features bundle,html (experimental). A lab-local install wins
-    (.tools/bin — the no-package-manager fallback for locked-down machines), then PATH;
-    shutil.which resolves typst.exe on Windows, where a bare name can fail."""
-    for name in ("typst.exe", "typst"):
-        local = ROOT / ".tools" / "bin" / name
-        if local.exists():
-            return str(local)
-    return shutil.which("typst") or "typst"
-
-
-TYPST = _find_typst()
+TYPST = _paths.find_typst(ROOT)
 DEFAULT_CREATION_TIMESTAMP = "946684800"  # 2000-01-01T00:00:00Z
 
 
 def typst_compile(*args: str) -> list[str]:
     """A reproducible Typst compile command shared by every PDF-producing path."""
     timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
-    return [TYPST, "compile", "--creation-timestamp", timestamp, *args]
+    return [TYPST, "compile", "--creation-timestamp", timestamp, *LAYOUT.typst_inputs(), *args]
 
 
 def stage() -> None:
@@ -109,35 +100,39 @@ def stage() -> None:
     shutil.copy2(_paths.TYP / "entry.typ", ENTRY_MAIN)
 
 
-def discover():
-    """Entry ids (exp*/ar*) that follow the meta+body convention, sorted.
+def discover() -> tuple[dict[str, Path], dict[str, Path]]:
+    """Map stable basename IDs to actual sources, independently of their folders.
 
     Match real top-level definitions (`#let meta` / `#let body` at line start), not
-    prose or comments that merely mention them. Slide decks (`*.slide.typ`) are a
-    separate category — see discover_decks — so they're skipped here."""
-    ids = []
-    for p in sorted(WRITINGS.glob("*.typ")):
-        if p.name.endswith(".slide.typ"):
+    prose or comments that merely mention them. Helpers without both exports stay
+    unpublished. Article and deck IDs share one namespace to prevent PDF collisions.
+    """
+    entries: dict[str, Path] = {}
+    decks: dict[str, Path] = {}
+    seen: dict[str, Path] = {}
+    for p in LAYOUT.source_files():
+        if p.suffix != ".typ":
             continue
-        lines = p.read_text().splitlines()
-        has_meta = any(ln.startswith("#let meta") for ln in lines)
-        has_body = any(ln.startswith("#let body") for ln in lines)
-        if has_meta and has_body:
-            ids.append(p.stem)
-    return ids
+        deck = p.name.endswith(".slide.typ")
+        if not deck:
+            lines = p.read_text(encoding="utf-8").splitlines()
+            if not (any(ln.startswith("#let meta") for ln in lines)
+                    and any(ln.startswith("#let body") for ln in lines)):
+                continue
+        entry_id = p.name.removesuffix(".slide.typ") if deck else p.stem
+        # Case-insensitive checks keep output portable to Windows/macOS filesystems.
+        key = entry_id.casefold()
+        if key in seen:
+            raise _paths.LayoutError(
+                f"duplicate writing ID {entry_id!r}:\n  {seen[key]}\n  {p}\n"
+                "Rename one file; source folders do not change public IDs."
+            )
+        seen[key] = p
+        (decks if deck else entries)[entry_id] = p
+    return dict(sorted(entries.items())), dict(sorted(decks.items()))
 
 
-def discover_decks():
-    """Deck ids from `writings/<id>.slide.typ` — standalone touying slide decks, sorted.
-
-    Touying decks are paged-only (they don't survive HTML export, see the deck header
-    comment), so they aren't bundle entries. Instead they're compiled to standalone PDFs
-    and linked from the homepage. Each deck declares `#let meta` (title/date) but no
-    `#let body`; the meta is imported to label the link."""
-    return [p.name.removesuffix(".slide.typ") for p in sorted(WRITINGS.glob("*.slide.typ"))]
-
-
-def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = None,
+def write_manifest(ids: dict[str, Path], deck_ids: dict[str, Path], broken: dict | None = None,
                    *, publish_pdfs: bool = True) -> None:
     """Write .demolab/bundle/index.json — the id/asset lists the staged main.typ reads.
 
@@ -146,10 +141,11 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
     `error` field and loads no assets — main.typ renders it as a stub instead of importing it."""
     broken = broken or {}
     entries = []
-    for i in ids:
+    for i, source in ids.items():
         entry = {
             "id": i,
             "kind": "page",
+            "source": LAYOUT.typst_path(source),
         }
         if i in broken:
             entry["error"] = broken[i]
@@ -159,16 +155,18 @@ def write_manifest(ids: list[str], deck_ids: list[str], broken: dict | None = No
     # flags say they're there.
     manifest = {
         "entries": entries,
-        "decks": [{"id": d} for d in deck_ids],
+        "decks": [{"id": d, "source": LAYOUT.typst_path(source)}
+                  for d, source in deck_ids.items()],
+        "writings": LAYOUT.writings.relative_to(LAYOUT.content).as_posix(),
         "assets": [p.relative_to(ASSETS).as_posix() for p in sorted(ASSETS.rglob("*")) if p.is_file()],
         "pdfs_enabled": publish_pdfs,
-        "has_brand_config": (ROOT / "demolab.yaml").exists(),
-        "has_landing": (ROOT / "landing.typ").exists(),
+        "has_brand_config": LAYOUT.config.exists(),
+        "has_landing": LAYOUT.landing.exists(),
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
 
 
-def compile_decks(deck_ids: list[str]) -> list[str]:
+def compile_decks(deck_ids: dict[str, Path]) -> dict[str, Path]:
     """Compile each standalone deck to a scratch PDF (.demolab/bundle/decks/<id>.pdf); return the ones
     that built. A deck that fails to compile is skipped with a warning rather than failing the whole
     build (main.typ only embeds decks that produced a PDF).
@@ -177,27 +175,38 @@ def compile_decks(deck_ids: list[str]) -> list[str]:
     the asset `read(...)` finds the files. The dev server (devserver.py) reruns this on every
     change, so deck edits and new decks live-reload like any entry."""
     DECKS.mkdir(parents=True, exist_ok=True)
-    good = []
-    for d in deck_ids:
+    good = {}
+    for d, source in deck_ids.items():
+        output = DECKS / f"{d}.pdf"
+        output.unlink(missing_ok=True)
         proc = subprocess.run(
             typst_compile("--root", str(ROOT),
-                          str(WRITINGS / f"{d}.slide.typ"), str(DECKS / f"{d}.pdf")),
+                          str(source), str(output)),
             capture_output=True, text=True,
         )
         if proc.returncode == 0:
-            good.append(d)
+            good[d] = source
         else:
+            # A later CSS-only rebuild must not resurrect a stale/partial deck PDF.
+            output.unlink(missing_ok=True)
             print(f"  ⚠ deck {d} failed to build — skipping it: "
                   + _error_excerpt(proc.stdout + proc.stderr).splitlines()[0], flush=True)
     return good
 
 
-def _entry_from_error(err: str, candidates: set) -> str | None:
-    """Which entry did a bundle-compile error come from? Parsed from a `/writings/<id>.typ` mention
-    in the message (only ids we can still drop)."""
-    for m in re.finditer(r"/writings/([A-Za-z0-9_-]+)\.typ", err):
-        if m.group(1) in candidates:
-            return m.group(1)
+def _entry_from_error(err: str, candidates: dict[str, Path]) -> str | None:
+    """Attribute a diagnostic/import trace to a known source, not a fixed path pattern."""
+    matches = []
+    for entry_id, source in candidates.items():
+        relative = source.relative_to(ROOT).as_posix()
+        # Typst prints both project-relative locations and root-relative import traces.
+        # Boundaries avoid attributing helpers such as prefix-note.typ to note.typ.
+        match = re.search(r"(?<![\w./-])/?" + re.escape(relative) + r"(?=[:`\s]|$)",
+                          err.replace("\\", "/"))
+        if match:
+            matches.append((match.start(), entry_id))
+    if matches:
+        return min(matches)[1]
     return None
 
 
@@ -210,22 +219,27 @@ def _error_excerpt(err: str, lines: int = 8) -> str:
     return err.strip() or "build failed"
 
 
-def compile_bundle(ids: list[str], deck_ids: list[str], *, publish_pdfs: bool = True) -> dict:
+def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
+                   destination: Path, publish_pdfs: bool = True) -> dict:
     """Compile the whole bundle. If an entry fails (a missing figure, a Typst error), flag it and
     retry, so it renders as a stub page instead of taking the rest of the site down with it. Returns
     the {id: error} map of entries that were stubbed."""
     broken: dict = {}
     while True:
         write_manifest(ids, deck_ids, broken=broken, publish_pdfs=publish_pdfs)
+        # A failed compiler may have emitted partial files. Each retry starts clean too.
+        if destination.exists():
+            shutil.rmtree(destination)
+        destination.mkdir(parents=True)
         proc = subprocess.run(
             typst_compile("--format", "bundle", "--features", "bundle,html",
-                          "--root", str(ROOT), str(MAIN), str(SITE) + "/"),
+                          "--root", str(ROOT), str(MAIN), str(destination) + "/"),
             capture_output=True, text=True,
         )
         if proc.returncode == 0:
             return broken
         err = proc.stdout + proc.stderr
-        bad = _entry_from_error(err, set(ids) - broken.keys())
+        bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
         if bad is None:
             # Not attributable to one entry (an engine, asset, or deck error): surface the real
             # failure rather than looping.
@@ -236,16 +250,16 @@ def compile_bundle(ids: list[str], deck_ids: list[str], *, publish_pdfs: bool = 
               + broken[bad].splitlines()[0], flush=True)
 
 
-def compile_entry(entry_id: str, ids: list[str]) -> None:
+def compile_entry(entry_id: str, ids: dict[str, Path], decks: dict[str, Path]) -> None:
     """Compile one ordinary writing directly to its generated standalone PDF."""
     if entry_id not in ids:
-        slide = WRITINGS / f"{entry_id}.slide.typ"
-        detail = " (it is a slide deck; use `demolab slides`)" if slide.exists() else ""
+        detail = " (it is a slide deck; use `demolab slides`)" if entry_id in decks else ""
         raise SystemExit(f"error: no buildable entry named {entry_id!r}{detail}")
     PDFS.mkdir(parents=True, exist_ok=True)
     proc = subprocess.run(
         typst_compile("--root", str(ROOT), "--input", f"entry={entry_id}",
-                      "--input", f"has-brand={str((ROOT / 'demolab.yaml').exists()).lower()}",
+                      "--input", f"entry-source={LAYOUT.typst_path(ids[entry_id])}",
+                      "--input", f"has-brand={str(LAYOUT.config.exists()).lower()}",
                       str(ENTRY_MAIN), str(PDFS / f"{entry_id}.pdf")),
         capture_output=True, text=True,
     )
@@ -262,45 +276,50 @@ def main() -> None:
     # a full build on each change; it doesn't use this flag.)
     generate_only = "--generate-only" in sys.argv
     # --skip-decks reuses the deck PDFs already in .demolab/bundle/decks/ instead of recompiling
-    # them. The dev server passes it when a change touched no deck source or data asset, so a
-    # prose/CSS/lib edit doesn't pay for deck compilation it can't have affected. Safe only when
+    # them. The dev server passes it when a change touched no Typst source, helper, or data,
+    # so a CSS-only edit needn't recompile decks. Safe only when
     # those PDFs exist (a full build ran first); a bare `demolab build` never skips.
     skip_decks = "--skip-decks" in sys.argv
     no_pdf_copy = "--no-pdf-copy" in sys.argv
     entry_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
     if len(entry_args) > 1:
         raise SystemExit("error: build accepts at most one entry id")
-    stage()
-    ids = discover()
+    # Validate configuration and collisions before writing generated files.
+    ids, decks = discover()
     publish_pdfs = pdfs_enabled()
+    stage()
     if entry_args:
         if not publish_pdfs:
             raise SystemExit("error: PDF publishing is disabled by demolab.yaml (pdfs: false)")
-        compile_entry(entry_args[0], ids)
+        compile_entry(entry_args[0], ids, decks)
         return
-    deck_ids = discover_decks() if publish_pdfs else []
+    deck_ids = decks if publish_pdfs else {}
     # Zero writings is a valid state (a freshly `demolab scaffold`-ed repo): main.typ renders
     # a friendly empty-state homepage, so we build rather than error.
     # Compile decks first so their PDFs exist for the asset embeds in main.typ (skip reuses the
     # PDFs already on disk). Either way, only decks that actually have a PDF are referenced.
     if skip_decks:
-        good_decks = [d for d in deck_ids if (DECKS / f"{d}.pdf").exists()]
+        good_decks = {d: source for d, source in deck_ids.items() if (DECKS / f"{d}.pdf").exists()}
     else:
         good_decks = compile_decks(deck_ids)
     write_manifest(ids, good_decks, publish_pdfs=publish_pdfs)
-    SITE.mkdir(parents=True, exist_ok=True)
-    if not publish_pdfs:
-        # Bundle compilation updates named outputs but does not prune outputs from an earlier
-        # build. The site tree is regenerable, so remove stale PDFs before a web-only compile;
-        # Any legacy artifacts/pdfs/ deliverables remain deliberately untouched.
-        shutil.rmtree(SITE / "pdfs", ignore_errors=True)
     if generate_only:
         print(f"wrote manifest for {len(ids)} entries: {', '.join(ids)}"
               + (f" + {len(good_decks)} decks: {', '.join(good_decks)}" if good_decks else ""))
         return
     # One bad entry (a missing figure, a Typst error) becomes a stub page instead of failing the
     # whole site — compile_bundle flags it and retries.
-    broken = compile_bundle(ids, good_decks, publish_pdfs=publish_pdfs)
+    # Compile a fresh candidate so deleted/moved sources cannot leave published ghost pages.
+    # Keep the last usable site if compilation fails, and never touch authored inputs.
+    candidate = BUILD / "site-next"
+    try:
+        broken = compile_bundle(ids, good_decks, publish_pdfs=publish_pdfs, destination=candidate)
+        if SITE.exists():
+            shutil.rmtree(SITE)
+        candidate.replace(SITE)
+    finally:
+        if candidate.exists():
+            shutil.rmtree(candidate)
     good = [i for i in ids if i not in broken]
     # Copy the site's compiled PDFs (entries, book, and decks) to .demolab/pdfs/.
     if publish_pdfs and not no_pdf_copy:
@@ -325,4 +344,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except _paths.LayoutError as exc:
+        sys.exit(f"error: {exc}")

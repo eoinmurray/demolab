@@ -24,7 +24,5 @@ dist/
 # Secrets — never commit
 .env
 .env.local
-# The source checkout's root writings are the canonical internal demo fixture.
-!demolab.yaml
-!writings/
-!writings/*.typ
+# All internal demo inputs are tracked together, separate from generated runtime.
+# .demo/ is intentionally not ignored; secret/cache exclusions above still apply.

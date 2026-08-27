@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "run_id": "benchmark-b-run-001",
+  "data_key": "benchmark-b",
+  "label": "Baseline",
+  "created_at": "2026-08-25T11:00:00Z",
+  "total": 25,
+  "correct": 18,
+  "accuracy_percent": 72
+}

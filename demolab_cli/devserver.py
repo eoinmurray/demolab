@@ -32,6 +32,14 @@ from demolab_cli import build as _build_mod
 
 ROOT = _build_mod.ROOT
 SITE = _build_mod.SITE
+LAYOUT = _build_mod.LAYOUT
+
+
+def source_watch_dirs(layout: _paths.LabLayout) -> list[tuple[Path, str]]:
+    return [(layout.writings, "**/*"), (layout.data, "**/*"),
+            (layout.assets, "**/*")]
+
+
 # Source trees whose changes trigger a rebuild. SOURCES only — never .demolab/site (build.py
 # writes it, which would loop). Add/remove within these dirs is detected too (the file set is
 # part of the signature), which is what lets new entries appear. The engine's own sources
@@ -39,15 +47,12 @@ SITE = _build_mod.SITE
 # doesn't change mid-session), live hot-reload when developing the engine itself (editable
 # install — the package dir IS the working tree).
 WATCH_DIRS = [
-    (ROOT / "writings", "*.typ"),                 # entries + decks (content + add/remove)
     (_paths.TYP, "*.typ"),                        # lib.typ, main.typ
     (_paths.TYP, "*.css"),
     (_paths.TYP, "*.js"),
     (_paths.PACKAGE, "*.py"),                     # build.py / devserver.py themselves
-    (ROOT / ".artifacts", "**/*"),                # tracked publication evidence
 ]
-WATCH_FILES = [ROOT / "demolab.yaml",             # brand config (the lab marker)
-               ROOT / "landing.typ"]              # optional custom landing page (may not exist)
+WATCH_FILES = [LAYOUT.config, LAYOUT.landing]
 POLL_SECONDS = 0.4
 DEBOUNCE_SECONDS = 0.15
 BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow — surface it, don't hang
@@ -116,15 +121,29 @@ def snapshot() -> dict:
     """A signature of every watched source file: path -> mtime_ns. A changed value means an edit;
     a changed key set means an add/remove."""
     sig = {}
-    for base, pattern in WATCH_DIRS:
+    # Resolve the current configuration each time; YAML evaluation is cached by content.
+    # An invalid edit must not kill the watcher: still watch the config so fixing it recovers.
+    try:
+        sources = source_watch_dirs(LAYOUT)
+        writings = sources[0][0]
+    except _paths.LayoutError as exc:
+        sources = [(LAYOUT.data, "**/*"), (LAYOUT.assets, "**/*")]
+        writings = None
+        sig["<writings-error>"] = str(exc)
+    for base, pattern in WATCH_DIRS + sources:
         if not base.exists():
             continue
-        for p in base.glob(pattern):
-            if p.is_file():
-                try:
-                    sig[str(p)] = p.stat().st_mtime_ns
-                except OSError:
-                    pass  # vanished mid-scan
+        paths = LAYOUT.source_files(base) if base == writings else base.glob(pattern)
+        try:
+            for p in paths:
+                if p.is_file():
+                    try:
+                        sig[str(p)] = p.stat().st_mtime_ns
+                    except OSError:
+                        pass  # vanished mid-scan
+        except _paths.LayoutError as exc:
+            # Adding/fixing an invalid symlink must trigger a build even in an empty tree.
+            sig["<writings-error>"] = str(exc)
     for p in WATCH_FILES:
         try:
             sig[str(p)] = p.stat().st_mtime_ns
@@ -134,10 +153,14 @@ def snapshot() -> dict:
 
 
 def deck_affecting(changed: set) -> bool:
-    """A deck PDF depends only on its own `.slide.typ` and the `.artifacts` evidence it embeds
-    (decks import touying, not lib.typ). So a prose/CSS/lib edit can't change any deck — only a
-    slide-source or data-asset change can, and just then do we pay to recompile decks."""
-    return any(p.endswith(".slide.typ") or "/.artifacts/" in p for p in changed)
+    """Nested helpers may be imported by decks; invalidate conservatively, without a dep graph."""
+    try:
+        writings = LAYOUT.writings
+    except _paths.LayoutError:
+        return True
+    return any(p.endswith(".typ") or Path(p).is_relative_to(writings) or Path(p) == LAYOUT.config
+               or Path(p).is_relative_to(LAYOUT.data)
+               or Path(p).is_relative_to(LAYOUT.assets) for p in changed)
 
 
 def build(skip_decks: bool = False) -> tuple[bool, str]:
@@ -307,10 +330,10 @@ def pick_port(argv) -> int:
 
 def watch_loop():
     """Poll the source signature; on a settled change, rebuild and tell the browser."""
+    last = snapshot()
     ok, msg = build()  # first build always compiles decks so their PDFs exist for later skips
     _last_error[0] = "" if ok else msg
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
-    last = snapshot()
     while True:
         try:
             time.sleep(POLL_SECONDS)
@@ -327,7 +350,8 @@ def watch_loop():
             changed = {k for k in set(cur) | set(last) if cur.get(k) != last.get(k)}
             skip = not deck_affecting(changed)
             ok, msg = build(skip_decks=skip)
-            last = snapshot()
+            # Edits/config switches during compilation must trigger the next rebuild.
+            last = cur
             if ok:
                 _last_error[0] = ""
                 print("  rebuilt" + (" (decks skipped)" if skip else "") + ": " + msg, flush=True)

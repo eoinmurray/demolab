@@ -12,17 +12,17 @@
 // Compiled with `--root` at the lab root, so `/writings/...`, `/.artifacts/...`,
 // `/.demolab/bundle/...`, and the staged `/.demolab/...` all resolve. Run it by hand to debug:
 //   uv run demolab build   # stages this file + .demolab/, writes the manifest + decks
-//   typst compile --format bundle --features bundle,html --root . .demolab/bundle/main.typ .demolab/site/
+// Use demolab build so the source checkout also receives its internal content/data paths.
 #import "/.demolab/lib.typ": *
 
-// The manifest build.py wrote: { entries: [{id, kind, videos}], decks: [{id}],
+// The manifest build.py wrote: { entries: [{id, kind, source}], decks: [{id, source}],
 // has_brand_config, has_landing }.
 #let manifest = json("/.demolab/bundle/index.json")
 
-// The optional root demolab.yaml (build.py sets has_brand_config after checking it exists
+// The optional content-root demolab.yaml (build.py sets has_brand_config after checking it exists
 // — Typst can't stat). Branding merges over engine defaults; collection label/order are
 // read from it too. Absent ⇒ engine defaults + derivation-only collections.
-#let config = if manifest.has_brand_config { yaml("/demolab.yaml") } else { (:) }
+#let config = if manifest.has_brand_config { yaml(content-root + "/demolab.yaml") } else { (:) }
 #let brand = default-brand + config
 #let annotations = config.at("annotations", default: none)
 #let collection-order = config.at("collection-order", default: ())
@@ -30,11 +30,11 @@
 #let index-config = config.at("index", default: (:))
 #let pdfs-enabled = manifest.at("pdfs_enabled", default: true)
 
-// The optional custom landing page: a landing.typ at the lab root (exporting `#let body`)
+// The optional custom landing page: a landing.typ at the content root (exporting `#let body`)
 // replaces the homepage's collection directory with its own content. build.py sets has_landing
 // (Typst can't stat). Absent unless the presentation author creates one.
 #let landing = if manifest.at("has_landing", default: false) {
-  import "/landing.typ": body
+  import content-root + "/landing.typ": body
   body
 } else { none }
 
@@ -44,19 +44,19 @@
 // flagged with an `error` (a missing figure, a Typst error) is NOT imported — it would fail the
 // whole compile — but rendered as a stub page below, so one bad page fails on its own.
 #let entries = manifest.entries.filter(e => "error" not in e).map(e => {
-  import "/writings/" + e.id + ".typ": meta, body
+  import e.source: meta, body
   (id: e.id, kind: e.kind, meta: meta, body: body)
 })
 #let broken = manifest.entries.filter(e => "error" in e)
 #let decks = manifest.decks.map(d => {
-  import "/writings/" + d.id + ".slide.typ": meta
+  import d.source: meta
   (id: d.id, meta: meta)
 })
 
 // --- bundle assets ---
 // Static files under assets/ are copied into the site at the same relative path.
 #for path in manifest.at("assets", default: ()) {
-  asset(path, read("/assets/" + path, encoding: none))
+  asset(path, read(content-root + "/assets/" + path, encoding: none))
 }
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {
@@ -72,7 +72,7 @@
 // friendly empty state. Everything else is emitted only when there's content.
 #let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
 #validate-collections(collection-meta)
-#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled)]
+#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled, writings-dir: manifest.writings)]
 #if all-items.len() > 0 {
   [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
 }

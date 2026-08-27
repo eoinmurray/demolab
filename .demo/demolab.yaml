@@ -1,8 +1,8 @@
-# Small working site used to exercise the engine in this source checkout.
+# Internal demo content; generated runtime stays in the repository's .demolab/.
 name: Example Site
 book-title: Example Site — collected pages
 contents-title: Example Site — contents
-description: A tiny Demolab site with ordinary pages and developer documentation.
+description: A tiny Demolab site with ordinary pages, three data-source demos, and developer documentation.
 links:
   - label: Developer docs
     url: documentation
@@ -13,11 +13,14 @@ index:
   mode: expanded
   recent: 3
 
-collection-order: [pages, documentation]
+collection-order: [pages, data-source-demos, documentation]
 collections:
   pages:
     label: Example pages
     description: "Enough content to demonstrate navigation, writing metadata, and assets."
+  data-source-demos:
+    label: Data-source demos
+    description: "Single-run presentation, multi-input gallery, and paired comparisons, ready for later preview selection."
   documentation:
     label: Documentation
     description: "Developer documentation grouped by project."
