@@ -13,9 +13,28 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.0.0] — 2026-08-27
+
+### Changed
+- **Publication builds resolve Latest presentation inputs automatically.** `demolab build`
+  now runs the configured `preview.discover` command once, selects each unpinned article's
+  inputs by normalized `created_at` (ID breaks ties), and freezes one mapping and file
+  inventory for every compiler target. Discovery supplies eligible presentation runs;
+  compute/analysis runs, filesystem timestamps, and run-name recency are not selection rules.
+  Output remains static, with no selectors or saved preview choices.
+- **Builds with discovery require their configured command and source data.** Existing labs
+  with `preview` configuration must make discovery available to publication/CI as well as dev.
+  Explicit `build.sources` pins override whole articles; otherwise attached inputs now use
+  Latest instead of authored defaults. Remove discovery configuration or disable an article's
+  attachment with `[]` to retain authored resolution for unpinned articles.
+- **Unavailable inputs and failed inputs remain distinct.** A declared input with no runs
+  resolves to `none`, so its article must handle the empty state. Discovery errors and
+  missing/corrupt selected inputs abort publication and preserve the previous site and PDFs.
+  No run data is mutated or copied into `.artifacts/`; the next build may select newer runs.
+
 ### Added
 - **Fixed article-scoped inputs for publication.** Committed `build.sources` mappings pin
-  presentation directories without discovery or preview state. Every compiler target uses the
+  presentation directories without requiring discovery or preview state. Every compiler target uses the
   same mapping; missing pins/files and compilation errors fail pinned builds while preserving
   successful publication output. Unconfigured labs retain their existing behavior.
 - **Run-backed video assets.** Selected presentation videos receive generated public URLs in

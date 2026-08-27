@@ -52,7 +52,7 @@ DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedd
 SITE = LAYOUT.runtime / "site"             # bundle output (HTML + mp4 + linked pdfs/)
 PDFS = LAYOUT.runtime / "pdfs"             # optional standalone generated PDFs
 PREVIEW = False                           # enabled only by the dev worker's explicit flag
-BUILD_SOURCES = {}                         # committed, fixed publication mapping
+BUILD_SOURCES = {}                         # pins plus Latest, fixed for this invocation
 DATA_INPUTS = {}                           # frozen paths and public video URLs
 
 
@@ -210,7 +210,7 @@ def compile_decks(deck_ids: dict[str, Path]) -> dict[str, Path]:
             # A later CSS-only rebuild must not resurrect a stale/partial deck PDF.
             output.unlink(missing_ok=True)
             if PREVIEW or BUILD_SOURCES:
-                mode = "preview" if PREVIEW else "pinned build"
+                mode = "preview" if PREVIEW else "data-backed build"
                 raise _paths.LayoutError(f"{mode} deck {d} compilation failed:\n" + proc.stdout + proc.stderr)
             print(f"  ⚠ deck {d} failed to build — skipping it: "
                   + _error_excerpt(proc.stdout + proc.stderr).splitlines()[0], flush=True)
@@ -262,7 +262,7 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
         if proc.returncode == 0:
             return broken
         if PREVIEW or BUILD_SOURCES:
-            mode = "preview" if PREVIEW else "pinned build"
+            mode = "preview" if PREVIEW else "data-backed build"
             raise _paths.LayoutError(mode + " compilation failed:\n" + proc.stdout + proc.stderr)
         err = proc.stdout + proc.stderr
         bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
@@ -321,7 +321,7 @@ def main() -> None:
     # Validate configuration and collisions before writing generated files.
     ids, decks = discover()
     publish_pdfs = pdfs_enabled()
-    BUILD_SOURCES = {} if PREVIEW else data_sources.load_build_sources(LAYOUT, ids)
+    BUILD_SOURCES = {} if PREVIEW else data_sources.resolve_build_sources(LAYOUT, ids)
     selected = (json.loads((LAYOUT.runtime / "preview/input.json").read_text(encoding="utf-8"))
                 if PREVIEW else BUILD_SOURCES)
     DATA_INPUTS = data_sources.inventory(LAYOUT, selected) if selected else {}

@@ -15,10 +15,13 @@ gitignored. Writings may read assets directly with root-relative Typst paths suc
 `/assets/chart.svg` or `/assets/data.json`.
 
 `demolab docs` lists the short authoring guides. Optional `preview` configuration runs a trusted,
-user-supplied discovery command for article-scoped data selectors; see AUTHORING. Demolab does
+user-supplied discovery command once per build to resolve Latest presentation inputs, and
+provides article-scoped selectors only in dev; see AUTHORING. Demolab does
 not execute experiments, enforce provenance, validate claims, or manage research workflows;
 content remains the author's responsibility.
 
 Optional committed `build.sources` mappings pin presentation directories per article for
-publication. These builds ignore preview choices, validate every bound input, and fail rather
-than publish error stubs. See AUTHORING for fixed inputs and run-backed video output.
+publication, overriding discovery for those articles. Builds ignore preview choices, freeze
+their selections and file inventory, and publish no preview controls. Declared inputs with no
+runs stay unavailable; discovery or selected-input errors fail without replacing the previous
+site. See AUTHORING for fixed inputs and run-backed video output.

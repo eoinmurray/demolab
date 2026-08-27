@@ -23,8 +23,9 @@ A fourth article, `benchmark-empty`, explicitly attaches an experiment with no r
 demonstrates pending numerical results, an image, and a video without changing discovery.
 Unmapped data keys retain the helper's existing root-relative resolution. The demo's opt-in
 `preview` configuration discovers these fixtures through `.demo/scripts/discover_runs.py`.
-Dev starts each input at Latest; ordinary builds use the committed `build.sources` mapping.
-The Typst `sources` dictionaries remain compatible defaults when those build pins are removed.
+Dev starts each input at Latest; ordinary builds discover Latest once and apply the committed
+`build.sources` mapping as whole-article overrides. Removing those pins uses Latest, not the
+Typst `sources` defaults; those remain compatible when discovery is absent or disabled.
 
 Ordinary labs still use root `demolab.yaml`, `writings/`, `assets/`, `.artifacts/`, and
 `.demolab/`. Demo content is not shipped in the wheel or installed by `demolab init`, which
@@ -39,11 +40,15 @@ An explicitly empty Latest input maps to JSON null, which `data-file()` exposes 
 The opt-in `data-json()` / `data-image()` helpers and `video()` handle that sentinel; articles
 guard numerical prose with native conditionals. Real selected-run file failures remain strict.
 
-`data_sources.py` owns fixed `build.sources` configuration and source-file validation. Builds
-do not consult preview discovery/state. One `.demolab/bundle/data-inputs.json` inventory supplies
+`data_sources.py` owns `build.sources`, ordinary-build Latest resolution, and source-file validation.
+Builds reuse `preview.py`'s discovery configuration/protocol but never its Session or saved state.
+Discovery adapters return eligible presentation runs; Latest uses their normalized `created_at`
+timestamps, with ID as a tie-breaker, not filesystem times or run-name recency.
+One `.demolab/bundle/data-inputs.json` inventory supplies
 every compiler invocation; the preview worker writes its own equivalent inside `.demolab/preview/`.
-Configured articles require every bound key and file to resolve, and builds with pins abort on
-compile errors instead of stubbing articles. Standalone pinned PDF builds replace output only
+Configured articles require every bound key and selected file to resolve. Declared Latest inputs
+without runs map to null. Builds with input bindings abort on
+compile errors instead of stubbing articles. Standalone data-backed PDF builds replace output only
 after successful compilation. These guarantees do not change legacy unconfigured builds.
 Selected directories' video files are emitted as bundle assets at hashed `_demolab-data/` paths;
 `video()` uses the same inventory to link them. No presentation-data staging copy is introduced.
@@ -54,7 +59,7 @@ provides the HTTP-injected, theme-native row below article metadata. URL fragmen
 all inputs of one article atomically; reset affects only that article. Preview state, frozen compiler input, scratch, PDFs,
 and site live under `.demolab/preview/`. The private build-worker `--preview` flag selects
 those paths and treats article stubs as failures before site replacement. Ordinary builds
-never invoke discovery or consume local selections. Failed builds retain the last successful
+invoke discovery independently but never consume local selections. Failed builds retain the last successful
 site and accepted state; pending choices remain editable in the error panel. One dev server
 per lab is supported; concurrent servers would share preview state and build paths.
 

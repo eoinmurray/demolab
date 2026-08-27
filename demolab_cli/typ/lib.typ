@@ -49,17 +49,17 @@
     preview-sources.at(article, default: build-sources.at(article, default: (:)))
   } else { (:) }
   if article != none and article in build-sources {
-    assert(key in selected, message: "build.sources." + article + " has no pin for data key '" + key + "'")
+    assert(key in selected, message: "build inputs for " + article + " have no selection for data key '" + key + "'")
   }
   if key in selected {
     assert(rel.split("/").len() > 1
       and rel.split("/").all(part => part not in ("", ".", ".."))
       and not rel.contains("\\"), message: "selected data-file requires a safe key/filename")
     let directory = selected.at(key)
-    // None is an explicit preview input with no available runs, never a fallback.
+    // None is an explicit Latest input with no available runs, never a fallback.
     let path = if directory == none { none } else { directory + rel.slice(key.len()) }
-    if article != none and article in build-sources {
-      assert(path in data-inputs.files, message: "missing pinned data file: " + path)
+    if path != none and article != none and article in build-sources {
+      assert(path in data-inputs.files, message: "missing selected data file: " + path)
     }
     return path
   }

@@ -27,6 +27,7 @@ def _assemble(root: Path, *, demo: bool = True) -> None:
             shutil.copytree(source / "assets", root / "assets", dirs_exist_ok=True)
         shutil.copytree(source / "data", root / ".artifacts", dirs_exist_ok=True)
         shutil.copytree(source / "data", root / "data", dirs_exist_ok=True)
+        shutil.copytree(source / "scripts", root / "scripts", dirs_exist_ok=True)
 
 
 def _assemble_demo(root: Path) -> None:
@@ -45,10 +46,10 @@ def _build(root: Path, entry: str | None = None) -> None:
 
 
 def _unpin_demo(root: Path) -> None:
-    """Exercise legacy Typst-only defaults independently of the demo's fixed build pins."""
+    """Exercise legacy Typst-only defaults without pins or discovery."""
     config = _paths.layout_for(root).config
     text = config.read_text()
-    config.write_text(text[:text.index("build:\n")] + text[text.index("preview:\n"):])
+    config.write_text(text[:text.index("build:\n")] + text[text.index("book-title:"):])
 
 
 def _build_result(root: Path) -> subprocess.CompletedProcess:

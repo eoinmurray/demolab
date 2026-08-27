@@ -14,7 +14,7 @@ collection and the welcome page link to all four cases:
 | `/benchmark-a` | One run | 88%, one figure | 64% |
 | `/benchmark-gallery` | Multiple experiments | 88% and 92%, two figures | 64% and 92% |
 | `/benchmark-comparison` | Paired comparisons | 88% / 88% and 92% / 92%, zero differences | 64% / 88% (+24 pp), 72% / 92% (+20 pp) |
-| `/benchmark-empty` | No runs yet | Empty selector, pending image/video, awaiting results | Authored pending state |
+| `/benchmark-empty` | No runs yet | Empty selector, pending image/video, awaiting results | Discovered empty input, pending content |
 
 ## Run data
 
@@ -43,13 +43,14 @@ Pingstore store or a Pingstore contract validator.
 3. Choose run 001 for the single-run article: it shows 64%, independently of the gallery.
 4. Selections update immediately and are stored in the URL fragment. Refresh the same URL
    to restore them. Reset to default returns only this article's inputs to Latest.
-5. Run `uv run demolab build`: ordinary `.demolab/site/` and PDFs retain authored defaults,
+5. Run `uv run demolab build`: ordinary `.demolab/site/` and PDFs use the committed build pins,
    regardless of local preview choices. No controls are written into publication output.
 
 Each article binds `data-file.with(article: "<its-id>", sources: sources)` before reading
 inputs. Comparison keys are `baseline.benchmark-a`, `candidate.benchmark-a`, and equivalent
 B keys. `build.sources` in `demolab.yaml` pins the ordinary build's run directories; the Typst
-`sources` dictionaries remain the fallback when build pins are removed. Hardcoded paths
+`sources` dictionaries remain the fallback only when neither pins nor discovery bind an input.
+Remove build pins to use Latest in ordinary builds. Hardcoded paths
 are deliberately not used for selectable demo inputs.
 
 ## Try a fixed build
@@ -59,14 +60,14 @@ regardless of preview selections. Change only `build.sources.benchmark-a.benchma
 `data/benchmark-a-run-002` and build again: that article becomes 88%, without changing the gallery
 or paired comparison. Restore `data/benchmark-a-run-001` for the baseline. Paths are relative to
 this directory; inputs are read directly, not copied into another publication-data directory.
-The no-runs demo is intentionally unpinned and keeps its explicitly authored pending state.
+The no-runs demo is intentionally unpinned and resolves an empty Latest input.
 
 ## Try the empty state
 
 Open `/benchmark-empty`: no configuration changes are needed. Its explicitly attached
 `benchmark-empty` experiment has no run directories. The article demonstrates the disabled
 selector, awaiting numerical results, and themed image/video placeholders alongside readable
-prose. Ordinary builds deliberately author the same pending content without reading data files.
+prose. Ordinary builds resolve the same empty input without adding selectors or reading absent files.
 
 Temporarily change `preview.discover` in `.demo/demolab.yaml` to
 `[python, -c, "print('[]')"]`, then Reset to default in any article with a pinned selection.

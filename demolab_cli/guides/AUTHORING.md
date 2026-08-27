@@ -89,7 +89,7 @@ Use a committed `build.sources` mapping to pin presentation directories per arti
 build:
   sources:
     exp022:
-      exp022: runs/chosen-training-run/presentation
+      exp022: runs/chosen-presentation-run/export
     exp092:
       exp023: runs/chosen-baseline-run/presentation
       exp025: runs/chosen-trained-run/presentation
@@ -107,21 +107,23 @@ hash their contents, validate scientific provenance, or acquire missing runs.
 Bind `data-file` to the article as shown below for preview. During `demolab build`, these pins
 take precedence over its Typst `sources` dictionary. Each configured article must pin every
 key it reads through the bound `data-file()`; missing keys and files are errors, never fallback
-or preview empty states. Unconfigured articles keep their authored resolution. Hardcoded paths
-and unbound calls remain outside this mapping.
+or empty states. Pins override the whole article, not individual discovered keys. Unpinned
+articles use Latest when discovery attaches inputs to them, otherwise their authored resolution.
+Hardcoded paths and unbound calls remain outside this mapping.
 
 The build freezes one mapping and file inventory for the website, book, and standalone article
 PDFs. With any article configured, a failed compilation aborts publication instead of producing
-error stubs, preserving the last successful site and publication PDFs. Without build pins,
-the existing tolerant build behavior is unchanged. Remove `build.sources` to return to authored
-defaults; old generated mappings are not reused.
+error stubs, preserving the last successful site and publication PDFs. This also applies to
+articles resolved through discovery. Without pins or discovered input bindings, the existing
+tolerant build behavior is unchanged. Remove `build.sources` to use Latest where discovery is
+configured, or authored defaults otherwise; old generated mappings are not reused.
 
 `demolab dev` with preview enabled ignores build pins (including unavailable build directories)
 and keeps its discovery, Latest, and selection behavior. Without preview enabled, dev uses the
 ordinary build path. Neither browser fragments nor `.demolab/preview/` state affect publication.
 
 `video(data-file("exp022/demo.mp4"))` exports videos from selected presentation directories to
-generated `_demolab-data/` URLs in the site, in both pinned builds and selected previews. Supported
+generated `_demolab-data/` URLs in the site, in fixed/Latest builds and selected previews. Supported
 extensions are `.mp4`, `.webm`, `.ogg`, `.ogv`, `.mov`, and `.m4v`; browser codec support still
 depends on the encoded file. Videos in those directories are packaged once per source path;
 other run files are not automatically published as downloads. Existing `assets/` videos and
@@ -132,9 +134,10 @@ running `demolab build`. A local directory in `.gitignore` will not appear in a 
 merely because it is pinned here. There is no automatic copying into `.artifacts/`, upload,
 download, or “publish the current preview” step.
 
-### Optional article-scoped run selectors
+### Automatic Latest inputs and optional run selectors
 
-Add `preview` to `demolab.yaml` to enable development-only selectors:
+The existing `preview` configuration supplies discovery for both `demolab build` and
+`demolab dev`. Only dev enables selectors; ordinary builds remain static:
 
 ```yaml
 preview:
@@ -149,8 +152,9 @@ preview:
 
 `source` is relative to `demolab.yaml`, inside the lab root and outside `.demolab/`.
 `discover` is an argument array executed exactly as given, **without a shell**, with the
-configuration directory as its working directory. Use commands you trust: enabling preview
-authorizes this local command to run at startup, on watched changes, and on selection changes.
+configuration directory as its working directory. Use commands you trust: this configuration
+runs the command once per build (including standalone article PDF builds), and in dev at startup,
+on watched changes, and on selection changes. Discovery still runs when build pins are present.
 The absolute source directory is passed in `DEMOLAB_PREVIEW_SOURCE`, not appended to arguments.
 Demolab imposes a 30-second timeout and a 4 MiB limit on each output stream.
 
@@ -164,18 +168,22 @@ The command prints a JSON array to stdout (diagnostics belong on stderr):
 ```
 
 IDs must be unique across the catalogue. `label` is optional; other fields are required.
-`created_at` must include a timezone; Latest means greatest timestamp, then greatest ID on
-ties. `presentation` is relative to `source`. Directories are read in place, without copying;
+`created_at` must include a timezone; Latest means greatest normalized creation timestamp,
+then greatest ID on ties. This is creation-time ordering, not completion-time ordering; neither
+filesystem times nor run-name ordering determines recency. `presentation` is relative to `source`.
+Directories are read in place, without copying;
 paths escaping the lab, runtime paths, and symlinks are rejected. The command owns discovery
-conventions and storage-contract checks, including which runs are completed. For Pingstore,
-read authoritative `run.json` metadata and validate `pingstore.run/v2` in your script; Demolab
+conventions and storage-contract checks: return only eligible completed presentation runs,
+not newer compute or analysis runs. For Pingstore, use its read-only discovery adapter to
+validate authoritative `run.json` metadata and select presentation-stage output. Demolab
 itself has no Pingstore dependency or built-in assumptions about run-directory names.
 
 An omitted article automatically matches its filename ID to the discovered `experiment`.
 A list declares independent experiment inputs. A mapping declares named groups with keys
 `<group>.<experiment>`; groups do not imply linked run selections. `article-id: []` disables
-selectors for that article. Use the stable basename ID, regardless of nested source folders.
-To show an empty selector before an experiment's very first run, declare the attachment
+discovery bindings and selectors for that article (explicit build pins still apply). Use the
+stable basename ID, regardless of nested source folders.
+To get an empty input before an experiment's very first run, declare the attachment
 explicitly (for example `exp022: [exp022]`); an empty catalogue cannot establish automatic matches.
 
 Bind the article scope **before reading JSON or constructing content**:
@@ -221,15 +229,20 @@ do not fall back to another run. A disappeared saved run remains an error until 
 Reset to default also recovers malformed local state. `demolab clean` removes
 preview state along with other generated output.
 
-`demolab build` never runs discovery or reads preview selections, and publishes no selector
-controls. It uses committed build pins when configured, otherwise the authored paths. Keep one
-dev server per lab.
+`demolab build` resolves each unpinned article input to Latest from its single discovery result.
+It freezes the selections and file inventory in `.demolab/bundle/data-inputs.json` for every
+compiler target, without enabling preview mode, reading saved selections, or publishing selector
+controls. A later build may pick up newer runs. Directory contents are not locked or snapshotted;
+use immutable run directories. Discovery failures and missing/corrupt selected inputs stop the
+build and preserve the previous site; they are not converted to empty inputs or error stubs.
+No Pingstore data is changed and nothing is staged into `.artifacts/`. Keep one dev server per lab.
 
 ### Articles before their first run
 
-Latest with no discovered runs is a normal empty state: the selector says **No runs available**
-and is disabled. Other inputs continue working. When discovery finds a run, the next watched
-rebuild fills the input automatically. This does not apply to a pinned run that disappeared,
+Latest with no discovered runs is a normal empty state in builds and previews. In dev, the
+selector says **No runs available** and is disabled; static builds have no selector. Other inputs
+continue working. When discovery finds a run, the next build fills the input automatically.
+This does not apply to a pinned run that disappeared,
 invalid discovery output, or missing/corrupt files inside an actual selected run: those are errors.
 
 For this state only, `data-file()` returns `none` instead of a path. It never reads an authored
@@ -257,8 +270,9 @@ the fields or results of absent JSON:
 `data-json(path)` otherwise calls native `json(path)`; `data-image(path, ..args)` calls native
 `image(path, ..args)`. Existing raw `json(data-file(...))` / `image(data-file(...))` calls remain
 strict and must be guarded or migrated to render an empty input. Guard data-dependent captions
-and image arguments too. In ordinary builds these helpers read the authored paths normally;
-missing publication data is not treated as an empty preview. Hardcoded paths are unaffected.
+and image arguments too. Without discovery bindings or build pins, these helpers still read
+authored paths normally; missing files at those paths are errors, not empty inputs.
+Hardcoded paths are unaffected.
 
 The homepage remains a compact collection directory by default. To expand collection contents
 and optionally show recently updated ordinary writings, add this to `demolab.yaml`:

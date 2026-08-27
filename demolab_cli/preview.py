@@ -1,4 +1,4 @@
-"""Development-only discovery protocol and article-scoped selections. No storage conventions."""
+"""Shared discovery protocol and development-only selections. No storage conventions."""
 from __future__ import annotations
 
 import copy

@@ -506,8 +506,10 @@ def test_real_demo_preview_prose_figures_pdfs_and_production_isolation(tmp_path)
     rebuild()
     assert "64% accuracy" in page("benchmark-a")
     assert "88% accuracy" in page("benchmark-gallery")
-    # Production never executes discovery or reads preview input/state, even invalid settings.
+    # Production discovers independently of local choices and rejects invalid discovery config.
     layout.config.write_text(layout.config.read_text().replace("discover: [python, scripts/discover_runs.py]", "discover: invalid"))
-    _build(root)
+    from demolab_cli.test_engine_build import _build_result
+    result = _build_result(root)
+    assert result.returncode != 0 and "build discovery failed" in result.stderr
     assert ordinary == {p: p.read_bytes() for p in ordinary}
     assert "__preview" not in page("benchmark-a")  # controls are HTTP-injected, never published

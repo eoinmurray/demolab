@@ -82,9 +82,7 @@ def pinned_lab(tmp_path):
     config = {"name": "Fixed inputs", "build": {"sources": {
         "exp": {"exp": "runs/old/presentation"},
         "gallery": {"exp": "runs/new/presentation", "other": "runs/old/presentation"},
-        "compare": {"legacy.exp": "runs/old/presentation", "current.exp": "runs/new/presentation"}}},
-        # A build must not parse this setting as preview configuration or run discovery.
-        "preview": {"source": "absent", "discover": "invalid"}}
+        "compare": {"legacy.exp": "runs/old/presentation", "current.exp": "runs/new/presentation"}}}}
     layout.config.write_text(json.dumps(config))
     return layout, config
 
@@ -157,7 +155,7 @@ def test_pins_reach_deck_pdfs_and_deck_failure_preserves_publication(pinned_lab)
                for p in base.rglob("*") if p.is_file()}
     deck.write_text(deck.read_text() + "\n#(1 / 0)\n")
     result = _build_result(layout.root)
-    assert result.returncode != 0 and "pinned build deck" in result.stderr
+    assert result.returncode != 0 and "data-backed build deck" in result.stderr
     assert outputs == {p: p.read_bytes() for p in outputs}
 
 

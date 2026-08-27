@@ -1,4 +1,4 @@
-"""Fixed publication inputs and public video paths, independent of run storage formats."""
+"""Publication input resolution and public video paths, independent of run storage formats."""
 from __future__ import annotations
 
 import hashlib
@@ -7,7 +7,7 @@ import os
 import subprocess
 from pathlib import Path, PureWindowsPath
 
-from demolab_cli import _paths
+from demolab_cli import _paths, preview
 
 VIDEO_SUFFIXES = {".mp4", ".webm", ".ogg", ".ogv", ".mov", ".m4v"}
 MEDIA_PREFIX = "_demolab-data"
@@ -84,6 +84,37 @@ def load_build_sources(layout: _paths.LabLayout, article_ids) -> dict:
                 raise _paths.LayoutError(f"{article} / {key}: build source must be a safe relative directory")
             normalized[article][key] = layout.typst_path(layout.content / relative)
     return normalized
+
+
+def resolve_build_sources(layout: _paths.LabLayout, article_ids) -> dict:
+    """Resolve Latest once per build, with explicit pins overriding whole articles.
+
+    Reuse discovery's storage-neutral catalogue, never a preview Session or its saved
+    choices. The discovery command is responsible for returning eligible presentation
+    runs; its normalized created_at ordering determines Latest.
+    """
+    sources = load_build_sources(layout, article_ids)
+    try:
+        config = preview.load_config(layout)
+        if config is None:
+            return sources
+        unknown = set(config.articles) - set(article_ids)
+        if unknown:
+            raise preview.PreviewError("unknown discovery article IDs: " + ", ".join(sorted(unknown)))
+        catalogue = preview.discover(config, layout)
+        latest = {}
+        for run in catalogue:
+            latest.setdefault(run["experiment"], run["presentation"])
+        for article in article_ids:
+            if article in sources:
+                continue
+            declared = config.articles.get(article, [article] if article in latest else [])
+            inputs = preview.normalize_inputs(declared)
+            if inputs:
+                sources[article] = {item["key"]: latest.get(item["experiment"]) for item in inputs}
+    except (preview.PreviewError, OSError) as exc:
+        raise _paths.LayoutError(f"build discovery failed: {exc}") from exc
+    return sources
 
 
 def inventory(layout: _paths.LabLayout, sources: dict) -> dict:

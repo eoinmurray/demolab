@@ -8,15 +8,15 @@
 )
 
 // There are deliberately no benchmark-empty runs or publication inputs.
-// Preview resolves the explicit empty input; ordinary builds author the same
-// pending state directly, without trying to read nonexistent publication files.
+// Both build and preview resolve the explicit empty input. Direct Typst use
+// without a compiler inventory retains the authored pending state.
 #let resolve = data-file.with(article: "benchmark-empty")
-#let data-file(path) = if "demolab-preview-file" in sys.inputs { resolve(path) }
+#let data-file(path) = if "demolab-preview-file" in sys.inputs or "demolab-data-inputs" in sys.inputs { resolve(path) }
 #let result = data-json(data-file("benchmark-empty/numbers.json"))
 
 #let body = [
   This experiment has no runs yet. Its explanation remains readable while the results,
-  figure, and video wait for data. The preview selector above shows *No runs available*.
+  figure, and video wait for data. In live preview, the selector shows *No runs available*.
 
   == Results
 
