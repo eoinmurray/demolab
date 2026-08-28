@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.4] — 2026-08-28
+
+### Fixed
+- **Article title and metadata layout.** Enlarge article titles and move the status
+  badge from the title line to immediately after the collection in the metadata bar.
+  The PDF link remains last; dates, listing rows, PDFs, and books are unchanged.
+
 ## [5.2.3] — 2026-08-28
 
 ### Fixed

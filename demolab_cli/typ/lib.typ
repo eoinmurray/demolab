@@ -757,7 +757,6 @@
         html.elem("div", attrs: (class: "row-heading"), {
           html.elem("div", attrs: (class: "row-title-group"), {
             heading(level: 1, meta.title)
-            if status != none { status-badge(status) }
           })
         })
         // Keep the preview controls' existing metadata attachment point.
@@ -769,6 +768,10 @@
             }
             html.elem("a", attrs: (class: "entry-collection", href: coll),
               collection-label(coll, collection-meta))
+            if status != none {
+              [ · ]
+              status-badge(status)
+            }
             if pdf-href != none {
               [ · ]
               html.elem("a", attrs: (class: "entry-pdf", href: pdf-href,

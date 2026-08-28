@@ -683,9 +683,13 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
         assert (status.text if status is not None else None) == dict(stages)[entry_id]
         article = (root / ".demolab" / "site" / f"{entry_id}.html").read_text()
         header = ET.fromstring(re.search(r'<header class="article-header">.*?</header>', article, re.S)[0])
-        article_status = header.find('./div[@class="row-heading"]//span[@class="status"]')
+        assert header.find('./div[@class="row-heading"]//span[@class="status"]') is None
+        article_metadata = header.find('./div[@class="entry-meta"]/div[@class="row-meta"]')
+        article_status = article_metadata.find('./span[@class="status"]')
         assert (article_status.text if article_status is not None else None) == dict(stages)[entry_id]
-        assert header.find('./div[@class="entry-meta"]//span[@class="status"]') is None
+        if article_status is not None:
+            collection_index = list(article_metadata).index(article_metadata.find('./a[@class="entry-collection"]'))
+            assert article_metadata[collection_index + 1] is article_status
 
 
 @pytest.mark.parametrize(
@@ -762,6 +766,11 @@ def test_authored_dates_render_consistently_with_semantic_html(
         assert header.find('.//span[@class="row-id"]').text == f"#{entry_id}"
         metadata = header.find('./div[@class="entry-meta"]/div[@class="row-meta"]')
         assert metadata.find('./a[@class="entry-collection"]').get("href") == "dates"
+        status = metadata.find('./span[@class="status"]')
+        assert (status.text if status is not None else None) == ("[DATA]" if entry_id == "changed" else None)
+        if status is not None:
+            assert metadata[2] is status
+        assert header.find('./div[@class="row-heading"]//span[@class="status"]') is None
         assert metadata[-1].get("class") == "entry-pdf"
         assert metadata[-1].get("href") == f"pdfs/{entry_id}.pdf"
         assert metadata.find('.//time') is None
