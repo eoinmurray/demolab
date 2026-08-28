@@ -627,7 +627,7 @@
 #let expanded-index(colls, items, recent: 0, collection-meta: (:)) = {
   let recent-items = recent-writings(items, recent)
   if recent > 0 and recent-items.len() > 0 {
-    heading(level: 2, [Recently worked on])
+    heading(level: 2, [Recent])
     entry-list(recent-items, show-collection: true, collection-meta: collection-meta,
       show-date-heading: false)
   }

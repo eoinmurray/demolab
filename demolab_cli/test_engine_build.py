@@ -879,7 +879,7 @@ def test_default_homepage_remains_collection_directory(tmp_path: Path) -> None:
 
     index = (root / ".demolab" / "site" / "index.html").read_text()
     assert '<ul class="coll-list">' in index
-    assert "Recently worked on" not in index
+    assert "Recent" not in index
     assert 'href="note"' not in index
 
 
@@ -927,9 +927,10 @@ def test_expanded_homepage_recent_and_collection_ordering(
 
     index_path = root / ".demolab" / "site" / "index.html"
     index = index_path.read_text()
+    assert "Recently worked on" not in index
     assert 'class="entry-list-heading"' not in index
     assert (root / ".demolab" / "site" / "all.html").read_text().count('class="entry-list-heading"') == 1
-    recent = index[index.index("Recently worked on"):index.index('href="second"')]
+    recent = index[index.index("Recent"):index.index('href="second"')]
     assert recent.index('href="alpha"') < recent.index('href="gamma"')
     assert 'href="beta"' not in recent
     assert 'href="talk"' not in recent
@@ -962,7 +963,7 @@ def test_expanded_homepage_recent_and_collection_ordering(
     _build(root)
     rebuilt = index_path.read_text()
     rebuilt_recent = rebuilt[
-        rebuilt.index("Recently worked on"):rebuilt.index('href="second"')
+        rebuilt.index("Recent"):rebuilt.index('href="second"')
     ]
     assert rebuilt_recent.index('href="alpha"') < rebuilt_recent.index('href="gamma"')
     assert 'href="beta"' not in rebuilt_recent
@@ -986,7 +987,7 @@ def test_expanded_homepage_can_omit_recent_section(
     _build(root)
 
     index = (root / ".demolab" / "site" / "index.html").read_text()
-    assert "Recently worked on" not in index
+    assert "Recent" not in index
     assert 'href="note"' in index
     assert 'class="entry-list-heading"' not in index
 

@@ -51,7 +51,7 @@ Both labelled Created and Updated dates appear on the right when supplied. Their
 retain the full year. PDFs and the book also retain both
 authored dates. No creation timestamp is relabelled as an update.
 
-Update validation and "Recently worked on" ordering compare instants normalized to UTC.
+Update validation and "Recent" ordering compare instants normalized to UTC.
 For these comparisons only, a date-only value means midnight UTC on that date. You may mix
 the two forms, but `updated_at` cannot be earlier than `created_at`: a date-only update on
 the same day as a creation time after midnight UTC is therefore earlier and is rejected.
@@ -381,7 +381,7 @@ index:
   recent: 5
 ```
 
-Omit `recent` or set it to `0` to remove “Recently worked on”. Recent work is ranked only by
+Omit `recent` or set it to `0` to remove “Recent”. Recent work is ranked only by
 authored `updated_at ?? created_at`, then by ID descending; slides are excluded.
 
 ## Nested collections

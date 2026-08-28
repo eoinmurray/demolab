@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.5] — 2026-08-28
+
+### Changed
+- Rename the homepage's “Recently worked on” heading to “Recent”. Selection and
+  ordering are unchanged.
+
 ## [5.2.4] — 2026-08-28
 
 ### Fixed
