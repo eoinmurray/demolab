@@ -63,6 +63,15 @@ invoke discovery independently but never consume local selections. Failed builds
 site and accepted state; pending choices remain editable in the error panel. One dev server
 per lab is supported; concurrent servers would share preview state and build paths.
 
+`url_inputs.py` owns the opt-in query allowlist and isolated article rendering.
+`typ/url-entry.typ` compiles one article and its resources in a fresh
+`.demolab/url-inputs/view-*/site/` namespace. It never invokes discovery or changes
+preview/publication state. Resource URLs use the private rendering namespace;
+ordinary navigation stays at the lab root. The dev server serializes compilation
+with its normal build worker, accepts these requests only from loopback clients,
+and injects no live-reload scripts into parameterized responses. Writing defaults
+and selection views remain user-owned. See AUTHORING and test_url_inputs.py.
+
 `demolab.yaml` may override `writings` with a relative directory, defaulting to `writings/`.
 `LabLayout` validates it and recursively enumerates visible source files. Typst's `eval` command
 parses the setting lazily, cached by configuration contents (including parse errors), so the engine

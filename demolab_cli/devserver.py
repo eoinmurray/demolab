@@ -32,7 +32,7 @@ from urllib.parse import unquote, urlsplit
 
 from demolab_cli import _paths
 from demolab_cli import build as _build_mod
-from demolab_cli import preview
+from demolab_cli import preview, url_inputs
 
 ROOT = _build_mod.ROOT
 SITE = _build_mod.SITE
@@ -185,10 +185,11 @@ def _compile(skip_decks: bool = False, *, selected: bool = False) -> tuple[bool,
     if skip_decks:
         cmd.append("--skip-decks")
     try:
-        proc = subprocess.run(
-            cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=BUILD_TIMEOUT,
-            env={**os.environ, "DEMOLAB_ROOT": str(ROOT)},
-        )
+        with url_inputs.COMPILE_LOCK:
+            proc = subprocess.run(
+                cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=BUILD_TIMEOUT,
+                env={**os.environ, "DEMOLAB_ROOT": str(ROOT), "DEMOLAB_DEV": "1"},
+            )
     except subprocess.TimeoutExpired:
         return False, f"build timed out after {BUILD_TIMEOUT}s — the compile looks stuck."
     except Exception as e:  # never let a spawn failure kill the watch loop
@@ -249,6 +250,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         endpoint = self.path.split("?", 1)[0]
+        if endpoint.startswith(url_inputs.PREFIX):
+            if not self._local_origin():
+                return self.send_error(403)
+            try:
+                resource = url_inputs.resource(LAYOUT, unquote(endpoint))
+            except (ValueError, OSError):
+                return self.send_error(404)
+            with resource.open("rb") as stream:
+                self.send_response(200)
+                self.send_header("Content-Type", self.guess_type(str(resource)))
+                self.send_header("Content-Length", str(resource.stat().st_size))
+                self.send_header("Cache-Control", "private, max-age=31536000, immutable")
+                self.end_headers()
+                self.copyfile(stream, self.wfile)
+            return
         if endpoint == "/__preview":
             if not self._local_origin():
                 return self.send_error(403)
@@ -266,6 +282,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         if self.path.split("?", 1)[0] == "/__dev":
             return self._sse()
+        query = urlsplit(self.path).query
+        if query:
+            try:
+                enabled = bool(url_inputs.load_config(LAYOUT))
+            except (ValueError, OSError, subprocess.SubprocessError) as exc:
+                return self.send_error(400, "URL input configuration failed", str(exc))
+        else:
+            enabled = False
+        if enabled:
+            if not self._local_origin() or self.headers.get("Sec-Fetch-Site") == "cross-site":
+                return self.send_error(403)
+            try:
+                page, _site = url_inputs.render(LAYOUT, unquote(endpoint), query,
+                                                timeout=BUILD_TIMEOUT)
+            except (ValueError, OSError, subprocess.SubprocessError) as exc:
+                return self.send_error(400, "URL rendering failed", str(exc))
+            data = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         path = unquote(self.path.split("?", 1)[0])
         fs = html_file_for_path(path, SITE)
         if PREVIEW is not None and not fs.exists() and not fs.suffix and _within(fs, SITE):

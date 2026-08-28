@@ -20,6 +20,11 @@ provides article-scoped selectors only in dev; see AUTHORING. Demolab does
 not execute experiments, enforce provenance, validate claims, or manage research workflows;
 content remains the author's responsibility.
 
+Optional `url_inputs` declarations allow the dev server to render a separate article
+from query parameters passed as Typst compiler inputs. Each request has isolated
+output; ordinary builds retain authored defaults. See AUTHORING. This is independent
+of the older preview/discovery system, which remains available during migration.
+
 Optional committed `build.sources` mappings pin presentation directories per article for
 publication, overriding discovery for those articles. Builds ignore preview choices, freeze
 their selections and file inventory, and publish no preview controls. Declared inputs with no

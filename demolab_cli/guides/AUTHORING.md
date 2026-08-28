@@ -115,6 +115,68 @@ static authored resolution; it does not discover runs, infer Latest, or create a
 An unmapped key retains `.artifacts/<key>/` compatibility, and a missing mapped file fails rather
 than falling back to the key's ordinary directory.
 
+### URL-driven article rendering (development server)
+
+Opt into named Typst compiler inputs with an allowlist in `demolab.yaml`:
+
+```yaml
+url_inputs:
+  basepath: {type: path, root: data}
+  comparison: {type: path, root: data}
+  caption: {type: string}
+```
+
+Open `/article?basepath=data/run-a&comparison=data/run-b` in `demolab dev`.
+Replace `article` with the actual article slug. Every request compiles
+only that article, with isolated output and resources under `.demolab/url-inputs/`.
+There are no selectors, saved choices, live reload, discovery calls, or publication
+writes for these requests. Different tabs cannot overwrite one another. Reopening
+the same URL creates a fresh rendering. `demolab clean` removes these outputs.
+
+User-owned Typst explicitly reads each input and defines its own default:
+
+```typst
+#let basepath = sys.inputs.at("basepath", default: "/data/run-a")
+#let result = json(basepath + "/numbers.json")
+```
+
+Path values and their allowed roots are relative to `demolab.yaml`. Demolab validates
+existing directories, rejects traversal and symlinks, and passes a root-relative Typst
+path to the compiler. String inputs are passed literally; do not use a string input
+to bypass path validation. Unknown/duplicate parameters and reserved engine input
+names are errors. Inputs are strings, not executable Typst expressions or overrides
+of arbitrary `let` bindings. Defaults remain user-owned, not browser state.
+
+A user-owned Typst view can load its own JSON and create ordinary article links
+with query parameters; HTML anchors may use `target: "_blank", rel: "noopener"`.
+All data reads through the selected basepath, wherever they appear in the article,
+use the same input. Selected-path videos are packaged with that rendering. Local
+relative links navigate to the ordinary lab; rendering assets and PDFs use isolated
+URLs. Query rendering is loopback-only and rejects cross-site fetches.
+
+Ordinary URLs and `demolab build` keep their existing behavior and never consume
+these query parameters. Static hosting cannot recompile Typst: publish defaults or
+prebuilt variants, and omit interactive selection links from a static-only view.
+The older preview/discovery system remains available independently during migration.
+
+An optional top-level `prepare: [python, scripts/prepare.py]` runs a trusted,
+author-owned command before each ordinary build or URL render, without a shell,
+from the configuration directory. It can validate source data and generate JSON
+for the user-authored view. `DEMOLAB_INPUTS` contains a JSON object of normalized
+URL inputs (empty for ordinary builds); `DEMOLAB_ARTICLE` is the requested article
+or an empty string for a full build. Commands have a 120-second timeout and a
+4 MiB limit per output stream. Nonzero exit stops the build/render; prepared
+builds also fail on compilation errors instead of publishing article stubs.
+Keep generated files out of watched source directories to avoid rebuild loops.
+Demolab does not interpret the generated JSON or execute experiments itself.
+
+`sys.inputs.at("demolab-dev", default: "false") == "true"` identifies dev renders,
+including URL requests. Use it to hide server-dependent links in static output.
+For user-selected videos or downloads, an article may set `meta.assets` to a
+dictionary mapping public relative URLs to root-relative source files. Demolab
+embeds those files in the bundle. Use those public URLs in the article's links or
+video calls. Shared URLs must refer to the same source across articles.
+
 ### Fixed inputs for publication builds
 
 Use a committed `build.sources` mapping to pin presentation directories per article:

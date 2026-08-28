@@ -63,6 +63,16 @@
 #for (source, url) in manifest.at("data_assets", default: (:)) {
   asset(url, read(source, encoding: none))
 }
+// User-owned attachments (for example videos selected by the article's own inputs).
+// Merge first so shared attachments are emitted only once in a full-site bundle.
+#let authored-assets = entries.fold((:), (files, entry) => {
+  for (url, source) in entry.meta.at("assets", default: (:)) {
+    assert(url not in files or files.at(url) == source, message: "conflicting authored asset: " + url)
+    files.insert(url, source)
+  }
+  files
+})
+#for (url, source) in authored-assets { asset(url, read(source, encoding: none)) }
 // deck PDFs, embedded at pdfs/<id>.pdf so the dev server serves them too
 #for d in manifest.decks {
   asset("pdfs/" + d.id + ".pdf", read(bundle-root + "/decks/" + d.id + ".pdf", encoding: none))

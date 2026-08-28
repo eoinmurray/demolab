@@ -49,6 +49,9 @@ testpaths = ["demolab_cli"]
 norecursedirs = [".*", "build", "dist", "*.egg", "venv", "scaffold"]
 
 # Source archives retain the internal test fixture; installed wheels do not.
+[tool.hatch.build.targets.sdist]
+exclude = ["output/"]
+
 [tool.hatch.build.targets.sdist.force-include]
 ".demo" = ".demo"
 

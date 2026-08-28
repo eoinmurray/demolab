@@ -13,6 +13,27 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.0] — 2026-08-28
+
+### Added
+- **Opt-in URL-driven article renders.** Declare allowed string and directory inputs
+  in `url_inputs`, then open an article with query parameters in the local dev server.
+  User-owned Typst reads compiler inputs and defines its own defaults and selection view.
+  Each request gets isolated HTML, media and optional PDFs; it never changes another tab,
+  preview selections or publication output. Directory inputs reject traversal and symlinks;
+  requests are loopback-only and reject cross-site fetches.
+- **Author-owned preparation commands.** An optional `prepare` argument array runs
+  before builds and URL renders, receiving the article and normalized inputs through
+  environment variables. Failed preparation or compilation preserves prior output rather
+  than publishing article stubs.
+- **User-owned bundle attachments.** Article `meta.assets` maps public resource URLs to
+  source files, including videos and downloads, in ordinary and isolated bundles.
+- **Dev-mode compiler input.** `demolab-dev` lets authored views omit server-dependent
+  selection links from static publication.
+
+The existing preview/discovery system remains available. Labs without `url_inputs`
+retain ordinary query-string URL handling; static hosting does not recompile articles.
+
 ## [5.1.0] — 2026-08-28
 
 ### Added
