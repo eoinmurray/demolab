@@ -5,6 +5,7 @@
   created_at: "2026-08-27",
   description: "An experiment with no runs: empty selector, numerical results, image, and video.",
   collection: "data-source-demos",
+  status: "ExpStudyPlan",
 )
 
 // There are deliberately no benchmark-empty runs or publication inputs.

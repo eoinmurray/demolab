@@ -124,7 +124,7 @@ a:focus-visible {
 /* --- secondary text: one size (--fs-small), one colour (--muted) everywhere --- */
 .entry-meta,           /* id · date · status · collection under an entry/collection title */
 .coll-desc,            /* collection blurb on the homepage directory */
-.row-id, .row-meta, .row-pdf,  /* the aligned index-row columns */
+.row-id, .row-meta, .row-pdf,  /* compact index-row metadata and PDF link */
 figcaption,
 .page-foot {           /* the "Browse all / back" line at the foot of a listing */
   font-size: var(--fs-small);
@@ -140,9 +140,6 @@ figcaption,
 .entry-meta + .byline { margin-top: -.9rem; }
 .byline a { color: var(--muted); }
 .byline a:hover { color: var(--ink); }
-/* Home link at the top of an entry page: quiet, small, one step back to the directory. */
-.home-link { display: inline-block; font-size: var(--fs-small); color: var(--muted); text-decoration: none; margin: 0 0 1.1rem; }
-.home-link:hover { color: var(--ink); text-decoration: underline; }
 
 /* Citations: inline numbers stay in the text (underline on hover); the reference list is
    secondary text, each entry's DOI a quiet link out. */
@@ -347,24 +344,69 @@ ol.refs .doi:hover { color: var(--ink); }
 .coll-count { flex: 0 0 auto; font-size: var(--fs-small); color: var(--muted); }
 .coll-desc { margin: .2rem 0 0; line-height: 1.45; }
 
-/* Index rows: mono id in a left column; title + a quiet meta sub-line (date · status · pdf)
-   stacked in the main column, so long titles wrap without orphaning the meta. */
-.entry-list { list-style: none; padding-left: 0; margin: 1.25rem 0; }
-.entry-row { display: flex; align-items: baseline; gap: .6rem; padding: .45rem 0; }
-.entry-row .row-id {
-  flex: 0 0 4.5rem;
-  min-width: 0;
-  overflow: hidden;
-  font-family: var(--mono);
-  text-align: right;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+/* Compact index rows: serif title + quiet status, recency on the right, metadata below.
+   Long values wrap naturally; IDs and statuses are never clipped or hidden. */
+.entry-list, .entry-list-heading, .article-header {
+  --row-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --row-muted: #60656b;
+  --row-secondary: #80858a;
 }
-.row-main { flex: 1 1 auto; min-width: 0; }
-.row-main .row-title { display: block; }
-.row-main .row-meta { display: block; margin-top: -.05rem; font-variant-numeric: tabular-nums; }
-.row-meta .row-collection { color: var(--muted); text-decoration: underline; }
-.row-meta .row-collection:hover { color: var(--ink); }
+.entry-list { list-style: none; padding-left: 0; margin: .75rem 0; }
+.entry-list-heading {
+  margin-top: .75rem; text-align: right;
+  font: 500 .6667rem/1.4 var(--row-sans); color: var(--row-muted);
+}
+.entry-list-heading + .entry-list { margin-top: .15rem; }
+.entry-list .entry-row { margin: 0; padding: .45rem 0; line-height: 1.3; }
+.row-heading { display: flex; align-items: baseline; justify-content: space-between; gap: .2rem 1rem; }
+.row-title-group { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .5rem; min-width: 0; }
+.row-title { font-size: 1.0556rem; color: #202124; min-width: 0; overflow-wrap: anywhere; }
+.row-heading .row-date {
+  flex: 0 0 auto; max-width: 100%; margin-left: auto; text-align: right;
+  font: .6667rem/1.4 var(--row-sans); font-variant-numeric: tabular-nums; color: var(--row-secondary);
+}
+.row-heading .status {
+  font: .6111rem/1.4 var(--row-sans);
+  color: var(--row-muted);
+  background: #f3f4f5;
+  border-radius: 3px;
+  padding: .1em .4em;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.entry-row .row-id, .article-header .row-id {
+  font: inherit; color: inherit;
+}
+.entry-row .row-meta, .article-header .row-meta {
+  margin-top: .2222rem; font: .6667rem/1.4 var(--row-sans);
+  color: var(--row-secondary); overflow-wrap: anywhere;
+}
+.row-meta .row-pdf { font-size: .6667rem; }
+.row-meta .row-collection, .row-meta .row-pdf,
+.article-header .entry-collection, .article-header .entry-pdf {
+  color: inherit; text-decoration: underline; text-decoration-color: #bcc0c4;
+}
+.row-meta a:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+.article-header { margin-bottom: 1.75rem; }
+.article-header .entry-meta { margin: 0; }
+.article-header .row-title-group h2 {
+  margin: 0; font-size: 1.0556rem; font-weight: 400; line-height: 1.3;
+  letter-spacing: normal; text-wrap: wrap; color: #202124; overflow-wrap: anywhere;
+}
+.article-header .row-heading { line-height: 1.3; }
+.article-header .article-dates {
+  display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline;
+  gap: .25rem 1rem; font-size: .7222rem;
+}
+.article-date { white-space: nowrap; }
+.article-header .row-meta { margin-top: .2222rem; font-size: .7222rem; }
+.article-header .status { font-size: .6667rem; }
+
+@media (max-width: 32rem) {
+  .row-heading { flex-wrap: wrap; }
+  .row-title-group { flex-basis: 100%; }
+}
 
 /* Foot-of-listing nav line: quiet by default, links darken + underline on hover. */
 .page-foot { margin-top: 2rem; }
@@ -422,7 +464,6 @@ body:has(.theme-docs) h6 {
   letter-spacing: -.018em;
 }
 body:has(.theme-docs) a { color: var(--docs-accent); text-decoration-color: #9db4da; }
-body:has(.theme-docs) .home-link,
 body:has(.theme-docs) .entry-meta,
 body:has(.theme-docs) .page-foot { color: var(--muted); }
 body:has(.theme-docs) code {
@@ -487,7 +528,6 @@ body:has(.theme-docs) td { color: #334155; }
   .welcome-docs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .welcome-runbook { display: block; padding: .6rem 0; }
   .welcome-runbook dt { margin-bottom: .2rem; }
-  .entry-row { align-items: flex-start; gap: .5rem; }
   .docs-toc ul { columns: 1; }
 }
 

@@ -2,8 +2,8 @@
 
 #let meta = (
   title: "Welcome",
-  created_at: "2026-08-26",
-  updated_at: "2026-08-27",
+  created_at: "2026-08-26T09:15:00+02:00",
+  updated_at: "2026-08-27T14:30:00+02:00",
   description: "A minimal working page in the example site.",
   collection: "pages",
   order: 1,

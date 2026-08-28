@@ -5,6 +5,7 @@
   created_at: "2026-08-27",
   description: "One article assembles results from two experiments, with one run per data key.",
   collection: "data-source-demos",
+  status: "ExpStudy",
 )
 
 // A synthesis article: one independently bound run for each experiment.

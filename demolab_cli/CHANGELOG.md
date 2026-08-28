@@ -13,6 +13,28 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.1.0] — 2026-08-28
+
+### Added
+- **Authored datetimes alongside date-only metadata.** Writings accept creation and update
+  datetimes with explicit UTC offsets, optional seconds, and fractional seconds. HTML, PDF,
+  and book rendering show authored local time; existing date-only metadata remains supported.
+  Update validation and recent-work ordering use UTC-normalized instants, treating date-only
+  values as midnight UTC for comparisons. Run-discovery timestamps are unchanged.
+
+### Changed
+- **Article headers match compact listings**, with serif titles, small status labels, lighter
+  metadata, and PDF last. Created and Updated sit side by side on the right when space allows.
+  The redundant Home link is removed; collection navigation remains available.
+- **Compact web listings** pair serif titles and small status labels with a right-aligned recency
+  date under one Last changed heading per page: update when supplied, otherwise creation.
+  A tooltip identifies the source date. A smaller sans-serif metadata bar contains
+  full IDs, collection links, and PDF last. Article headers and PDFs retain both timestamps.
+- **Authored datetime display** uses “28 Aug 26, 2:30 pm” in web headers and listings, and
+  “28 August 2026 at 2:30 pm” in PDFs and books. Display omits timezone labels, seconds, and
+  fractional seconds without rounding minutes. HTML retains exact datetime attributes and
+  full-year tooltips; the PDF/book layout is unchanged.
+
 ## [5.0.0] — 2026-08-27
 
 ### Changed

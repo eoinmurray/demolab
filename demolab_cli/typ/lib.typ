@@ -80,13 +80,52 @@
 // --- authored dates: validate and render creation/update metadata ---
 // Demolab only renders dates supplied by the author. `date` remains a deprecated fallback for
 // old writings; it is never combined with Git, filesystem, build, or deployment timestamps.
+#let authored-date(value, field) = {
+  let message = ("meta." + field + " must be an ISO calendar date (YYYY-MM-DD)"
+    + " or datetime (YYYY-MM-DDTHH:MM[:SS[.fraction]] with Z or +/-HH:MM timezone)")
+  assert(type(value) == str, message: message)
+  assert(value.match(regex("^[0-9]{4}-[0-9]{2}-[0-9]{2}(T.*)?$")) != none,
+    message: message)
+  let p = value.slice(0, 10).split("-").map(int)
+  let hour = 0
+  let minute = 0
+  let second = 0
+  let fraction = ""
+  let offset = 0
+  let clock = none
+  let zone = none
+  if value.len() > 10 {
+    let time = value.slice(11).match(regex(
+      "^([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]+))?)?(Z|[+-][0-9]{2}:[0-9]{2})$",
+    ))
+    assert(time != none, message: message)
+    let c = time.captures
+    hour = int(c.at(0))
+    minute = int(c.at(1))
+    second = if c.at(2) == none { 0 } else { int(c.at(2)) }
+    fraction = if c.at(3) == none { "" } else { c.at(3).trim("0", at: end) }
+    zone = c.at(4)
+    clock = value.slice(11, value.len() - zone.len())
+    if zone != "Z" {
+      let h = int(zone.slice(1, 3))
+      let m = int(zone.slice(4, 6))
+      assert(h <= 23 and m <= 59, message: "meta." + field + " has an invalid timezone offset")
+      offset = (h * 3600 + m * 60) * if zone.starts-with("-") { -1 } else { 1 }
+    }
+  }
+  // Typst validates calendar and clock components; offsets never use the machine timezone.
+  let local = datetime(year: p.at(0), month: p.at(1), day: p.at(2),
+    hour: hour, minute: minute, second: second)
+  let epoch = datetime(year: 1970, month: 1, day: 1, hour: 0, minute: 0, second: 0)
+  // Keep fractional digits separate so arbitrary authored precision sorts without float rounding.
+  (key: (int((local - epoch).seconds()) - offset, fraction),
+    date: local.display("[day padding:none] [month repr:long] [year]"),
+    short-date: local.display("[day padding:none] [month repr:short] ") + value.slice(2, 4),
+    clock: clock, zone: zone)
+}
+
 #let iso-date(value, field) = {
-  assert(type(value) == str, message: "meta." + field + " must be a string in YYYY-MM-DD form")
-  assert(value.match(regex("^\\d{4}-\\d{2}-\\d{2}$")) != none,
-    message: "meta." + field + " must be an ISO calendar date in YYYY-MM-DD form")
-  let p = value.split("-")
-  // datetime rejects impossible calendar dates such as 2026-02-30.
-  let _validated = datetime(year: int(p.at(0)), month: int(p.at(1)), day: int(p.at(2)))
+  let _validated = authored-date(value, field)
   value
 }
 
@@ -97,16 +136,21 @@
   let created = iso-date(created-value,
     if "created_at" in meta { "created_at" } else { "date" })
   let updated = if "updated_at" in meta { iso-date(meta.updated_at, "updated_at") } else { none }
-  assert(updated == none or updated >= created,
+  assert(updated == none or authored-date(updated, "updated_at").key >= authored-date(created, "created_at").key,
     message: "meta.updated_at must not be earlier than meta.created_at")
   (created: created, updated: updated)
 }
 
-#let human-date(iso) = {
-  let p = iso.split("-")
-  datetime(year: int(p.at(0)), month: int(p.at(1)), day: int(p.at(2))).display(
-    "[day padding:none] [month repr:long] [year]",
-  )
+#let human-date(iso, compact: false) = {
+  let parsed = authored-date(iso, "date")
+  let date = if compact { parsed.short-date } else { parsed.date }
+  if parsed.clock == none { return date }
+  let parts = parsed.clock.split(":")
+  let hour = int(parts.at(0))
+  let hour12 = calc.rem(hour, 12)
+  let clock = str(if hour12 == 0 { 12 } else { hour12 }) + ":" + parts.at(1)
+  let period = if hour < 12 { " am" } else { " pm" }
+  date + (if compact { ", " } else { " at " }) + clock + period
 }
 
 #let date-line(meta) = {
@@ -128,7 +172,7 @@
   }
 }
 
-// Compact list rows omit the inferable "Created" label while retaining an explicit label for
+// PDF list rows omit the inferable "Created" label while retaining an explicit label for
 // updates, whose meaning is otherwise ambiguous beside the authored date.
 #let row-date-line(meta) = {
   let dates = entry-dates(meta)
@@ -143,6 +187,20 @@
       [#human-date(dates.created)]
       if dates.updated != none [ · Updated #human-date(dates.updated)]
     }
+  }
+}
+
+// Browsing needs one recency date; article headers retain the complete authored history.
+#let listing-date-line(meta) = context {
+  let dates = entry-dates(meta)
+  let updated = dates.updated != none
+  let value = if updated { dates.updated } else { dates.created }
+  let label = if updated { "Updated " } else { "Created " }
+  if target() == "html" {
+    html.elem("time", attrs: (datetime: value, title: label + human-date(value)),
+      human-date(value, compact: true))
+  } else {
+    [#label#human-date(value, compact: true)]
   }
 }
 
@@ -408,28 +466,37 @@
 #let is-curated(items) = items.any(x => x.order != none)
 
 // A list of link rows, shared by the homepage and the all-entries index. On the web each row
-// stacks: mono entry-id + title on top, then a quiet meta sub-line (date · collection? · status? ·
-// pdf) beneath the title — so long titles wrap cleanly without orphaning the meta. In the PDF the
+// stacks: title + optional status, with one recency date at the right; full id, collection,
+// and the PDF link share a quiet metadata line below. In the PDF the
 // same rows stay as a plain prose bullet list.
-#let entry-list(items, show-collection: false, collection-meta: (:)) = context {
+#let entry-list(items, show-collection: false, collection-meta: (:), show-date-heading: true) = context {
   if target() == "html" {
+    if show-date-heading and items.len() > 0 {
+      html.elem("div", attrs: (class: "entry-list-heading",
+        title: "Update date, or creation date when no update is supplied."), "Last changed")
+    }
     html.elem("ul", attrs: (class: "entry-list"), {
       for it in items {
         html.elem("li", attrs: (class: "entry-row"), {
-          html.elem("span", attrs: (class: "row-id", title: it.id), it.id)
-          html.elem("div", attrs: (class: "row-main"), {
-            html.elem("a", attrs: (class: "row-title", href: it.href), it.title)
-            html.elem("div", attrs: (class: "row-meta"), {
-              row-date-line(it.meta)
+          html.elem("div", attrs: (class: "row-heading"), {
+            html.elem("div", attrs: (class: "row-title-group"), {
+              html.elem("a", attrs: (class: "row-title", href: it.href), it.title)
+              if it.status != none { status-badge(it.status) }
+            })
+            html.elem("span", attrs: (class: "row-date"), listing-date-line(it.meta))
+          })
+          html.elem("div", attrs: (class: "row-meta"), {
+            html.elem("span", attrs: (class: "row-identity"), {
+              html.elem("span", attrs: (class: "row-id"), "#" + it.id)
               if show-collection {
                 [ · ]
                 html.elem("a", attrs: (class: "row-collection", href: it.coll),
                   collection-label(it.coll, collection-meta))
               }
-              if it.status != none [ · #status-badge(it.status)]
               if it.pdf != none {
                 [ · ]
-                html.elem("a", attrs: (class: "row-pdf", href: it.pdf), "pdf")
+                html.elem("a", attrs: (class: "row-pdf", href: it.pdf,
+                  aria-label: "PDF: " + it.title), "PDF")
               }
             })
           })
@@ -454,6 +521,7 @@
 #let grouped-entry-lists(items, show-collection: false, collection-meta: (:)) = {
   let groups = (("page", "Writings"), ("deck", "Slides"))
   let curated = is-curated(items)
+  let show-date-heading = true
   for (k, title) in groups {
     let g = items.filter(x => x.kind == k)
     g = if curated { reading-order(g) } else {
@@ -462,7 +530,9 @@
     }
     if g.len() > 0 {
       heading(level: 2, title)
-      entry-list(g, show-collection: show-collection, collection-meta: collection-meta)
+      entry-list(g, show-collection: show-collection, collection-meta: collection-meta,
+        show-date-heading: show-date-heading)
+      show-date-heading = false
     }
   }
 }
@@ -538,7 +608,7 @@
 #let id-desc(items) = items.sorted(key: x => x.id).rev()
 #let effective-work-date(item) = {
   let dates = entry-dates(item.meta)
-  if dates.updated != none { dates.updated } else { dates.created }
+  authored-date(if dates.updated != none { dates.updated } else { dates.created }, "date").key
 }
 #let recent-writings(items, limit) = {
   items
@@ -556,9 +626,11 @@
 
 #let expanded-index(colls, items, recent: 0, collection-meta: (:)) = {
   let recent-items = recent-writings(items, recent)
+  let show-date-heading = true
   if recent > 0 and recent-items.len() > 0 {
     heading(level: 2, [Recently worked on])
     entry-list(recent-items, show-collection: true, collection-meta: collection-meta)
+    show-date-heading = false
   }
   for c in colls {
     let collection-items = items.filter(x => x.coll == c)
@@ -567,10 +639,14 @@
     heading(level: 2, link(c, collection-label(c, collection-meta)))
     let desc = collection-description(c, collection-meta)
     if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
-    if writings.len() > 0 { entry-list(writings, collection-meta: collection-meta) }
+    if writings.len() > 0 {
+      entry-list(writings, collection-meta: collection-meta, show-date-heading: show-date-heading)
+      show-date-heading = false
+    }
     if slides.len() > 0 {
       heading(level: 3, [Slides])
-      entry-list(slides, collection-meta: collection-meta)
+      entry-list(slides, collection-meta: collection-meta, show-date-heading: show-date-heading)
+      show-date-heading = false
     }
   }
 }
@@ -675,17 +751,48 @@
       }
     }
   }
-  // A small home link at the very top (web only) — one quiet click back to the lab directory,
-  // so a reader who lands deep on an entry (e.g. straight from the onboarding flow) is never
-  // stranded. The PDF/book carry no navigation chrome, so this is html-only.
+  let status = meta.at("status", default: none)
+  let coll = meta.at("collection", default: "uncategorized")
+  let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
   context {
     if target() == "html" {
-      html.elem("a", attrs: (class: "home-link", href: "."), [← Home])
-    }
-  }
-  context {
-    if target() == "html" {
-      heading(level: 1, meta.title)
+      html.elem("header", attrs: (class: "article-header"), {
+        html.elem("div", attrs: (class: "row-heading"), {
+          html.elem("div", attrs: (class: "row-title-group"), {
+            heading(level: 1, meta.title)
+            if status != none { status-badge(status) }
+          })
+          html.elem("div", attrs: (class: "row-date article-dates"), {
+            let dates = entry-dates(meta)
+            for (field, label) in (("created", "Created"), ("updated", "Updated")) {
+              let value = dates.at(field)
+              if value != none {
+                html.elem("div", attrs: (class: "article-date"), {
+                  [#label ]
+                  html.elem("time", attrs: (datetime: value, title: label + " " + human-date(value)),
+                    human-date(value, compact: true))
+                })
+              }
+            }
+          })
+        })
+        // Keep the preview controls' existing metadata attachment point.
+        html.elem("div", attrs: (class: "entry-meta"), {
+          html.elem("div", attrs: (class: "row-meta"), {
+            if id != none {
+              html.elem("span", attrs: (class: "row-id"), "#" + id)
+              [ · ]
+            }
+            html.elem("a", attrs: (class: "entry-collection", href: coll),
+              collection-label(coll, collection-meta))
+            if pdf-href != none {
+              [ · ]
+              html.elem("a", attrs: (class: "entry-pdf", href: pdf-href,
+                aria-label: "PDF: " + meta.title), "PDF")
+            }
+          })
+        })
+      })
     } else {
       text(
         font: "DejaVu Sans Mono",
@@ -698,28 +805,6 @@
       show heading.where(level: 1): set text(size: 24pt)
       show heading.where(level: 1): set block(below: 0.15em)
       heading(level: 1, meta.title)
-    }
-  }
-  // the metadata strip under the title — id · date · collection · status · pdf, all inline on the left (web
-  // only; the PDF pass shows the plain gray meta line without the pdf link, since it *is* the pdf).
-  let status = meta.at("status", default: none)
-  let coll = meta.at("collection", default: "uncategorized")
-  let pdf-href = if pdfs-enabled and id != none { "pdfs/" + id + ".pdf" } else { none }
-  context {
-    if target() == "html" {
-      html.elem("div", attrs: (class: "entry-meta"), {
-        if id != none [#id · ]
-        row-date-line(meta)
-        [ · ]
-        html.elem("a", attrs: (class: "entry-collection", href: coll),
-          collection-label(coll, collection-meta))
-        if status != none [ · #status-badge(status)]
-        if pdf-href != none {
-          [ · ]
-          html.elem("a", attrs: (class: "entry-pdf", href: pdf-href), "pdf")
-        }
-      })
-    } else {
       text(size: 9pt, fill: rgb("#555555"), { if id != none [#id · ]; date-line(meta); if status != none [ · #status-badge(status)] })
       v(9pt)
       line(length: 100%, stroke: 0.6pt + rgb("#cccccc"))

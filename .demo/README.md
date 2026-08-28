@@ -16,6 +16,13 @@ collection and the welcome page link to all four cases:
 | `/benchmark-comparison` | Paired comparisons | 88% / 88% and 92% / 92%, zero differences | 64% / 88% (+24 pp), 72% / 92% (+20 pp) |
 | `/benchmark-empty` | No runs yet | Empty selector, pending image/video, awaiting results | Discovered empty input, pending content |
 
+## Authored timestamps
+
+The welcome article uses explicit example creation and update datetimes to demonstrate
+hours and minutes in compact listings, the article header, and PDFs. They are authored
+fixture values, not file or build timestamps. Other articles keep date-only metadata so
+both presentations can be checked together.
+
 ## Run data
 
 | Fixture experiment | Run | Timestamp (UTC) | Result | Presentation directory |

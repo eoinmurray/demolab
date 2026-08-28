@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -669,16 +670,61 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
     for status in ("ExpScoutPlan", "ExpScout", "ExpStudyPlan", "ExpStudy"):
         assert f'class="status">{status}</span>' in page
     assert 'class="status">final</span>' not in page
+    rows = [ET.fromstring(row) for row in re.findall(r'<li class="entry-row">.*?</li>', page, re.S)]
+    assert len(rows) == len(stages)
+    for row, entry_id in zip(rows, expected):
+        heading = row.find('./div[@class="row-heading"]')
+        metadata = row.find('./div[@class="row-meta"]')
+        assert heading.find('.//a[@class="row-pdf"]') is None
+        assert metadata.find('.//a[@class="row-pdf"]') is None
+        assert metadata.find('.//span[@class="row-id"]').text == f"#{entry_id}"
+        assert metadata.find('.//span[@class="status"]') is None
+        status = heading.find('.//span[@class="status"]')
+        assert (status.text if status is not None else None) == dict(stages)[entry_id]
+        article = (root / ".demolab" / "site" / f"{entry_id}.html").read_text()
+        header = ET.fromstring(re.search(r'<header class="article-header">.*?</header>', article, re.S)[0])
+        article_status = header.find('./div[@class="row-heading"]//span[@class="status"]')
+        assert (article_status.text if article_status is not None else None) == dict(stages)[entry_id]
+        assert header.find('./div[@class="entry-meta"]//span[@class="status"]') is None
 
 
-def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("created", "updated", "created_text", "updated_text"),
+    (
+        ("2026-08-24", "2026-08-27", "24 August 2026", "27 August 2026"),
+        ("2026-08-24T12:30:45+02:00", "2026-08-24T11:00:00Z",
+         "24 August 2026 at 12:30 pm", "24 August 2026 at 11:00 am"),
+        ("2026-08-24", "2026-08-24T01:30-03:30",
+         "24 August 2026", "24 August 2026 at 1:30 am"),
+        ("2026-08-24T12:30:45.123456789Z", "2026-08-25",
+         "24 August 2026 at 12:30 pm", "25 August 2026"),
+        ("2026-12-31T23:30:00-02:00", "2027-01-01T01:30:00Z",
+         "31 December 2026 at 11:30 pm", "1 January 2027 at 1:30 am"),
+        ("2026-08-24T12:00:00.100Z", "2026-08-24T12:00:00.1+00:00",
+         "24 August 2026 at 12:00 pm", "24 August 2026 at 12:00 pm"),
+        ("2026-08-28T00:00:00.000Z", "2026-08-28T12:00:00Z",
+         "28 August 2026 at 12:00 am", "28 August 2026 at 12:00 pm"),
+        ("2026-08-28T14:30:00+02:00", "2026-08-28T14:30:05.120+02:00",
+         "28 August 2026 at 2:30 pm", "28 August 2026 at 2:30 pm"),
+    ),
+)
+def test_authored_dates_render_consistently_with_semantic_html(
+    tmp_path: Path, created: str, updated: str, created_text: str, updated_text: str,
+) -> None:
     root = tmp_path / "presentation"
     root.mkdir()
     _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Dates\nindex:\n  mode: expanded\n  recent: 4\n"
+    )
     writings = root / "writings"
     (writings / "changed.typ").write_text(
-        '#let meta = (title: "Changed", created_at: "2026-08-24", '
-        'updated_at: "2026-08-27", collection: "dates")\n#let body = [Body.]\n'
+        f'#let meta = (title: "Changed", created_at: "{created}", '
+        f'updated_at: "{updated}", collection: "dates")\n#let body = [Body.]\n'
+    )
+    (writings / "initial.typ").write_text(
+        f'#let meta = (title: "Initial", created_at: "{created}", '
+        'collection: "dates")\n#let body = [Body.]\n'
     )
     (writings / "unchanged.typ").write_text(
         '#let meta = (title: "Unchanged", created_at: "2026-08-24", '
@@ -694,33 +740,67 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
     site = root / ".demolab" / "site"
     changed = (site / "changed.html").read_text()
     listing = (site / "dates.html").read_text()
-    expected = (
-        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
-        '<time datetime="2026-08-27">27 August 2026</time>'
-    )
-    assert expected in changed
-    assert (
-        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
-        '<time datetime="2026-08-27">27 August 2026</time>'
-    ) in listing
-    assert "Created <time" not in changed
+
+    def compact_date(value: str, display: str) -> str:
+        calendar = datetime.fromisoformat(value[:10])
+        return (display.replace(calendar.strftime("%B"), calendar.strftime("%b"))
+                .replace(" at ", ", ").replace(calendar.strftime("%Y"), calendar.strftime("%y")))
+
+    article_dates = {
+        "changed": (("Created", created, created_text), ("Updated", updated, updated_text)),
+        "initial": (("Created", created, created_text),),
+        "unchanged": (("Created", "2026-08-24", "24 August 2026"),
+                      ("Updated", "2026-08-24", "24 August 2026")),
+        "legacy": (("Created", "2026-08-23", "23 August 2026"),),
+    }
+    for entry_id, expected_dates in article_dates.items():
+        article = (site / f"{entry_id}.html").read_text()
+        assert 'class="home-link"' not in article
+        header = ET.fromstring(re.search(r'<header class="article-header">.*?</header>', article, re.S)[0])
+        assert header.find('.//h2') is not None
+        assert header.find('.//span[@class="row-id"]').text == f"#{entry_id}"
+        metadata = header.find('./div[@class="entry-meta"]/div[@class="row-meta"]')
+        assert metadata.find('./a[@class="entry-collection"]').get("href") == "dates"
+        assert metadata[-1].get("class") == "entry-pdf"
+        assert metadata[-1].get("href") == f"pdfs/{entry_id}.pdf"
+        assert metadata.find('.//time') is None
+        dates = header.findall('.//div[@class="article-date"]')
+        assert len(dates) == len(expected_dates)
+        for date, (label, value, display) in zip(dates, expected_dates):
+            assert "".join(date.itertext()) == f"{label} {compact_date(value, display)}"
+            assert date.find('./time').get("datetime") == value
+            assert date.find('./time').get("title") == f"{label} {display}"
+    homepage = (site / "index.html").read_text()
+    summaries = {
+        "changed": ("Updated", updated, updated_text),
+        "initial": ("Created", created, created_text),
+        "unchanged": ("Updated", "2026-08-24", "24 August 2026"),
+        "legacy": ("Created", "2026-08-23", "23 August 2026"),
+    }
+    for page in (listing, homepage, (site / "all.html").read_text()):
+        headings = re.findall(r'<div class="entry-list-heading"[^>]*>Last changed</div>', page)
+        assert len(headings) == 1
+        assert page.index('class="entry-list-heading"') < page.index('<ul class="entry-list">')
+        rows = [ET.fromstring(row) for row in re.findall(r'<li class="entry-row">.*?</li>', page, re.S)]
+        assert rows
+        for row in rows:
+            entry_id = row.find('.//span[@class="row-id"]').text.removeprefix("#")
+            label, value, display = summaries[entry_id]
+            compact = compact_date(value, display)
+            date = row.find('.//span[@class="row-date"]')
+            assert "".join(date.itertext()) == compact
+            times = row.findall('.//time')
+            assert len(times) == 1
+            assert times[0].get("datetime") == value
+            assert times[0].get("title") == f"{label} {display}"
     assert "Created <time" not in listing
     assert '<a class="entry-collection" href="dates">Dates</a>' in changed
-    unchanged = (site / "unchanged.html").read_text()
-    assert (
-        '<time datetime="2026-08-24">24 August 2026</time> · Updated '
-        '<time datetime="2026-08-24">24 August 2026</time>'
-    ) in unchanged
-    assert '<time datetime="2026-08-23">23 August 2026</time>' in (
-        site / "legacy.html"
-    ).read_text()
 
     if shutil.which("pdftotext") is not None:
-        assert "Created 24 August 2026 · Updated 27 August 2026" in _pdf_text(
-            site / "pdfs" / "changed.pdf"
-        )
-        book = _pdf_text(site / "pdfs" / "book.pdf")
-        assert "Created 24 August 2026 · Updated 27 August 2026" in book
+        expected_pdf = f"Created {created_text} · Updated {updated_text}"
+        assert expected_pdf in " ".join(_pdf_text(site / "pdfs" / "changed.pdf").split())
+        book = " ".join(_pdf_text(site / "pdfs" / "book.pdf").split())
+        assert expected_pdf in book
         assert "Created 24 August 2026 · Updated 24 August 2026" in _pdf_text(
             site / "pdfs" / "unchanged.pdf"
         )
@@ -734,6 +814,20 @@ def test_authored_dates_render_consistently_with_semantic_html(tmp_path: Path) -
         ("2026-02-30", None, "date is invalid"),
         ("24-08-2026", None, "ISO calendar date"),
         ("2026-08-24", "2026-08-23", "must not be earlier"),
+        ("2026-08-24T12:00:00", None, "timezone"),
+        ("2026-08-24T12:00:00+24:00", None, "invalid timezone offset"),
+        ("2026-08-24T12:00:00-01:60", None, "invalid timezone offset"),
+        ("2026-02-30T12:00:00Z", None, "date is invalid"),
+        ("2026-08-24T24:00:00Z", None, "hour"),
+        ("2026-08-24T12:60:00Z", None, "minute"),
+        ("2026-08-24T12:00:60Z", None, "second"),
+        ("2026-08-24T12:00:00.Z", None, "ISO"),
+        ("2026-08-24T12:00:00Zjunk", None, "ISO"),
+        ("2026-08-24", "2026-08-24T00:30:00+01:00", "must not be earlier"),
+        ("2026-08-24T01:00:00Z", "2026-08-24", "must not be earlier"),
+        ("2026-08-24T12:00:00Z", "2026-08-24T13:00:00+02:00", "must not be earlier"),
+        ("2026-08-24T12:00:00.000000002Z", "2026-08-24T12:00:00.000000001Z",
+         "must not be earlier"),
     ),
 )
 def test_authored_dates_reject_invalid_values(
@@ -774,7 +868,18 @@ def test_default_homepage_remains_collection_directory(tmp_path: Path) -> None:
     assert 'href="note"' not in index
 
 
-def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("alpha_updated", "beta_created", "gamma_created"),
+    (
+        ("2026-08-27", "2026-08-26", "2026-08-26"),
+        ("2026-08-27T01:00:00Z", "2026-08-27T02:00:00+02:00", "2026-08-26T19:00:00-05:00"),
+        ("2026-08-27T00:00:00.000000002Z", "2026-08-27T00:00:00.0000000010Z",
+         "2026-08-27T00:00:00.000000001Z"),
+    ),
+)
+def test_expanded_homepage_recent_and_collection_ordering(
+    tmp_path: Path, alpha_updated: str, beta_created: str, gamma_created: str,
+) -> None:
     root = tmp_path / "presentation"
     root.mkdir()
     _assemble(root, demo=False)
@@ -786,9 +891,9 @@ def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> Non
     )
     writings = root / "writings"
     entries = (
-        ("alpha", "2026-08-24", "2026-08-27", "work", "ExpStudy"),
-        ("beta", "2026-08-26", None, "work", "ExpScoutPlan"),
-        ("gamma", "2026-08-26", None, "work", "ExpStudy"),
+        ("alpha", "2026-08-24", alpha_updated, "work", "ExpStudy"),
+        ("beta", beta_created, None, "work", "ExpScoutPlan"),
+        ("gamma", gamma_created, None, "work", "ExpStudy"),
         ("delta", "2026-08-20", None, "second", None),
     )
     for entry_id, created, updated, collection, status in entries:
@@ -807,12 +912,27 @@ def test_expanded_homepage_recent_and_collection_ordering(tmp_path: Path) -> Non
 
     index_path = root / ".demolab" / "site" / "index.html"
     index = index_path.read_text()
+    assert index.count('class="entry-list-heading"') == 1
+    assert (root / ".demolab" / "site" / "all.html").read_text().count('class="entry-list-heading"') == 1
     recent = index[index.index("Recently worked on"):index.index('href="second"')]
     assert recent.index('href="alpha"') < recent.index('href="gamma"')
     assert 'href="beta"' not in recent
     assert 'href="talk"' not in recent
     assert index.index('<h3><a href="second"') < index.index('<h3><a href="work"')
     assert '<a class="row-collection" href="work">Work</a>' in recent
+    recent_rows = [ET.fromstring(row) for row in re.findall(r'<li class="entry-row">.*?</li>', recent, re.S)]
+    for row in recent_rows:
+        heading = row.find('./div[@class="row-heading"]')
+        metadata = row.find('./div[@class="row-meta"]')
+        entry_id = metadata.find('.//span[@class="row-id"]').text.removeprefix("#")
+        assert heading.find('.//a[@class="row-title"]').get("href") == entry_id
+        assert heading.find('.//a[@class="row-pdf"]') is None
+        identity = metadata.find('./span[@class="row-identity"]')
+        assert identity[-1].get("class") == "row-pdf"
+        assert identity[-1].get("href") == f"pdfs/{entry_id}.pdf"
+        assert metadata.find('.//a[@class="row-collection"]').text == "Work"
+        assert heading.find('./span[@class="row-date"]/time') is not None
+        assert metadata.find('.//time') is None
     assert index.index('href="work"') < index.index('href="slides"')
     assert "Second collection" in index and "Listed first." in index
     work = index[index.index('href="work"'):index.index('href="slides"')]
@@ -853,6 +973,7 @@ def test_expanded_homepage_can_omit_recent_section(
     index = (root / ".demolab" / "site" / "index.html").read_text()
     assert "Recently worked on" not in index
     assert 'href="note"' in index
+    assert index.count('class="entry-list-heading"') == 1
 
 
 def test_expanded_homepage_rejects_negative_recent(tmp_path: Path) -> None:

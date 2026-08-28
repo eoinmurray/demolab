@@ -6,7 +6,7 @@ Demolab publishes Typst writings. Create `writings/<slug>.typ` with two exports:
 #let meta = (
   title: "A clear title",
   created_at: "2026-08-23",
-  updated_at: "2026-08-27",
+  updated_at: "2026-08-27T14:30:00+02:00",
   description: "One sentence for listings.",
   collection: "notes",
 )
@@ -23,6 +23,40 @@ creation date. Omit it when no update should appear. Demolab renders authored va
 infers dates. The legacy `date` field remains a deprecated fallback for existing writings.
 Optional `description`, `collection`, `status`, `order`, and `annotations` fields control listings
 and presentation.
+
+### Authored dates and datetimes
+
+`created_at`, `updated_at`, and the legacy `date` fallback accept strings in either form:
+
+- `YYYY-MM-DD`, for example `"2026-08-27"`.
+- `YYYY-MM-DDTHH:MM[:SS[.fraction]]` followed by `Z` or a numeric `+HH:MM` / `-HH:MM`
+  timezone offset, for example `"2026-08-27T12:30Z"`, `"2026-08-27T14:30:00+02:00"`,
+  or `"2026-08-27T12:30:00.125Z"`.
+
+Datetimes require an explicit timezone. Calendar dates, clock components, and offsets are
+validated; seconds must be 00–59. Datetimes display in a readable 12-hour format, for example
+`28 August 2026 at 2:30 pm` in PDFs and the book. Web headers and listings use the
+compact form `28 Aug 26, 2:30 pm`.
+Seconds and fractional seconds are always omitted from display, without rounding minutes.
+Midnight is `12:00 am` and noon is `12:00 pm`. The authored local time is shown
+without a timezone label or conversion to the viewer's timezone. Date-only metadata has no time added.
+HTML `<time datetime>` attributes retain the exact authored string, including timezone and full precision.
+
+Web listings show one compact date under a single `Last changed` heading above the page's first entry list, using
+`updated_at` when supplied and otherwise `created_at`. For example, `28 Aug 26, 2:30 pm`.
+The date's tooltip identifies it as Created or Updated. Article headers share the list's
+typography and metadata bar, but show both labelled Created and Updated dates on the right
+when supplied. Their tooltips retain the full year. PDFs and the book also retain both
+authored dates. No creation timestamp is relabelled as an update.
+
+Update validation and "Recently worked on" ordering compare instants normalized to UTC.
+For these comparisons only, a date-only value means midnight UTC on that date. You may mix
+the two forms, but `updated_at` cannot be earlier than `created_at`: a date-only update on
+the same day as a creation time after midnight UTC is therefore earlier and is rejected.
+Equal instants are allowed, and a supplied update is still displayed. Recent-work ties
+use ID descending, including equivalent timestamps with different offsets or fractional
+precision. No value is inferred from Git, filesystem timestamps, builds, or deployment.
+Run-discovery timestamps follow their separate protocol below.
 
 ## Source directory and nested folders
 
