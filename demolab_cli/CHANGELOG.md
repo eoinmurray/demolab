@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.1] — 2026-08-28
+
+### Fixed
+- **Article headers give titles the full width.** Status badges follow the title inline;
+  Created and Updated dates share the quieter metadata row below and wrap underneath
+  on narrow screens. Compact listings, authored date values, PDFs, and books are unchanged.
+
 ## [5.2.0] — 2026-08-28
 
 ### Added

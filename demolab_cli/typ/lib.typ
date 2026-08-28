@@ -762,19 +762,6 @@
             heading(level: 1, meta.title)
             if status != none { status-badge(status) }
           })
-          html.elem("div", attrs: (class: "row-date article-dates"), {
-            let dates = entry-dates(meta)
-            for (field, label) in (("created", "Created"), ("updated", "Updated")) {
-              let value = dates.at(field)
-              if value != none {
-                html.elem("div", attrs: (class: "article-date"), {
-                  [#label ]
-                  html.elem("time", attrs: (datetime: value, title: label + " " + human-date(value)),
-                    human-date(value, compact: true))
-                })
-              }
-            }
-          })
         })
         // Keep the preview controls' existing metadata attachment point.
         html.elem("div", attrs: (class: "entry-meta"), {
@@ -789,6 +776,19 @@
               [ · ]
               html.elem("a", attrs: (class: "entry-pdf", href: pdf-href,
                 aria-label: "PDF: " + meta.title), "PDF")
+            }
+          })
+          html.elem("div", attrs: (class: "article-dates"), {
+            let dates = entry-dates(meta)
+            for (field, label) in (("created", "Created"), ("updated", "Updated")) {
+              let value = dates.at(field)
+              if value != none {
+                html.elem("div", attrs: (class: "article-date"), {
+                  [#label ]
+                  html.elem("time", attrs: (datetime: value, title: label + " " + human-date(value)),
+                    human-date(value, compact: true))
+                })
+              }
             }
           })
         })

@@ -719,8 +719,9 @@ def test_authored_dates_render_consistently_with_semantic_html(
     )
     writings = root / "writings"
     (writings / "changed.typ").write_text(
-        f'#let meta = (title: "Changed", created_at: "{created}", '
-        f'updated_at: "{updated}", collection: "dates")\n#let body = [Body.]\n'
+        '#let meta = (title: "From simplified to brainlike input in a PING network", '
+        f'created_at: "{created}", updated_at: "{updated}", '
+        'status: "[DATA]", collection: "dates")\n#let body = [Body.]\n'
     )
     (writings / "initial.typ").write_text(
         f'#let meta = (title: "Initial", created_at: "{created}", '
@@ -764,7 +765,8 @@ def test_authored_dates_render_consistently_with_semantic_html(
         assert metadata[-1].get("class") == "entry-pdf"
         assert metadata[-1].get("href") == f"pdfs/{entry_id}.pdf"
         assert metadata.find('.//time') is None
-        dates = header.findall('.//div[@class="article-date"]')
+        assert header.find('./div[@class="row-heading"]//time') is None
+        dates = header.findall('./div[@class="entry-meta"]/div[@class="article-dates"]/div[@class="article-date"]')
         assert len(dates) == len(expected_dates)
         for date, (label, value, display) in zip(dates, expected_dates):
             assert "".join(date.itertext()) == f"{label} {compact_date(value, display)}"
