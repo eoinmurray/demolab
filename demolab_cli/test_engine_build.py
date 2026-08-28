@@ -781,8 +781,12 @@ def test_authored_dates_render_consistently_with_semantic_html(
     }
     for page in (listing, homepage, (site / "all.html").read_text()):
         headings = re.findall(r'<div class="entry-list-heading"[^>]*>Last changed</div>', page)
-        assert len(headings) == 1
-        assert page.index('class="entry-list-heading"') < page.index('<ul class="entry-list">')
+        if page == homepage:
+            assert not headings
+            assert 'class="entry-list-heading"' not in page
+        else:
+            assert len(headings) == 1
+            assert page.index('class="entry-list-heading"') < page.index('<ul class="entry-list">')
         rows = [ET.fromstring(row) for row in re.findall(r'<li class="entry-row">.*?</li>', page, re.S)]
         assert rows
         for row in rows:
@@ -914,7 +918,7 @@ def test_expanded_homepage_recent_and_collection_ordering(
 
     index_path = root / ".demolab" / "site" / "index.html"
     index = index_path.read_text()
-    assert index.count('class="entry-list-heading"') == 1
+    assert 'class="entry-list-heading"' not in index
     assert (root / ".demolab" / "site" / "all.html").read_text().count('class="entry-list-heading"') == 1
     recent = index[index.index("Recently worked on"):index.index('href="second"')]
     assert recent.index('href="alpha"') < recent.index('href="gamma"')
@@ -975,7 +979,7 @@ def test_expanded_homepage_can_omit_recent_section(
     index = (root / ".demolab" / "site" / "index.html").read_text()
     assert "Recently worked on" not in index
     assert 'href="note"' in index
-    assert index.count('class="entry-list-heading"') == 1
+    assert 'class="entry-list-heading"' not in index
 
 
 def test_expanded_homepage_rejects_negative_recent(tmp_path: Path) -> None:

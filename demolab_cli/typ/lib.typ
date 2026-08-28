@@ -626,11 +626,10 @@
 
 #let expanded-index(colls, items, recent: 0, collection-meta: (:)) = {
   let recent-items = recent-writings(items, recent)
-  let show-date-heading = true
   if recent > 0 and recent-items.len() > 0 {
     heading(level: 2, [Recently worked on])
-    entry-list(recent-items, show-collection: true, collection-meta: collection-meta)
-    show-date-heading = false
+    entry-list(recent-items, show-collection: true, collection-meta: collection-meta,
+      show-date-heading: false)
   }
   for c in colls {
     let collection-items = items.filter(x => x.coll == c)
@@ -640,13 +639,11 @@
     let desc = collection-description(c, collection-meta)
     if desc != none { html.elem("p", attrs: (class: "coll-desc"), desc) }
     if writings.len() > 0 {
-      entry-list(writings, collection-meta: collection-meta, show-date-heading: show-date-heading)
-      show-date-heading = false
+      entry-list(writings, collection-meta: collection-meta, show-date-heading: false)
     }
     if slides.len() > 0 {
       heading(level: 3, [Slides])
-      entry-list(slides, collection-meta: collection-meta, show-date-heading: show-date-heading)
-      show-date-heading = false
+      entry-list(slides, collection-meta: collection-meta, show-date-heading: false)
     }
   }
 }

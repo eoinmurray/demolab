@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.3] — 2026-08-28
+
+### Fixed
+- **Homepage collection spacing.** Remove the `Last changed` heading above homepage
+  entry lists so it no longer adds extra space to the first section. Individual dates
+  and the headings on collection and all-entries pages remain unchanged.
+
 ## [5.2.2] — 2026-08-28
 
 ### Fixed

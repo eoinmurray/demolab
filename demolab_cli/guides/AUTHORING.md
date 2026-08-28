@@ -42,8 +42,9 @@ Midnight is `12:00 am` and noon is `12:00 pm`. The authored local time is shown
 without a timezone label or conversion to the viewer's timezone. Date-only metadata has no time added.
 HTML `<time datetime>` attributes retain the exact authored string, including timezone and full precision.
 
-Web listings show one compact date under a single `Last changed` heading above the page's first entry list, using
-`updated_at` when supplied and otherwise `created_at`. For example, `28 Aug 26, 2:30 pm`.
+Web listings show one compact date, using `updated_at` when supplied and otherwise
+`created_at`. For example, `28 Aug 26, 2:30 pm`. Collection and all-entries pages show
+a single `Last changed` heading above their first entry list; the homepage omits it.
 The date's tooltip identifies it as Created or Updated. Article headers share the list's
 typography and metadata bar, but show both labelled Created and Updated dates on the right
 when supplied. Their tooltips retain the full year. PDFs and the book also retain both
