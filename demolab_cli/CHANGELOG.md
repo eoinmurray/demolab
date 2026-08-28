@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.2.2] — 2026-08-28
+
+### Fixed
+- **Article title-to-status spacing matches homepage listings.** The title permalink
+  sits in the left margin instead of reserving invisible space before the status badge.
+  Hover and keyboard access to the permalink remain available.
+
 ## [5.2.1] — 2026-08-28
 
 ### Fixed
