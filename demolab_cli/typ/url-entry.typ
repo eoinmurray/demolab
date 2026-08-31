@@ -14,6 +14,7 @@
 #for (url, source) in meta.at("assets", default: (:)) { asset(url, read(source, encoding: none)) }
 #asset("favicon.svg", read("/.demolab/favicon.svg", encoding: none))
 #asset("cite-popover.js", read("/.demolab/cite-popover.js", encoding: none))
+#asset("image-lightbox.js", read("/.demolab/image-lightbox.js", encoding: none))
 #let page() = entry-page(meta, body, id: request.id, brand: brand,
   collection-meta: config.at("collections", default: (:)),
   annotations: config.at("annotations", default: none), pdfs-enabled: pdfs)

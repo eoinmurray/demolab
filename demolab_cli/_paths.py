@@ -33,7 +33,7 @@ VERSION = (PACKAGE / "VERSION").read_text().strip()
 MARKER = "demolab.yaml"
 
 # Everything stage() writes into <lab>/.demolab/ (plus the VERSION stamp).
-_STAGED = ("lib.typ", "style.css", "cite-popover.js", "favicon.svg")
+_STAGED = ("lib.typ", "style.css", "cite-popover.js", "image-lightbox.js", "favicon.svg")
 
 
 class LayoutError(ValueError):

@@ -81,6 +81,8 @@
 #asset("favicon.svg", read("/.demolab/favicon.svg", encoding: none))
 // hover popovers for inline citations (web-only), referenced by lib.typ's web-styles
 #asset("cite-popover.js", read("/.demolab/cite-popover.js", encoding: none))
+// fullscreen figure gallery (web-only), referenced by lib.typ's web-styles
+#asset("image-lightbox.js", read("/.demolab/image-lightbox.js", encoding: none))
 
 // --- documents (one compile emits them all into .demolab/site/) ---
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a

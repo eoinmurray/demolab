@@ -103,6 +103,9 @@ def test_configured_nested_writings_build_all_targets(tmp_path, source_layout):
     before = {p: _sha256(p) for p in (helper, entry, deck, legacy, layout.config)}
     _build(root)
     site = root / ".demolab" / "site"
+    page = (site / "entropy.html").read_text()
+    assert '<script src="image-lightbox.js" defer></script>' in page
+    assert (site / "image-lightbox.js").is_file()
     manifest = json.loads((root / ".demolab" / "bundle" / "index.json").read_text())
     assert manifest["entries"] == [{"id": "entropy", "kind": "page", "source": layout.typst_path(entry)}]
     assert manifest["decks"] == [{"id": "keynote", "source": layout.typst_path(deck)}]

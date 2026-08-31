@@ -99,6 +99,12 @@ Put static inputs under `assets/`. Typst can read them from absolute project pat
 `#image("/assets/chart.svg")` or `#let data = json("/assets/results.json")`. Static files are
 copied into the website at the same relative path; `#video("clip.mp4")` references an asset.
 
+On web pages, an unlinked image inside a figure automatically opens in a fullscreen gallery.
+Arrow keys, on-screen controls, and horizontal touch swipes move through the page's figures;
+Escape or the backdrop closes the viewer. Captions and image position remain visible. An image
+already inside a link keeps its authored destination instead. Raw HTML images can opt out with
+`data-lightbox="off"`. This enhancement is web-only and does not change PDF output.
+
 Use `demolab dev` for live preview and `demolab build` for a complete publication. Generated web
 and PDF output lives under `.demolab/site/` and `.demolab/pdfs/`; reserve `.artifacts/` for tracked
 publication evidence owned by your project.

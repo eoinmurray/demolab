@@ -87,6 +87,8 @@ def test_two_tabs_have_independent_output_and_no_preview_state(lab):
     assert first_site != second_site
     assert "Value: 10" in first and "Other: 10" in first and "first" in first
     assert "Value: 20" in second and "Other: 20" in second and "second" in second
+    assert 'image-lightbox.js" defer></script>' in first
+    assert (first_site / "image-lightbox.js").is_file()
     assert "EventSource" not in first and "__preview" not in first
     assert '/__render/' in first and 'href="/report?basepath=data/two"' in first
     assert not (lab.runtime / "preview").exists()

@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.3.0] — 2026-08-31
+
+### Added
+- **Fullscreen web figure gallery.** Click an unlinked article figure to open a viewport-sized
+  viewer with its caption, image count, previous/next controls, wrapping arrow-key navigation,
+  Escape/backdrop closing, keyboard focus restoration, and touch swiping. Linked figures keep
+  their authored destination; raw HTML images may opt out with `data-lightbox="off"`.
+
 ## [5.2.5] — 2026-08-28
 
 ### Changed

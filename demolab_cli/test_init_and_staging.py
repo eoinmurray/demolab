@@ -96,6 +96,7 @@ def test_stage_materialises_and_stamps(tmp_path):
     dot = _paths.stage(tmp_path)
     assert (dot / "lib.typ").is_file()
     assert (dot / "style.css").is_file()
+    assert (dot / "image-lightbox.js").is_file()
     assert (dot / "VERSION").read_text(encoding="utf-8").strip() == _paths.VERSION
 
 

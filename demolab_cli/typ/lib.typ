@@ -216,6 +216,8 @@
     }
     // hover popovers for inline citations (no-op on pages without cites)
     html.elem("script", attrs: (src: "cite-popover.js", defer: ""))[]
+    // fullscreen, keyboard- and swipe-navigable gallery for unlinked figure images
+    html.elem("script", attrs: (src: "image-lightbox.js", defer: ""))[]
     // Optional collaborative web annotations. The hosted Hypothesis client owns accounts,
     // private groups, storage, anchoring, and threads; demolab only opts this page into it.
     if annotations == "hypothesis" {
