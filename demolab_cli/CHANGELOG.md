@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.3.2] — 2026-09-02
+
+### Changed
+- Restore the previous `1.1rem` size for third-level web headings, reverting the heading-scale
+  adjustment from 5.3.1.
+
 ## [5.3.1] — 2026-09-02
 
 ### Fixed
