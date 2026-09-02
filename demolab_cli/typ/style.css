@@ -65,7 +65,7 @@
 
   --fs-h1: 1.6rem;        /* page/entry title  (Typst level 1 → <h2>) — 28.8px */
   --fs-h2: 1.3rem;        /* section heading   (Typst level 2 → <h3>) — 23.4px */
-  --fs-h3: 1.1rem;        /* subsection        (Typst level 3 → <h4>) — 19.8px */
+  --fs-h3: 1.2rem;        /* subsection        (Typst level 3 → <h4>) — 21.6px */
   --fs-small: 0.85rem;    /* every piece of secondary text, one size  — 15.3px */
   --fs-label: 0.72rem;    /* uppercase mono labels — 13px */
 

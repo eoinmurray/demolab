@@ -5,10 +5,15 @@ compile — is exercised by hand against `task dev`; these cover the two string 
 server leans on, which are easy to break silently, plus the loopback bind (sockets only, no
 HTTP request, no build) that an IPv4-only server gets wrong on Windows.
 """
+import json
 import os
+import shutil
 import socket
+import subprocess
 import threading
 from types import SimpleNamespace
+
+import pytest
 
 from demolab_cli import _paths, devserver
 
@@ -22,6 +27,75 @@ def test_sse_bytes_multiline_frames_each_line():
     # line must get its own "data: " prefix or the browser sees a mangled message.
     out = devserver.sse_bytes("error\nunclosed delimiter\n  at foo.typ:1").decode()
     assert out == "data: error\ndata: unclosed delimiter\ndata:   at foo.typ:1\n\n"
+
+
+def test_error_event_carries_optional_entry_scope():
+    scoped = devserver.error_event("missing figure", "report")
+    assert json.loads(scoped.removeprefix("error\n")) == {
+        "message": "missing figure", "entry": "report"}
+    assert json.loads(devserver.error_event("invalid config").removeprefix("error\n"))["entry"] == ""
+
+
+def test_error_entry_attributes_compile_and_selection_failures():
+    sources = {"report": devserver._build_mod.ROOT / "writings" / "report.typ"}
+    diagnostic = "error: broken\nwhile importing `/writings/report.typ`"
+    assert devserver.error_entry(diagnostic, sources) == "report"
+    assert devserver.error_entry("report / results: no available run", sources) == "report"
+    assert devserver.error_entry("invalid demolab.yaml", sources) == ""
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node required for browser-client test")
+def test_reload_client_shows_scoped_error_only_on_matching_route():
+    program = """
+globalThis.window = {};
+globalThis.location = {pathname: '/welcome'};
+let appended = 0;
+globalThis.document = {
+  createElement: () => ({style: {}, remove: () => {}}),
+  documentElement: {appendChild: () => { appended += 1; }}
+};
+globalThis.EventSource = function () { globalThis.events = this; };
+globalThis.setTimeout = () => {};
+""" + devserver.RELOAD_JS + """
+events.onmessage({data: SCOPED});
+if (appended !== 0) throw new Error('error leaked onto another page');
+location.pathname = '/report.html';
+events.onmessage({data: SCOPED});
+if (appended !== 1) throw new Error('matching page did not show its error');
+events.onmessage({data: 'ok'});
+location.pathname = '/welcome';
+events.onmessage({data: GLOBAL});
+if (appended !== 2) throw new Error('global error was not shown site-wide');
+"""
+    program = program.replace("SCOPED", json.dumps(devserver.error_event("broken", "report")))
+    program = program.replace("GLOBAL", json.dumps(devserver.error_event("bad config")))
+    subprocess.run([shutil.which("node"), "-e", program], check=True, capture_output=True, text=True)
+
+
+def test_preview_build_records_article_scope(tmp_path, monkeypatch):
+    layout = _paths.layout_for(tmp_path)
+    source = devserver._build_mod.ROOT / "writings" / "report.typ"
+    session = SimpleNamespace(runtime=layout.runtime / "preview", lock=threading.RLock(),
+                              error_entry="", rebuild=lambda *args: (
+                                  False, "error: broken\nwhile importing `/writings/report.typ`"))
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    monkeypatch.setattr(devserver, "PREVIEW", session)
+    monkeypatch.setattr(devserver.preview, "load_config", lambda _: object())
+    monkeypatch.setattr(devserver._build_mod, "discover", lambda: ({"report": source}, {}))
+    assert not devserver.build()[0]
+    assert session.error_entry == "report"
+
+
+def test_global_preview_failure_clears_previous_article_scope(tmp_path, monkeypatch):
+    layout = _paths.layout_for(tmp_path)
+    session = SimpleNamespace(runtime=layout.runtime / "preview", lock=threading.RLock(),
+                              error="", error_entry="report", pending=True)
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    monkeypatch.setattr(devserver, "PREVIEW", session)
+    monkeypatch.setattr(devserver.preview, "load_config",
+                        lambda _: (_ for _ in ()).throw(devserver.preview.PreviewError("bad config")))
+    assert devserver.build() == (False, "bad config")
+    assert session.error_entry == "" and not session.pending
 
 
 def test_inject_reload_before_body_close():
@@ -152,3 +226,37 @@ def test_demo_watch_inputs_include_alternatives_but_exclude_runtime(tmp_path, mo
     assert str(added) in devserver.snapshot()
     added.unlink()
     assert str(added) not in devserver.snapshot()
+
+
+def test_project_dependencies_outside_writings_trigger_snapshot(tmp_path, monkeypatch):
+    layout = _paths.layout_for(tmp_path)
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    monkeypatch.setattr(devserver, "WATCH_DIRS", [])
+    monkeypatch.setattr(devserver, "WATCH_FILES", [layout.config, layout.landing])
+    layout.config.write_text("name: Test\n")
+    helper = tmp_path / "experiments" / "graph.py"
+    helper.parent.mkdir()
+    helper.write_text("VERSION = 1\n")
+    before = devserver.snapshot()
+    assert str(helper) in before
+    helper.write_text("VERSION = 2\n")
+    os.utime(helper, ns=(before[str(helper)] + 1_000_000_000,) * 2)
+    assert devserver.snapshot()[str(helper)] != before[str(helper)]
+
+
+def test_project_watch_excludes_generated_and_cache_trees(tmp_path):
+    layout = _paths.layout_for(tmp_path)
+    included = [tmp_path / ".artifacts" / "exp" / "figure.svg",
+                tmp_path / ".pingstore" / "runs" / "exp001-r001-present" / "run.json",
+                tmp_path / "writings" / "helper.typ"]
+    excluded = [tmp_path / ".demolab" / "site" / "page.html",
+                tmp_path / ".git" / "index", tmp_path / ".venv" / "module.py",
+                tmp_path / "experiments" / "__pycache__" / "graph.pyc",
+                tmp_path / ".pingstore" / "runs" / ".exp001-r002.tmp" / "run.json",
+                tmp_path / "output" / "generated.json"]
+    for path in included + excluded:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+    watched = set(devserver.project_watch_files(layout))
+    assert set(included) <= watched
+    assert not set(excluded) & watched

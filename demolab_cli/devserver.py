@@ -40,9 +40,42 @@ LAYOUT = _build_mod.LAYOUT
 PREVIEW = None
 
 
-def source_watch_dirs(layout: _paths.LabLayout) -> list[tuple[Path, str]]:
-    return [(layout.writings, "**/*"), (layout.data, "**/*"),
-            (layout.assets, "**/*")]
+# Watch the authored project, not just writings/assets. A trusted prepare command may import
+# project-owned Python modules (Pinglab's presentation hook does), and Typst may import helpers from
+# elsewhere under its root. Generated/runtime trees are excluded both for cost and to prevent the
+# build from triggering itself indefinitely. Hidden authored data remains covered through explicit
+# .artifacts and .pingstore exceptions; hidden temporary runs inside them stay excluded.
+_PROJECT_WATCH_EXCLUDED_DIRS = {
+    ".demolab", ".git", ".hg", ".svn", ".venv", "venv", "node_modules", ".r2", ".scratch",
+    ".pytest_cache", ".ruff_cache", ".mypy_cache", ".tox", ".nox", "__pycache__", "dist",
+    "output", "tmp",
+}
+_PROJECT_WATCH_EXCLUDED_SUFFIXES = {".pyc", ".pyo", ".swp", ".swo"}
+_PROJECT_WATCH_INCLUDED_HIDDEN_DIRS = {".artifacts", ".pingstore"}
+
+
+def project_watch_files(layout: _paths.LabLayout):
+    """Yield authored project files, including dependencies outside the writings directory."""
+    root = layout.content
+    if not root.exists():
+        return
+    for base, dirs, files in os.walk(root, followlinks=False):
+        parent = Path(base)
+        kept = []
+        for name in sorted(dirs):
+            path = parent / name
+            if (name in _PROJECT_WATCH_EXCLUDED_DIRS
+                    or (name.startswith(".") and name not in _PROJECT_WATCH_INCLUDED_HIDDEN_DIRS)
+                    or path.is_symlink()):
+                continue
+            kept.append(name)
+        dirs[:] = kept
+        for name in sorted(files):
+            path = parent / name
+            if (name.startswith(".") or name.endswith("~")
+                    or path.suffix in _PROJECT_WATCH_EXCLUDED_SUFFIXES or path.is_symlink()):
+                continue
+            yield path
 
 
 # Source trees whose changes trigger a rebuild. SOURCES only — never .demolab/site (build.py
@@ -66,6 +99,11 @@ BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow —
 RELOAD_JS = r"""
 (function () {
   var overlay;
+  function currentEntry() {
+    var path = decodeURIComponent(location.pathname).replace(/\/+$/, '');
+    var name = path.slice(path.lastIndexOf('/') + 1);
+    return name.endsWith('.html') ? name.slice(0, -5) : name;
+  }
   function show(msg) {
     if (window.__demolabPreviewError) { window.__demolabPreviewError(msg); return; }
     if (!overlay) {
@@ -80,7 +118,10 @@ RELOAD_JS = r"""
     overlay.textContent = '⚠  demolab build failed\n\n' + msg +
       '\n\nFix the source; this clears on the next good build.';
   }
-  function clear() { if (overlay) { overlay.remove(); overlay = null; } }
+  function clear() {
+    if (window.__demolabPreviewClearError) window.__demolabPreviewClearError();
+    if (overlay) { overlay.remove(); overlay = null; }
+  }
   function connect() {
     var es = new EventSource('/__dev');
     es.onmessage = function (e) {
@@ -89,7 +130,13 @@ RELOAD_JS = r"""
         else { location.reload(); }
       }
       else if (e.data === 'ok') { clear(); }
-      else if (e.data.slice(0, 5) === 'error') { show(e.data.slice(6)); }
+      else if (e.data.slice(0, 5) === 'error') {
+        var failure;
+        try { failure = JSON.parse(e.data.slice(6)); }
+        catch (_) { failure = {message: e.data.slice(6), entry: ''}; }
+        if (!failure.entry || failure.entry === currentEntry()) show(failure.message);
+        else clear();
+      }
     };
     es.onerror = function () { es.close(); setTimeout(connect, 1000); };
   }
@@ -100,7 +147,7 @@ RELOAD_JS = r"""
 # --- broadcast state ---
 _lock = threading.Lock()
 _clients = []                 # list[queue.Queue] — one per connected browser tab
-_last_error = [""]            # latest build error text ("" when the last build was clean)
+_last_error = [None]          # latest {message, entry} failure (None when the last build was clean)
 
 
 def broadcast(msg: str) -> None:
@@ -119,6 +166,23 @@ def sse_bytes(payload: str) -> bytes:
     return (body + "\n").encode("utf-8")
 
 
+def error_event(message: str, entry: str = "") -> str:
+    """Encode a build failure for the browser; entry is empty for a site-wide failure."""
+    return "error\n" + json.dumps({"message": message, "entry": entry}, ensure_ascii=False)
+
+
+def error_entry(message: str, ids: dict[str, Path]) -> str:
+    """Return the writing responsible for a diagnostic, or empty when its scope is wider/unknown."""
+    attributed = _build_mod._entry_from_error(message, ids)
+    if attributed:
+        return attributed
+    # Preview selection errors name their article and key before compilation begins.
+    for entry in ids:
+        if message.startswith(entry + " / "):
+            return entry
+    return ""
+
+
 def inject_reload(html: str) -> str:
     """Splice the live-reload client into a page, before </body> when present (else appended),
     so even a stale page can receive the error overlay."""
@@ -132,27 +196,32 @@ def snapshot() -> dict:
     sig = {}
     # Resolve the current configuration each time; YAML evaluation is cached by content.
     # An invalid edit must not kill the watcher: still watch the config so fixing it recovers.
+    writing_files = []
     try:
-        sources = source_watch_dirs(LAYOUT)
-        writings = sources[0][0]
+        # Resolve this even though the broader project scan does not need it: invalid writings
+        # configuration must still surface and recover when demolab.yaml is fixed.
+        writing_files = list(LAYOUT.source_files())
     except _paths.LayoutError as exc:
-        sources = [(LAYOUT.data, "**/*"), (LAYOUT.assets, "**/*")]
-        writings = None
         sig["<writings-error>"] = str(exc)
-    for base, pattern in WATCH_DIRS + sources:
+    for p in writing_files:
+        try:
+            sig[str(p)] = p.stat().st_mtime_ns
+        except OSError:
+            pass  # vanished mid-scan
+    for base, pattern in WATCH_DIRS:
         if not base.exists():
             continue
-        paths = LAYOUT.source_files(base) if base == writings else base.glob(pattern)
+        for p in base.glob(pattern):
+            if p.is_file():
+                try:
+                    sig[str(p)] = p.stat().st_mtime_ns
+                except OSError:
+                    pass  # vanished mid-scan
+    for p in project_watch_files(LAYOUT):
         try:
-            for p in paths:
-                if p.is_file():
-                    try:
-                        sig[str(p)] = p.stat().st_mtime_ns
-                    except OSError:
-                        pass  # vanished mid-scan
-        except _paths.LayoutError as exc:
-            # Adding/fixing an invalid symlink must trigger a build even in an empty tree.
-            sig["<writings-error>"] = str(exc)
+            sig[str(p)] = p.stat().st_mtime_ns
+        except OSError:
+            pass  # vanished mid-scan
     for p in WATCH_FILES:
         try:
             sig[str(p)] = p.stat().st_mtime_ns
@@ -212,13 +281,18 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
             PREVIEW = preview.Session(LAYOUT)
         SITE = PREVIEW.runtime / "site"
         ids, _ = _build_mod.discover()
-        return PREVIEW.rebuild(config, ids, lambda: _compile(selected=True))
+        result = PREVIEW.rebuild(config, ids, lambda: _compile(selected=True))
+        with PREVIEW.lock:
+            PREVIEW.error_entry = "" if result[0] else error_entry(result[1], ids)
+        return result
     except (preview.PreviewError, _paths.LayoutError, OSError, ValueError) as exc:
         # Even an invalid first configuration needs a recoverable error panel.
         if PREVIEW is None:
             PREVIEW = preview.Session(LAYOUT)
-        PREVIEW.error = str(exc)
-        PREVIEW.pending = False
+        with PREVIEW.lock:
+            PREVIEW.error = str(exc)
+            PREVIEW.error_entry = ""
+            PREVIEW.pending = False
         SITE = PREVIEW.runtime / "site"
         return False, str(exc)
 
@@ -394,7 +468,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             # A tab that connects while the build is broken should see the overlay immediately.
             if pending_error:
-                self.wfile.write(sse_bytes("error\n" + pending_error))
+                self.wfile.write(sse_bytes(error_event(**pending_error)))
                 self.wfile.flush()
             while True:
                 try:
@@ -469,9 +543,10 @@ def watch_loop():
     """Poll the source signature; on a settled change, rebuild and tell the browser."""
     last = snapshot()
     ok, msg = build()  # first build always compiles decks so their PDFs exist for later skips
-    _last_error[0] = "" if ok else msg
+    entry = "" if ok else (PREVIEW.error_entry if PREVIEW is not None else "")
+    _last_error[0] = None if ok else {"message": msg, "entry": entry}
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
-    broadcast("reload" if ok else "error\n" + msg)
+    broadcast("reload" if ok else error_event(msg, entry))
     while True:
         try:
             time.sleep(POLL_SECONDS)
@@ -491,13 +566,14 @@ def watch_loop():
             # Edits/config switches during compilation must trigger the next rebuild.
             last = cur
             if ok:
-                _last_error[0] = ""
+                _last_error[0] = None
                 print("  rebuilt" + (" (decks skipped)" if skip else "") + ": " + msg, flush=True)
                 broadcast("reload")
             else:
-                _last_error[0] = msg
+                entry = PREVIEW.error_entry if PREVIEW is not None else ""
+                _last_error[0] = {"message": msg, "entry": entry}
                 print("  BUILD FAILED (shown in browser):\n" + msg, flush=True)
-                broadcast("error\n" + msg)
+                broadcast(error_event(msg, entry))
         except KeyboardInterrupt:
             raise  # let main() print "stopped" and exit
         except Exception as e:

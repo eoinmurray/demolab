@@ -13,6 +13,19 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.3.1] — 2026-09-02
+
+### Fixed
+- **Third-level web headings have clearer hierarchy.** Typst level-3 headings are now `1.2rem`
+  rather than `1.1rem`, keeping them subordinate to sections without leaving them near body size.
+- **Page build errors stay on their page in dev.** Attributable writing and preview-selection
+  failures are shown only on the corresponding article URL instead of every open page. Invalid
+  configuration, discovery, shared-template, and otherwise unscoped failures remain site-wide.
+- **Dev rebuilds when project-owned dependencies change.** The watcher now covers authored files
+  across the lab root, including Typst helpers and preparation-command Python imports outside
+  `writings/`, plus `.artifacts/` and `.pingstore/`. It excludes incomplete hidden runs,
+  generated runtime, environments, caches, and scratch output.
+
 ## [5.3.0] — 2026-08-31
 
 ### Added

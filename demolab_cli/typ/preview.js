@@ -104,6 +104,16 @@ function demolabPreviewOptions(runs, choice) {
     message.textContent = error + '\nShowing the last successful build.';
   }
   window.__demolabPreviewError = showError;
+  window.__demolabPreviewClearError = () => {
+    if (!message) return;
+    message.className = '';
+    message.textContent = '';
+  };
+  function currentEntry() {
+    const path = decodeURIComponent(location.pathname).replace(/\/+$/, '');
+    const name = path.slice(path.lastIndexOf('/') + 1);
+    return name.endsWith('.html') ? name.slice(0, -5) : name;
+  }
   window.__demolabPreviewReload = () => {
     if (sending) { reloadPending = true; return; }
     // An automatic reload adopts the shared preview, rather than fighting another tab's URL.
@@ -181,7 +191,8 @@ function demolabPreviewOptions(runs, choice) {
       control.select.value = value;
       control.select.disabled = disabled;
     });
-    if (localError || state.error) showError(localError || (state.stale ? 'Sources unavailable.\n' : '') + state.error);
+    const visibleStateError = state.error && (!state.error_entry || state.error_entry === currentEntry());
+    if (localError || visibleStateError) showError(localError || (state.stale ? 'Sources unavailable.\n' : '') + state.error);
     else {
       message.className = '';
       message.textContent = '';

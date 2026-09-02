@@ -200,10 +200,10 @@ def test_watcher_changes_source_roots_and_recovers_from_invalid_config(tmp_path,
     monkeypatch.setattr(devserver, "WATCH_FILES", [layout.config, layout.landing])
     layout.config.write_text("first")
     first_snapshot = devserver.snapshot()
-    assert str(first) in first_snapshot and str(second) not in first_snapshot
+    assert str(first) in first_snapshot and str(second) in first_snapshot
     layout.config.write_text("second")
     second_snapshot = devserver.snapshot()
-    assert str(second) in second_snapshot and str(first) not in second_snapshot
+    assert str(second) in second_snapshot and str(first) in second_snapshot
     assert str(helper) in second_snapshot
     assert devserver.deck_affecting({str(helper)})
     assert devserver.deck_affecting({str(second.parent / "helper.typ")})

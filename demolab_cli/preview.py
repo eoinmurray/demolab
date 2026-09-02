@@ -252,6 +252,7 @@ class Session:
         self.accepted = {}
         self.rendered = {}
         self.error = ""
+        self.error_entry = ""
         self.stale = False
         self.busy = False
         self.pending = False
@@ -321,7 +322,9 @@ class Session:
         with self.lock:
             return copy.deepcopy({"token": self.token, "articles": self.inputs, "runs": self.catalogue,
                                   "selections": self.desired, "rendered": self.rendered,
-                                  "error": self.error or self.state_error, "stale": self.stale,
+                                  "error": self.error or self.state_error,
+                                  "error_entry": self.error_entry if self.error else "",
+                                  "stale": self.stale,
                                   "busy": self.busy or self.pending, "revision": self.revision})
 
     def watch(self):
@@ -410,6 +413,7 @@ class Session:
             with self.lock:
                 self.accepted, self.rendered = choices, rendered
                 self.error = ""
+                self.error_entry = ""
                 # Requests arriving during compilation remain queued for the next build.
                 if self.revision == requested_revision:
                     self.desired = copy.deepcopy(choices)

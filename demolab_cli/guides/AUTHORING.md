@@ -88,8 +88,10 @@ escaping the content tree or pointing into generated runtime are rejected. Co-lo
 are available to Typst imports but are not automatically copied to the website; use `assets/`
 for public static downloads.
 
-Live preview watches nested sources and helpers, and switches watched directories when this
-setting changes. Source edits conservatively rebuild decks because helpers may be shared.
+Live preview watches authored project files across the lab root, including nested writing helpers,
+Typst imports, preparation code, `.artifacts/`, `.pingstore/`, and other project-owned
+dependencies. Hidden temporary runs, generated runtime, environments, caches, and scratch-output directories are excluded. Typst source edits
+conservatively rebuild decks because helpers may be shared.
 Successful full builds replace the generated site, removing obsolete pages and PDFs; failed
 builds preserve the previous site. Changing the setting never moves or deletes authored files.
 
@@ -317,8 +319,8 @@ In `demolab dev`, a minimal selector row below the article metadata lists each r
 marking the newest as Latest. Every input initially follows Latest unless the URL fragment specifies
 a run. Changes apply immediately. Each choice affects only that article and key, including all its figures,
 numerical prose, and preview PDFs. Groups each start at Latest, so paired comparisons may
-initially compare a run against itself. Source files, configuration, and script arguments
-that name local files are watched; restart dev after changes to other discovery dependencies.
+initially compare a run against itself. Project-owned discovery code and dependencies are watched;
+changes to external installed packages still require restarting dev.
 
 The fragment stores choices as `#run.<data-key>=latest` or
 `#run.<data-key>=run%3A<run-id>`, joined by `&` for multiple inputs. Refreshing that URL

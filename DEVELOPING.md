@@ -77,9 +77,11 @@ and selection views remain user-owned. See AUTHORING and test_url_inputs.py.
 parses the setting lazily, cached by configuration contents (including parse errors), so the engine
 keeps zero Python runtime dependencies and setup/docs/clean do not need Typst. Build manifests
 carry each article/deck's stable basename ID and root-relative source path; imports never reconstruct
-paths from IDs. The dev watcher refreshes its source root after config edits and includes nested
-helpers. Full builds compile a fresh `.demolab/bundle/site-next/` candidate and replace the generated
-site only on success, pruning obsolete outputs without touching authored inputs.
+paths from IDs. The dev watcher refreshes its source root after config edits and includes
+project-owned dependencies across the lab root, including `.artifacts/` and `.pingstore/`, while
+excluding runtime, environments, caches, and scratch output. Full builds compile a fresh
+`.demolab/bundle/site-next/` candidate and replace the generated site only on success, pruning
+obsolete outputs without touching authored inputs.
 
 Run `uv run pytest` for tests and `uv build` to produce the wheel and source distribution. A wheel
 must contain `typ/`, `guides/`, and `scaffold/`, but not engine tests or generated demo output.

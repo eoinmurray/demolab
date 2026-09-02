@@ -86,7 +86,7 @@ on the very first build. Without that declaration, automatic matching begins wit
 `data-json()` / `data-image()` plus native conditionals implement these states; `video()` accepts
 the same missing-input sentinel for articles with videos.
 
-Dev watches configuration, writings, source data, and the discovery script. It reads run
-inputs directly. Preview state/output stay under `.demolab/preview/`; errors leave the last
+Dev watches configuration, writings, source data, the discovery script, and its project-owned
+dependencies. It reads run inputs directly. Preview state/output stay under `.demolab/preview/`; errors leave the last
 successful site visible with a warning and usable selectors. `uv run demolab clean` removes
 generated state/output, never this directory. See AUTHORING for the full optional protocol.
