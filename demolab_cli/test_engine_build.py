@@ -643,6 +643,7 @@ def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
     assert "3 entries" in directory
 
     shared = (site / "tags" / "shared-topic.html").read_text()
+    assert ">Writings</h2>" not in shared
     assert 'href="../alpha"' in shared and 'href="../beta"' in shared
     assert 'href="../pdfs/talk.pdf"' in shared
     assert 'href="../untagged"' not in shared

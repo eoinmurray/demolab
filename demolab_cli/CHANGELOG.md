@@ -13,6 +13,12 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.5] — 2026-09-04
+
+### Fixed
+- **Tag pages avoid redundant listing headings.** Individual tag pages now proceed directly from
+  the tag title and entry count to the matching writings, without repeating a “Writings” heading.
+
 ## [5.4.4] — 2026-09-03
 
 ### Fixed

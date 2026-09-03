@@ -568,7 +568,8 @@
 // (newest first). A stable two-pass gives the id-desc tiebreak within each status.
 // A collection where any item carries `order:` is *curated*: it lists in reading order
 // (by that rank) instead of the status/newest sort, so a documentation arc reads in sequence.
-#let grouped-entry-lists(items, show-collection: false, collection-meta: (:), root-prefix: "") = {
+#let grouped-entry-lists(items, show-collection: false, collection-meta: (:), root-prefix: "",
+  show-group-headings: true) = {
   let groups = (("page", "Writings"), ("deck", "Slides"))
   let curated = is-curated(items)
   let show-date-heading = true
@@ -579,7 +580,7 @@
         .sorted(key: x => status-rank(x.status))    // status ascending, stable → id-desc kept within a status
     }
     if g.len() > 0 {
-      heading(level: 2, title)
+      if show-group-headings { heading(level: 2, title) }
       entry-list(g, show-collection: show-collection, collection-meta: collection-meta,
         show-date-heading: show-date-heading, root-prefix: root-prefix)
       show-date-heading = false
@@ -1025,7 +1026,7 @@
     html.elem("p", attrs: (class: "entry-meta"),
       str(items.len()) + if items.len() == 1 { " tagged entry" } else { " tagged entries" })
     grouped-entry-lists(items, show-collection: true, collection-meta: collection-meta,
-      root-prefix: "../")
+      root-prefix: "../", show-group-headings: false)
     html.elem("p", attrs: (class: "page-foot"), {
       link("../tags", "← all tags")
       [ · ]
