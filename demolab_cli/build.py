@@ -52,7 +52,7 @@ DECKS = BUILD / "decks"                    # scratch: compiled deck PDFs, embedd
 SITE = LAYOUT.runtime / "site"             # bundle output (HTML + mp4 + linked pdfs/)
 PDFS = LAYOUT.runtime / "pdfs"             # optional standalone generated PDFs
 PREVIEW = False                           # enabled only by the dev worker's explicit flag
-PREPARED = False                          # author-owned preparation requires strict builds
+PREPARED = False                          # author-owned preparation ran for this build
 BUILD_SOURCES = {}                         # pins plus Latest, fixed for this invocation
 DATA_INPUTS = {}                           # frozen paths and public video URLs
 
@@ -266,13 +266,13 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
             return broken
         err = proc.stdout + proc.stderr
         bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
-        # Ordinary data-backed publication is still resilient when Typst identifies the one
-        # article that failed. Its frozen input map prevents fallback to another run, while a
-        # stub lets unrelated articles publish. Preview and author-owned preparation remain
-        # fail-closed because they replace accepted/session or prepared output atomically.
-        if PREVIEW or PREPARED:
-            mode = "preview" if PREVIEW else "data-backed build"
-            raise _paths.LayoutError(mode + " compilation failed:\n" + err)
+        # Ordinary publication is resilient when Typst identifies the one article that failed.
+        # Its frozen input map prevents fallback to another run, while a stub lets unrelated
+        # articles publish. Preview remains fail-closed because it replaces accepted session
+        # state atomically. A prepare command already failed before compilation if its own output
+        # was invalid; successful preparation does not make a later article-local error global.
+        if PREVIEW:
+            raise _paths.LayoutError("preview compilation failed:\n" + err)
         if bad is None:
             # Not attributable to one entry (an engine, asset, or deck error): surface the real
             # failure rather than looping.

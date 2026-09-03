@@ -195,8 +195,9 @@ from the configuration directory. It can validate source data and generate JSON
 for the user-authored view. `DEMOLAB_INPUTS` contains a JSON object of normalized
 URL inputs (empty for ordinary builds); `DEMOLAB_ARTICLE` is the requested article
 or an empty string for a full build. Commands have a 120-second timeout and a
-4 MiB limit per output stream. Nonzero exit stops the build/render; prepared
-builds also fail on compilation errors instead of publishing article stubs.
+4 MiB limit per output stream. A nonzero preparation exit stops the build/render. After successful
+preparation, a compilation error attributable to one ordinary article publishes a stub for that
+article while unrelated pages continue; unscoped errors and isolated URL renders remain blocking.
 Keep generated files out of watched source directories to avoid rebuild loops.
 Demolab does not interpret the generated JSON or execute experiments itself.
 

@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.3] — 2026-09-03
+
+### Fixed
+- **Prepared labs also isolate article failures.** A successful author-owned `prepare` command no
+  longer turns a later article-attributable compilation error into a global build failure. The
+  affected article is stubbed while unrelated pages build; preparation-command failures, unscoped
+  compilation errors, decks, and isolated URL renders remain blocking.
+
 ## [5.4.2] — 2026-09-03
 
 ### Fixed

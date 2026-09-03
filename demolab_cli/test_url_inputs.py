@@ -218,11 +218,13 @@ def test_user_defaults_and_attachments_work_in_static_and_url_renders(lab):
     assert "Value: 20" in changed
     assert (site / "clip.mp4").read_bytes() == b"two"
     assert page.read_bytes() == original
-    # A prepared ordinary build also fails closed instead of publishing an error stub.
+    # A successful preparation command does not make a later article-local error global.
     (lab.content / "data/one/numbers.json").write_text("broken")
     result = subprocess.run(command, cwd=lab.root, env=env, capture_output=True, text=True)
-    assert result.returncode != 0
-    assert page.read_bytes() == original
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "⚠ stubbed: report" in result.stdout
+    assert b"failed to build" in page.read_bytes()
+    assert page.read_bytes() != original
 
 
 def test_pdf_link_is_request_scoped(lab):
