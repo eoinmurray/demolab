@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.2] — 2026-09-03
+
+### Fixed
+- **One missing selected file no longer blocks the entire site.** When a data-backed compilation
+  error identifies an affected article, Demolab publishes a visible stub for that article and
+  continues building unrelated pages. Global discovery, configuration, deck, and engine failures
+  remain blocking.
+
 ## [5.4.1] — 2026-09-03
 
 ### Fixed

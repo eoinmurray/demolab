@@ -151,15 +151,15 @@ def test_pins_override_whole_articles_but_discovery_still_runs_once(discovered_l
     assert "Result: 22." in (layout.runtime / "site/gallery.html").read_text()
     config["build"]["sources"]["exp022"] = {}
     layout.config.write_text(json.dumps(config))
-    before = snapshot(layout)
     result = _build_result(layout.root)
-    assert result.returncode != 0 and "no selection" in result.stderr
-    assert snapshot(layout) == before  # A missing pin must not silently switch to Latest.
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "⚠ stubbed: exp022" in result.stdout
+    page = (layout.runtime / "site/exp022.html").read_text()
+    assert "failed to build" in page and "Result: 22." not in page
 
 
 @TYPST_REQUIRED
-@pytest.mark.parametrize("damage", ["command", "json", "timestamp", "directory", "numbers.json",
-                                   "chart.svg", "movie.mp4", "corrupt-json", "corrupt-image", "symlink"])
+@pytest.mark.parametrize("damage", ["command", "json", "timestamp", "directory", "corrupt-image", "symlink"])
 def test_discovery_and_selected_input_errors_preserve_publication(discovered_lab, damage):
     layout, config = discovered_lab
     build_ok(layout)
@@ -186,6 +186,25 @@ def test_discovery_and_selected_input_errors_preserve_publication(discovered_lab
     assert result.returncode != 0, result.stdout + result.stderr
     assert "stubbing" not in result.stdout
     assert snapshot(layout) == before
+
+
+@TYPST_REQUIRED
+@pytest.mark.parametrize("damage", ["numbers.json", "chart.svg", "movie.mp4", "corrupt-json"])
+def test_attributable_discovered_input_errors_stub_affected_articles(discovered_lab, damage):
+    layout, _ = discovered_lab
+    build_ok(layout)
+    selected = layout.root / "runs/new/export"
+    if damage.startswith("corrupt-"):
+        (selected / ("numbers.json" if damage == "corrupt-json" else "chart.svg")).write_text("broken")
+    else:
+        (selected / damage).unlink()
+    result = _build_result(layout.root)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "⚠ stubbed: compare, exp022, gallery" in result.stdout
+    for article in ("compare", "exp022", "gallery"):
+        assert "failed to build" in (layout.runtime / "site" / f"{article}.html").read_text()
+        assert not (layout.runtime / "site/pdfs" / f"{article}.pdf").exists()
+    assert "failed to build" not in (layout.runtime / "site/disabled.html").read_text()
 
 
 @TYPST_REQUIRED

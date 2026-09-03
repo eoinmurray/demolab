@@ -264,14 +264,20 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
         )
         if proc.returncode == 0:
             return broken
-        if PREVIEW or BUILD_SOURCES or PREPARED:
-            mode = "preview" if PREVIEW else "data-backed build"
-            raise _paths.LayoutError(mode + " compilation failed:\n" + proc.stdout + proc.stderr)
         err = proc.stdout + proc.stderr
         bad = _entry_from_error(err, {i: source for i, source in ids.items() if i not in broken})
+        # Ordinary data-backed publication is still resilient when Typst identifies the one
+        # article that failed. Its frozen input map prevents fallback to another run, while a
+        # stub lets unrelated articles publish. Preview and author-owned preparation remain
+        # fail-closed because they replace accepted/session or prepared output atomically.
+        if PREVIEW or PREPARED:
+            mode = "preview" if PREVIEW else "data-backed build"
+            raise _paths.LayoutError(mode + " compilation failed:\n" + err)
         if bad is None:
             # Not attributable to one entry (an engine, asset, or deck error): surface the real
             # failure rather than looping.
+            if BUILD_SOURCES:
+                raise _paths.LayoutError("data-backed build compilation failed:\n" + err)
             sys.stderr.write(err)
             raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
         broken[bad] = _error_excerpt(err)

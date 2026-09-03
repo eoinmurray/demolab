@@ -39,10 +39,11 @@ Discovery adapters return eligible presentation runs; Latest uses their normaliz
 timestamps, with ID as a tie-breaker, not filesystem times or run-name recency.
 One `.demolab/bundle/data-inputs.json` inventory supplies
 every compiler invocation; the preview worker writes its own equivalent inside `.demolab/preview/`.
-Configured articles require every bound key and selected file to resolve. Declared Latest inputs
-without runs map to null. Builds with input bindings abort on
-compile errors instead of stubbing articles. Standalone data-backed PDF builds replace output only
-after successful compilation. These guarantees do not change legacy unconfigured builds.
+Configured articles require every bound key to resolve. Declared Latest inputs without runs map to
+null. An attributable article compilation error, including a missing or corrupt selected file,
+produces a visible stub for that article while unrelated articles publish. Invalid source mappings,
+discovery failures, deck failures, and unattributable compiler errors still abort publication.
+Standalone data-backed PDF builds replace output only after successful compilation.
 Selected directories' video files are emitted as bundle assets at hashed `_demolab-data/` paths;
 `video()` uses the same inventory to link them. No presentation-data staging copy is introduced.
 

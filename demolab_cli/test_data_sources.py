@@ -160,7 +160,7 @@ def test_pins_reach_deck_pdfs_and_deck_failure_preserves_publication(pinned_lab)
 
 
 @TYPST_REQUIRED
-@pytest.mark.parametrize("damage", ["directory", "numbers.json", "chart.svg", "movie.mp4", "key", "compile"])
+@pytest.mark.parametrize("damage", ["directory"])
 def test_invalid_pins_preserve_previous_site_and_pdfs(pinned_lab, damage):
     layout, config = pinned_lab
     _build(layout.root)
@@ -180,10 +180,67 @@ def test_invalid_pins_preserve_previous_site_and_pdfs(pinned_lab, damage):
     assert result.returncode != 0
     assert "stubbing" not in result.stdout
     assert outputs == {p: p.read_bytes() for p in outputs}
+
+
+@TYPST_REQUIRED
+@pytest.mark.parametrize("damage, broken", [
+    ("key", {"exp"}),
+    ("numbers.json", {"exp", "gallery", "compare"}),
+    ("chart.svg", {"exp", "gallery", "compare"}),
+    ("movie.mp4", {"exp", "gallery", "compare"}),
+    ("compile", {"exp"}),
+])
+def test_attributable_data_backed_failures_stub_only_affected_articles(pinned_lab, damage, broken):
+    layout, config = pinned_lab
+    _build(layout.root)
+    if damage == "key":
+        config["build"]["sources"]["exp"] = {}
+        layout.config.write_text(json.dumps(config))
+    elif damage == "compile":
+        article = layout.writings / "exp.typ"
+        article.write_text(article.read_text() + "\n#let broken = 1 / 0\n")
+    else:
+        (layout.root / "runs/old/presentation" / damage).unlink()
+    result = _build_result(layout.root)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"⚠ stubbed: {', '.join(sorted(broken))}" in result.stdout
+    for article in ("exp", "gallery", "compare"):
+        page = (layout.runtime / "site" / f"{article}.html").read_text()
+        assert ("failed to build" in page) == (article in broken)
+    assert not any((layout.runtime / "site/pdfs" / f"{article}.pdf").exists()
+                   for article in broken)
+    outputs = {p: p.read_bytes() for base in (layout.runtime / "site", layout.runtime / "pdfs")
+               for p in base.rglob("*") if p.is_file()}
     result = subprocess.run([sys.executable, "-m", "demolab_cli.build", "exp"],
                             env={**os.environ, "DEMOLAB_ROOT": str(layout.root)}, capture_output=True, text=True)
     assert result.returncode != 0
     assert outputs == {p: p.read_bytes() for p in outputs}
+
+
+@TYPST_REQUIRED
+def test_missing_selected_file_on_first_build_stubs_one_article(tmp_path):
+    _assemble(tmp_path, demo=False)
+    layout = _paths.layout_for(tmp_path)
+    source = tmp_path / "runs/exp/presentation"
+    source.mkdir(parents=True)
+    (source / "available.txt").write_text("inventory is valid")
+    layout.config.write_text(json.dumps({"name": "First build", "build": {"sources": {
+        "broken": {"exp": "runs/exp/presentation"}}}}))
+    (layout.writings / "broken.typ").write_text(
+        '#import "/.demolab/lib.typ": *\n'
+        '#let meta = (title: "Broken", created_at: "2026-09-03")\n'
+        '#let data-file = data-file.with(article: "broken")\n'
+        '#let body = [#video(data-file("exp/missing.mp4"))]\n')
+    (layout.writings / "healthy.typ").write_text(
+        '#let meta = (title: "Healthy", created_at: "2026-09-03")\n'
+        '#let body = [Still available.]\n')
+    result = _build_result(layout.root)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "⚠ stubbed: broken" in result.stdout
+    assert "failed to build" in (layout.runtime / "site/broken.html").read_text()
+    assert "Still available." in (layout.runtime / "site/healthy.html").read_text()
+    assert not (layout.runtime / "site/pdfs/broken.pdf").exists()
+    assert (layout.runtime / "site/pdfs/healthy.pdf").exists()
 
 
 @TYPST_REQUIRED

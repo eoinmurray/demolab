@@ -238,11 +238,13 @@ articles use Latest when discovery attaches inputs to them, otherwise their auth
 Hardcoded paths and unbound calls remain outside this mapping.
 
 The build freezes one mapping and file inventory for the website, book, and standalone article
-PDFs. With any article configured, a failed compilation aborts publication instead of producing
-error stubs, preserving the last successful site and publication PDFs. This also applies to
-articles resolved through discovery. Without pins or discovered input bindings, the existing
-tolerant build behavior is unchanged. Remove `build.sources` to use Latest where discovery is
-configured, or authored defaults otherwise; old generated mappings are not reused.
+PDFs. If a compilation failure can be attributed to one article, including a missing or corrupt
+selected file, that article becomes a visible error stub while unrelated articles publish. It is
+omitted from the book and has no article PDF until fixed. Invalid source mappings, discovery
+failures, deck failures, and compiler errors that cannot be attributed to one article still abort
+publication and preserve the last successful output. Standalone PDF builds remain strict. Remove
+`build.sources` to use Latest where discovery is configured, or authored defaults otherwise; old
+generated mappings are not reused.
 
 `demolab dev` with preview enabled ignores build pins (including unavailable build directories)
 and keeps its discovery, Latest, and selection behavior. Without preview enabled, dev uses the
@@ -359,8 +361,9 @@ preview state along with other generated output.
 It freezes the selections and file inventory in `.demolab/bundle/data-inputs.json` for every
 compiler target, without enabling preview mode, reading saved selections, or publishing selector
 controls. A later build may pick up newer runs. Directory contents are not locked or snapshotted;
-use immutable run directories. Discovery failures and missing/corrupt selected inputs stop the
-build and preserve the previous site; they are not converted to empty inputs or error stubs.
+use immutable run directories. Discovery failures stop the build and preserve the previous site.
+A missing or corrupt selected input never falls back to another run: when its compiler diagnostic
+identifies an article, only that article becomes an error stub; otherwise the build stops.
 No Pingstore data is changed and nothing is staged into `.artifacts/`. Keep one dev server per lab.
 
 ### Articles before their first run
