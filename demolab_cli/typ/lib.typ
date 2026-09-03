@@ -473,8 +473,10 @@
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
     href: e.id,
-    pdf: if pdfs-enabled { "pdfs/" + e.id + ".pdf" } else { none },
+    pdf: if pdfs-enabled and not e.at("broken", default: false) { "pdfs/" + e.id + ".pdf" } else { none },
     deck: false,
+    broken: e.at("broken", default: false),
+    has-date: "created_at" in e.meta or "date" in e.meta,
   )) + decks.map(d => (
     id: d.id,
     kind: "deck",
@@ -487,6 +489,8 @@
     href: "pdfs/" + d.id + ".pdf",
     pdf: "pdfs/" + d.id + ".pdf",
     deck: true,
+    broken: false,
+    has-date: true,
   ))
 }
 
@@ -521,8 +525,11 @@
             html.elem("div", attrs: (class: "row-title-group"), {
               html.elem("a", attrs: (class: "row-title", href: root-prefix + it.href), it.title)
               if it.status != none { status-badge(it.status) }
+              if it.broken { html.elem("span", attrs: (class: "entry-error"), [build error]) }
             })
-            html.elem("span", attrs: (class: "row-date"), listing-date-line(it.meta))
+            if it.has-date {
+              html.elem("span", attrs: (class: "row-date"), listing-date-line(it.meta))
+            }
           })
           html.elem("div", attrs: (class: "row-meta"), {
             html.elem("span", attrs: (class: "row-identity"), {
@@ -549,7 +556,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#row-date-line(it.meta)#if show-collection [ · #link(it.coll, collection-label(it.coll, collection-meta))]#if it.status != none [ · #status-badge(it.status)]#if it.tags.len() > 0 [ · #tag-list(it.tags)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
+        #text(fill: gray, size: 9pt)[#if it.has-date { row-date-line(it.meta) }#if show-collection [ · #link(it.coll, collection-label(it.coll, collection-meta))]#if it.status != none [ · #status-badge(it.status)]#if it.broken [ · build error]#if it.tags.len() > 0 [ · #tag-list(it.tags)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -655,11 +662,11 @@
 }
 #let recent-writings(items, limit) = {
   items
-    .filter(x => not x.deck)
+    .filter(x => not x.deck and x.has-date)
     .sorted(key: x => x.id)
     .sorted(key: effective-work-date)
     .rev()
-    .slice(0, calc.min(limit, items.filter(x => not x.deck).len()))
+    .slice(0, calc.min(limit, items.filter(x => not x.deck and x.has-date).len()))
 }
 #let existing-slide-order(slides, collection-items) = {
   if is-curated(collection-items) { reading-order(slides) } else {
@@ -744,10 +751,10 @@
 // Typst error). build.py flags it after a failed compile and main.typ renders this instead of
 // importing the entry, so one bad page fails on its own rather than taking down the whole site.
 // HTML only (main.typ emits no PDF for a stub). ---
-#let broken-entry-page(id, error, brand: default-brand) = {
+#let broken-entry-page(id, error, title: none, brand: default-brand) = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
-  heading(level: 1, id)
+  heading(level: 1, if title == none { id } else { title })
   html.elem("p", attrs: (class: "entry-meta"), [This entry failed to build, so it's a stub. The rest of the site built normally; fix the error below and rebuild to bring it back.])
   html.elem("pre", attrs: (class: "build-error"), error)
   html.elem("p", attrs: (class: "page-foot"), html.elem("a", attrs: (href: "."), [← back to all entries]))
@@ -872,7 +879,7 @@
 // `landing`; it replaces the collection directory below the brand header — a full custom
 // landing page. The landing body owns its markup (html.elem); the .welcome-* classes in
 // style.css are reusable building blocks.
-#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true, writings-dir: "writings") = {
+#let index-page(entries, decks: (), brand: default-brand, collection-order: (), collection-meta: (:), index-config: (:), landing: none, pdfs-enabled: true, book-enabled: true, writings-dir: "writings") = {
   web-styles(brand: brand)
   set text(font: "New Computer Modern", size: 11pt)
   set heading(outlined: false) // keep the homepage out of the book's TOC
@@ -936,7 +943,7 @@
       html.elem("p", attrs: (class: "page-foot"), {
         link("all", "Browse all entries")
         if tag-slugs(items).len() > 0 { [ · ]; link("tags", "Browse tags") }
-        if pdfs-enabled {
+        if book-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
           [.]
@@ -947,7 +954,7 @@
       html.elem("p", attrs: (class: "page-foot"), {
         link("all", "Browse all entries")
         if tag-slugs(items).len() > 0 { [ · ]; link("tags", "Browse tags") }
-        if pdfs-enabled {
+        if book-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
           [.]

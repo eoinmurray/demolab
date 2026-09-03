@@ -43,12 +43,16 @@
 // An entry contributes meta + body; a deck contributes only meta (touying is paged-only, so decks
 // are compiled to standalone PDFs by build.py and embedded as assets below). An entry build.py
 // flagged with an `error` (a missing figure, a Typst error) is NOT imported — it would fail the
-// whole compile — but rendered as a stub page below, so one bad page fails on its own.
+// whole compile. build.py recovers its valid metadata independently, so it remains discoverable
+// in listings while its own URL renders a diagnostic stub.
 #let entries = manifest.entries.filter(e => "error" not in e).map(e => {
   import e.source: meta, body
   (id: e.id, kind: e.kind, meta: meta, body: body)
 })
 #let broken = manifest.entries.filter(e => "error" in e)
+#let listing-entries = entries + broken.map(e => (
+  id: e.id, kind: e.kind, meta: e.meta, broken: true,
+))
 #let decks = manifest.decks.map(d => {
   import d.source: meta
   (id: d.id, meta: meta)
@@ -87,12 +91,12 @@
 // --- documents (one compile emits them all into .demolab/site/) ---
 // The homepage always exists; on a freshly-scaffolded repo (no entries) it shows a
 // friendly empty state. Everything else is emitted only when there's content.
-#let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
+#let all-items = collect-items(listing-entries, decks, pdfs-enabled: pdfs-enabled)
 #validate-collections(collection-meta)
 #validate-tag-paths(all-items)
-#document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled, writings-dir: manifest.writings)]
+#document("index.html", title: [#brand.name])[#index-page(listing-entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled, book-enabled: pdfs-enabled and entries.len() > 0, writings-dir: manifest.writings)]
 #if all-items.len() > 0 {
-  [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
+  [#document("all.html", title: [#brand.name — all entries])[#all-page(listing-entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
 }
 #if tag-slugs(all-items).len() > 0 {
   [#document("tags.html", title: [#brand.name — tags])[#tags-page(all-items, brand: brand)]]
@@ -112,10 +116,9 @@
     [#document("pdfs/" + e.id + ".pdf", title: [#e.meta.title])[#numbered-pages(entry-page(e.meta, e.body, id: e.id, kind: e.kind, brand: brand, annotations: annotations, collection-meta: collection-meta))]]
   }
 }
-// stub pages for entries that failed to build — a visible "this page failed" placeholder at the
-// entry's own URL (web only; excluded from listings + the book), so the rest of the site is fine.
+// Stub pages are web-only and excluded from the book; their recovered metadata keeps them listed.
 #for e in broken {
-  [#document(e.id + ".html", title: [#e.id])[#broken-entry-page(e.id, e.error, brand: brand)]]
+  [#document(e.id + ".html", title: [#e.meta.title])[#broken-entry-page(e.id, e.error, title: e.meta.title, brand: brand)]]
 }
 #if pdfs-enabled and entries.len() > 0 {
   [#document("pdfs/book.pdf", title: [#brand.book-title])[#numbered-pages(book-page(entries, brand: brand))]]

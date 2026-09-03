@@ -241,7 +241,8 @@ Hardcoded paths and unbound calls remain outside this mapping.
 The build freezes one mapping and file inventory for the website, book, and standalone article
 PDFs. If a compilation failure can be attributed to one article, including a missing or corrupt
 selected file, that article becomes a visible error stub while unrelated articles publish. It is
-omitted from the book and has no article PDF until fixed. Invalid source mappings, discovery
+retained in web listings with a build-error marker and its normal metadata, but is omitted from the
+book and has no article PDF until fixed. Invalid source mappings, discovery
 failures, deck failures, and compiler errors that cannot be attributed to one article still abort
 publication and preserve the last successful output. Standalone PDF builds remain strict. Remove
 `build.sources` to use Latest where discovery is configured, or authored defaults otherwise; old

@@ -387,6 +387,14 @@ ol.refs .doi:hover { color: var(--ink); }
   max-width: 100%;
   overflow-wrap: anywhere;
 }
+.row-heading .entry-error {
+  font: .6111rem/1.4 var(--row-sans);
+  color: #7a3412;
+  background: #fff1e8;
+  border-radius: 3px;
+  padding: .1em .4em;
+  white-space: nowrap;
+}
 .entry-row .row-id, .article-header .row-id {
   font: inherit; color: inherit;
 }

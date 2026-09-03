@@ -43,7 +43,9 @@ Configured articles require every bound key to resolve. Declared Latest inputs w
 null. An attributable article compilation error, including a missing or corrupt selected file,
 produces a visible stub for that article while unrelated articles publish. Invalid source mappings,
 discovery failures, deck failures, and unattributable compiler errors still abort publication.
-Standalone data-backed PDF builds replace output only after successful compilation.
+The failed article's independently readable metadata keeps it in web listings with a build-error
+marker, while its article PDF and book chapter remain omitted. Standalone data-backed PDF builds
+replace output only after successful compilation.
 Selected directories' video files are emitted as bundle assets at hashed `_demolab-data/` paths;
 `video()` uses the same inventory to link them. No presentation-data staging copy is introduced.
 

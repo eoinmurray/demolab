@@ -505,7 +505,8 @@ def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None
     _assemble(root)
     _unpin_demo(root)
     (root / "writings" / "broken.typ").write_text(
-        '#let meta = (title: "Broken", date: "2026-08-23")\n'
+        '#let meta = (title: "Broken title", date: "2026-08-23", collection: "examples", '
+        'status: "ExpStudy", tags: ("diagnostics",))\n'
         '#let body = [#image("/assets/missing.svg")]\n'
     )
     _build(root)
@@ -513,7 +514,29 @@ def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None
     assert (site / "first-observation.html").exists()
     assert (site / "broken.html").exists()
     assert "failed to build" in (site / "broken.html").read_text().lower()
-    assert "broken" not in (site / "all.html").read_text().lower()
+    assert "broken" in (site / "broken.html").read_text()
+    for listing in ("index.html", "all.html", "uncategorized.html"):
+        html = (site / listing).read_text()
+        assert 'href="broken"' in html
+        assert "build error" in html
+        assert 'pdfs/broken.pdf' not in html
+
+
+def test_only_broken_writing_has_navigation_but_no_pdf_links(tmp_path: Path) -> None:
+    _assemble(tmp_path, demo=False)
+    (tmp_path / "writings/broken.typ").write_text(
+        '#let meta = (title: "Broken", created_at: "2026-09-03")\n'
+        '#let body = [#image("/assets/missing.svg")]\n')
+    _build(tmp_path)
+    site = tmp_path / ".demolab/site"
+    index = (site / "index.html").read_text()
+    assert 'href="uncategorized"' in index
+    assert 'href="pdfs/book.pdf"' not in index
+    for listing in ("all.html", "uncategorized.html"):
+        html = (site / listing).read_text()
+        assert 'href="broken"' in html and "build error" in html
+        assert 'pdfs/broken.pdf' not in html
+    assert not (site / "pdfs/book.pdf").exists()
 
 
 def test_pdfs_config_defaults_on_and_validates(tmp_path: Path, monkeypatch) -> None:

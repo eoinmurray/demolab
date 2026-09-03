@@ -224,11 +224,16 @@ def test_missing_selected_file_on_first_build_stubs_one_article(tmp_path):
     source = tmp_path / "runs/exp/presentation"
     source.mkdir(parents=True)
     (source / "available.txt").write_text("inventory is valid")
-    layout.config.write_text(json.dumps({"name": "First build", "build": {"sources": {
-        "broken": {"exp": "runs/exp/presentation"}}}}))
+    layout.config.write_text(json.dumps({
+        "name": "First build",
+        "index": {"mode": "expanded", "recent": 2},
+        "collections": {"notes": {"label": "Notes"}},
+        "build": {"sources": {"broken": {"exp": "runs/exp/presentation"}}},
+    }))
     (layout.writings / "broken.typ").write_text(
         '#import "/.demolab/lib.typ": *\n'
-        '#let meta = (title: "Broken", created_at: "2026-09-03")\n'
+        '#let meta = (title: "Broken title", created_at: "2026-09-03", collection: "notes", '
+        'status: "ExpStudy", tags: ("diagnostics",))\n'
         '#let data-file = data-file.with(article: "broken")\n'
         '#let body = [#video(data-file("exp/missing.mp4"))]\n')
     (layout.writings / "healthy.typ").write_text(
@@ -237,8 +242,14 @@ def test_missing_selected_file_on_first_build_stubs_one_article(tmp_path):
     result = _build_result(layout.root)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "⚠ stubbed: broken" in result.stdout
-    assert "failed to build" in (layout.runtime / "site/broken.html").read_text()
+    assert "Broken title" in (layout.runtime / "site/broken.html").read_text()
     assert "Still available." in (layout.runtime / "site/healthy.html").read_text()
+    for listing, href in (("index.html", "broken"), ("all.html", "broken"),
+                          ("notes.html", "broken"), ("tags/diagnostics.html", "../broken")):
+        html = (layout.runtime / "site" / listing).read_text()
+        assert f'href="{href}"' in html
+        assert "Broken title" in html and "ExpStudy" in html and "build error" in html
+        assert 'pdfs/broken.pdf' not in html
     assert not (layout.runtime / "site/pdfs/broken.pdf").exists()
     assert (layout.runtime / "site/pdfs/healthy.pdf").exists()
 

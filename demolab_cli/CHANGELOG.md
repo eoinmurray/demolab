@@ -13,6 +13,14 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.4] — 2026-09-03
+
+### Fixed
+- **Broken entries remain discoverable.** Homepage, collection, all-entry, recent, and tag listings
+  retain an attributable failed article using its real metadata, link it to the diagnostic stub,
+  and mark it `build error`. The unavailable article stays excluded only from article PDFs and the
+  combined book.
+
 ## [5.4.3] — 2026-09-03
 
 ### Fixed

@@ -89,17 +89,42 @@ TYPST = _paths.find_typst(ROOT)
 DEFAULT_CREATION_TIMESTAMP = "946684800"  # 2000-01-01T00:00:00Z
 
 
-def typst_compile(*args: str) -> list[str]:
-    """A reproducible Typst compile command shared by every PDF-producing path."""
-    timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
+def _typst_inputs(*, include_data: bool = True) -> list[str]:
+    """Compiler inputs shared by compilation and broken-entry metadata recovery."""
     inputs = [*LAYOUT.typst_inputs(), "--input", f"demolab-bundle-root={LAYOUT.typst_path(BUILD)}"]
     if os.environ.get("DEMOLAB_DEV") == "1":
         inputs += ["--input", "demolab-dev=true"]
-    if PREVIEW:
+    if PREVIEW and include_data:
         inputs += ["--input", "demolab-preview-file=" + LAYOUT.typst_path(LAYOUT.runtime / "preview/input.json")]
-    if DATA_INPUTS:
+    if DATA_INPUTS and include_data:
         inputs += ["--input", "demolab-data-inputs=" + LAYOUT.typst_path(BUILD / "data-inputs.json")]
-    return [TYPST, "compile", "--creation-timestamp", timestamp, *inputs, *args]
+    return inputs
+
+
+def typst_compile(*args: str) -> list[str]:
+    """A reproducible Typst compile command shared by every PDF-producing path."""
+    timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
+    return [TYPST, "compile", "--creation-timestamp", timestamp, *_typst_inputs(), *args]
+
+
+def read_entry_meta(entry_id: str, source: Path) -> dict:
+    """Recover valid metadata without the body, falling back to an honest ID-only listing."""
+    expression = "{ import " + json.dumps(LAYOUT.typst_path(source)) + ": meta; meta }"
+    timestamp = os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_CREATION_TIMESTAMP)
+    proc = subprocess.run(
+        [TYPST, "eval", "--creation-timestamp", timestamp, *_typst_inputs(include_data=False),
+         "--root", str(ROOT), expression],
+        capture_output=True, text=True,
+    )
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return {"title": entry_id}
+    try:
+        meta = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {"title": entry_id}
+    if not isinstance(meta, dict):
+        return {"title": entry_id}
+    return meta
 
 
 def stage() -> None:
@@ -159,8 +184,8 @@ def write_manifest(ids: dict[str, Path], deck_ids: dict[str, Path], broken: dict
     """Write .demolab/bundle/index.json — the id/asset lists the staged main.typ reads.
 
     This is the only place per-writing knowledge is assembled, and it's pure data (no Typst
-    source): writing ids, static asset paths, and deck ids. An entry in `broken` carries an
-    `error` field and loads no assets — main.typ renders it as a stub instead of importing it."""
+    source): writing ids, static asset paths, and deck ids. An entry in `broken` carries its
+    `error` and recovered `meta`; main.typ lists it and renders a stub without importing it."""
     broken = broken or {}
     entries = []
     for i, source in ids.items():
@@ -170,7 +195,7 @@ def write_manifest(ids: dict[str, Path], deck_ids: dict[str, Path], broken: dict
             "source": LAYOUT.typst_path(source),
         }
         if i in broken:
-            entry["error"] = broken[i]
+            entry.update(broken[i])
         entries.append(entry)
     # Signal whether the optional root demolab.yaml / landing.typ exist — Typst can't stat
     # files, so main.typ only reads them (branding / the custom landing page) when these
@@ -249,7 +274,7 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
                    destination: Path, publish_pdfs: bool = True) -> dict:
     """Compile the whole bundle. If an entry fails (a missing figure, a Typst error), flag it and
     retry, so it renders as a stub page instead of taking the rest of the site down with it. Returns
-    the {id: error} map of entries that were stubbed."""
+    the {id: {error, meta}} map of entries that were stubbed."""
     broken: dict = {}
     while True:
         write_manifest(ids, deck_ids, broken=broken, publish_pdfs=publish_pdfs)
@@ -280,9 +305,12 @@ def compile_bundle(ids: dict[str, Path], deck_ids: dict[str, Path], *,
                 raise _paths.LayoutError("data-backed build compilation failed:\n" + err)
             sys.stderr.write(err)
             raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
-        broken[bad] = _error_excerpt(err)
+        broken[bad] = {
+            "error": _error_excerpt(err),
+            "meta": read_entry_meta(bad, ids[bad]),
+        }
         print(f"  ⚠ {bad} failed to build — stubbing it, keeping the rest: "
-              + broken[bad].splitlines()[0], flush=True)
+              + broken[bad]["error"].splitlines()[0], flush=True)
 
 
 def compile_entry(entry_id: str, ids: dict[str, Path], decks: dict[str, Path]) -> None:
