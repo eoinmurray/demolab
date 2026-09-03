@@ -205,9 +205,9 @@
 }
 
 // --- web-styles: inject the stylesheet + head meta into HTML pages (ignored in the PDF pass) ---
-#let web-styles(brand: default-brand, annotations: none) = context {
+#let web-styles(brand: default-brand, annotations: none, root-prefix: "") = context {
   if target() == "html" {
-    html.elem("link", attrs: (rel: "icon", type: "image/svg+xml", href: "favicon.svg"))
+    html.elem("link", attrs: (rel: "icon", type: "image/svg+xml", href: root-prefix + "favicon.svg"))
     html.elem("style", read("/.demolab/style.css"))
     // provenance: which engine built this page (invisible, machine-readable)
     html.elem("meta", attrs: (name: "generator", content: "demolab " + read("/.demolab/VERSION").trim()))
@@ -215,9 +215,9 @@
       html.elem("meta", attrs: (name: "author", content: brand.author))
     }
     // hover popovers for inline citations (no-op on pages without cites)
-    html.elem("script", attrs: (src: "cite-popover.js", defer: ""))[]
+    html.elem("script", attrs: (src: root-prefix + "cite-popover.js", defer: ""))[]
     // fullscreen, keyboard- and swipe-navigable gallery for unlinked figure images
-    html.elem("script", attrs: (src: "image-lightbox.js", defer: ""))[]
+    html.elem("script", attrs: (src: root-prefix + "image-lightbox.js", defer: ""))[]
     // Optional collaborative web annotations. The hosted Hypothesis client owns accounts,
     // private groups, storage, anchoring, and threads; demolab only opts this page into it.
     if annotations == "hypothesis" {
@@ -425,6 +425,40 @@
   if i == none { 4 } else { i }
 }
 
+// --- tags: optional many-to-many discovery metadata ---
+// Tags are stable lowercase slugs. They never determine collection membership, lifecycle
+// status, or ordering; generated pages simply gather items that explicitly name a tag.
+#let entry-tags(meta, id: none) = {
+  let tags = meta.at("tags", default: ())
+  let owner = if id == none { "entry" } else { "entry '" + id + "'" }
+  assert(type(tags) == array, message: owner + " meta.tags must be a list")
+  for tag in tags {
+    assert(type(tag) == str and tag.match(regex("^[a-z0-9]+(-[a-z0-9]+)*$")) != none,
+      message: owner + " meta.tags values must be lowercase slugs such as 'information-theory'")
+  }
+  assert(tags.sorted().dedup().len() == tags.len(), message: owner + " meta.tags must not contain duplicates")
+  tags
+}
+#let tag-label(tag) = title-case(tag)
+#let tag-link(tag, root-prefix: "") = context {
+  if target() == "html" {
+    html.elem("a", attrs: (class: "tag", href: root-prefix + "tags/" + tag), tag)
+  } else { text(tag) }
+}
+#let tag-list(tags, root-prefix: "") = {
+  for (i, tag) in tags.enumerate() {
+    if i > 0 { [ ] }
+    tag-link(tag, root-prefix: root-prefix)
+  }
+}
+#let tag-slugs(items) = items.fold((), (tags, item) => tags + item.tags).sorted().dedup()
+#let validate-tag-paths(items) = {
+  if tag-slugs(items).len() > 0 {
+    assert(not items.any(item => item.id == "tags"),
+      message: "writing ID 'tags' is reserved when meta.tags are used")
+  }
+}
+
 // Flatten entries + decks into one uniform list of link rows. Decks (paged-only) link to
 // their PDF and fall into the `slides` collection unless their meta says otherwise;
 // entries link to their HTML page.
@@ -435,6 +469,7 @@
     title: e.meta.title,
     meta: e.meta,
     status: e.meta.at("status", default: none),
+    tags: entry-tags(e.meta, id: e.id),
     coll: e.meta.at("collection", default: "uncategorized"),
     order: e.meta.at("order", default: none), // optional curated rank within the collection
     href: e.id,
@@ -446,6 +481,7 @@
     title: d.meta.title,
     meta: d.meta,
     status: d.meta.at("status", default: none),
+    tags: entry-tags(d.meta, id: d.id),
     coll: d.meta.at("collection", default: "slides"),
     order: d.meta.at("order", default: none),
     href: "pdfs/" + d.id + ".pdf",
@@ -471,7 +507,8 @@
 // stacks: title + optional status, with one recency date at the right; full id, collection,
 // and the PDF link share a quiet metadata line below. In the PDF the
 // same rows stay as a plain prose bullet list.
-#let entry-list(items, show-collection: false, collection-meta: (:), show-date-heading: true) = context {
+#let entry-list(items, show-collection: false, collection-meta: (:), show-date-heading: true,
+  root-prefix: "") = context {
   if target() == "html" {
     if show-date-heading and items.len() > 0 {
       html.elem("div", attrs: (class: "entry-list-heading",
@@ -482,7 +519,7 @@
         html.elem("li", attrs: (class: "entry-row"), {
           html.elem("div", attrs: (class: "row-heading"), {
             html.elem("div", attrs: (class: "row-title-group"), {
-              html.elem("a", attrs: (class: "row-title", href: it.href), it.title)
+              html.elem("a", attrs: (class: "row-title", href: root-prefix + it.href), it.title)
               if it.status != none { status-badge(it.status) }
             })
             html.elem("span", attrs: (class: "row-date"), listing-date-line(it.meta))
@@ -492,13 +529,17 @@
               html.elem("span", attrs: (class: "row-id"), "#" + it.id)
               if show-collection {
                 [ · ]
-                html.elem("a", attrs: (class: "row-collection", href: it.coll),
+                html.elem("a", attrs: (class: "row-collection", href: root-prefix + it.coll),
                   collection-label(it.coll, collection-meta))
               }
               if it.pdf != none {
                 [ · ]
-                html.elem("a", attrs: (class: "row-pdf", href: it.pdf,
+                html.elem("a", attrs: (class: "row-pdf", href: root-prefix + it.pdf,
                   aria-label: "PDF: " + it.title), "PDF")
+              }
+              if it.tags.len() > 0 {
+                [ · ]
+                html.elem("span", attrs: (class: "row-tags"), tag-list(it.tags, root-prefix: root-prefix))
               }
             })
           })
@@ -508,7 +549,7 @@
   } else {
     for it in items {
       [- #link(it.href, it.title) \
-        #text(fill: gray, size: 9pt)[#row-date-line(it.meta)#if show-collection [ · #link(it.coll, collection-label(it.coll, collection-meta))]#if it.status != none [ · #status-badge(it.status)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
+        #text(fill: gray, size: 9pt)[#row-date-line(it.meta)#if show-collection [ · #link(it.coll, collection-label(it.coll, collection-meta))]#if it.status != none [ · #status-badge(it.status)]#if it.tags.len() > 0 [ · #tag-list(it.tags)]#if it.pdf != none [ · #link(it.pdf)[pdf]]]]
     }
   }
 }
@@ -520,7 +561,7 @@
 // (newest first). A stable two-pass gives the id-desc tiebreak within each status.
 // A collection where any item carries `order:` is *curated*: it lists in reading order
 // (by that rank) instead of the status/newest sort, so a documentation arc reads in sequence.
-#let grouped-entry-lists(items, show-collection: false, collection-meta: (:)) = {
+#let grouped-entry-lists(items, show-collection: false, collection-meta: (:), root-prefix: "") = {
   let groups = (("page", "Writings"), ("deck", "Slides"))
   let curated = is-curated(items)
   let show-date-heading = true
@@ -533,7 +574,7 @@
     if g.len() > 0 {
       heading(level: 2, title)
       entry-list(g, show-collection: show-collection, collection-meta: collection-meta,
-        show-date-heading: show-date-heading)
+        show-date-heading: show-date-heading, root-prefix: root-prefix)
       show-date-heading = false
     }
   }
@@ -720,6 +761,7 @@
   // Collection themes are a light, web-only treatment for entries and their collection page.
   // PDFs, the combined book, and global listings retain the standard presentation.
   let theme = collection-theme(meta.at("collection", default: "uncategorized"), collection-meta)
+  let tags = entry-tags(meta, id: id)
   context {
     if target() == "html" and theme != none {
       html.elem("div", attrs: (class: theme-class(theme), "aria-hidden": "true"))[]
@@ -774,6 +816,10 @@
               [ · ]
               status-badge(status)
             }
+            if tags.len() > 0 {
+              [ · ]
+              html.elem("span", attrs: (class: "entry-tags"), tag-list(tags))
+            }
             if pdf-href != none {
               [ · ]
               html.elem("a", attrs: (class: "entry-pdf", href: pdf-href,
@@ -807,7 +853,7 @@
       show heading.where(level: 1): set text(size: 24pt)
       show heading.where(level: 1): set block(below: 0.15em)
       heading(level: 1, meta.title)
-      text(size: 9pt, fill: rgb("#555555"), { if id != none [#id · ]; date-line(meta); if status != none [ · #status-badge(status)] })
+      text(size: 9pt, fill: rgb("#555555"), { if id != none [#id · ]; date-line(meta); if status != none [ · #status-badge(status)]; if tags.len() > 0 [ · #tag-list(tags)] })
       v(9pt)
       line(length: 100%, stroke: 0.6pt + rgb("#cccccc"))
       v(14pt)
@@ -889,6 +935,7 @@
       expanded-index(colls, homepage-items, recent: index.recent, collection-meta: collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
         link("all", "Browse all entries")
+        if tag-slugs(items).len() > 0 { [ · ]; link("tags", "Browse tags") }
         if pdfs-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
@@ -899,6 +946,7 @@
       collection-index(colls, collection-meta)
       html.elem("p", attrs: (class: "page-foot"), {
         link("all", "Browse all entries")
+        if tag-slugs(items).len() > 0 { [ · ]; link("tags", "Browse tags") }
         if pdfs-enabled {
           [ · also available as a ]
           link("pdfs/book.pdf", "single pdf")
@@ -929,7 +977,53 @@
     if desc != none { html.elem("p", attrs: (class: "entry-meta"), desc) }
     child-collection-index(coll, all-items, collection-meta)
     grouped-entry-lists(items, collection-meta: collection-meta)
+    html.elem("p", attrs: (class: "page-foot"), {
+      link(".", "← all collections")
+      if tag-slugs(all-items).len() > 0 { [ · ]; link("tags", "browse tags") }
+    })
+  })
+}
+
+// A tag directory plus one namespaced page per tag. Tags are derived only from explicit
+// meta.tags values; they do not form a hierarchy or influence the order of any listing.
+#let tags-page(items, brand: default-brand) = {
+  web-styles(brand: brand)
+  set text(font: "New Computer Modern", size: 11pt)
+  set heading(outlined: false)
+  html.elem("div", attrs: (class: "listing"), {
+    heading(level: 1, [Tags])
+    html.elem("p", attrs: (class: "entry-meta"), [Browse writings across collections by subject or method.])
+    html.elem("ul", attrs: (class: "coll-list tag-directory"), {
+      for tag in tag-slugs(items) {
+        let count = items.filter(item => tag in item.tags).len()
+        html.elem("li", attrs: (class: "coll-row child-coll-row"), {
+          html.elem("div", attrs: (class: "child-coll-head"), {
+            html.elem("a", attrs: (class: "coll-title tag", href: "tags/" + tag), tag)
+            html.elem("span", attrs: (class: "coll-count"),
+              str(count) + if count == 1 { " entry" } else { " entries" })
+          })
+        })
+      }
+    })
     html.elem("p", attrs: (class: "page-foot"), link(".", "← all collections"))
+  })
+}
+
+#let tag-page(tag, items, brand: default-brand, collection-meta: (:)) = {
+  web-styles(brand: brand, root-prefix: "../")
+  set text(font: "New Computer Modern", size: 11pt)
+  set heading(outlined: false)
+  html.elem("div", attrs: (class: "listing"), {
+    heading(level: 1, tag)
+    html.elem("p", attrs: (class: "entry-meta"),
+      str(items.len()) + if items.len() == 1 { " tagged entry" } else { " tagged entries" })
+    grouped-entry-lists(items, show-collection: true, collection-meta: collection-meta,
+      root-prefix: "../")
+    html.elem("p", attrs: (class: "page-foot"), {
+      link("../tags", "← all tags")
+      [ · ]
+      link("..", "all collections")
+    })
   })
 }
 
@@ -942,8 +1036,11 @@
   let items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
   html.elem("div", attrs: (class: "listing"), {
     heading(level: 1, [All entries])
-    grouped-entry-lists(items)
-    html.elem("p", attrs: (class: "page-foot"), link(".", "← grouped by collection"))
+    grouped-entry-lists(items, show-collection: true, collection-meta: collection-meta)
+    html.elem("p", attrs: (class: "page-foot"), {
+      link(".", "← grouped by collection")
+      if tag-slugs(items).len() > 0 { [ · ]; link("tags", "browse tags") }
+    })
   })
 }
 
@@ -966,7 +1063,8 @@
     chapter.update(e.meta.title)
     pagebreak()
     heading(level: 1, e.meta.title)
-    text(size: 9pt, fill: rgb("#555555"))[#date-line(e.meta)]
+    let tags = entry-tags(e.meta, id: e.id)
+    text(size: 9pt, fill: rgb("#555555"))[#date-line(e.meta)#if tags.len() > 0 [ · #tag-list(tags)]]
     parbreak()
     paged-body(e.body)
   }

@@ -89,9 +89,17 @@
 // friendly empty state. Everything else is emitted only when there's content.
 #let all-items = collect-items(entries, decks, pdfs-enabled: pdfs-enabled)
 #validate-collections(collection-meta)
+#validate-tag-paths(all-items)
 #document("index.html", title: [#brand.name])[#index-page(entries, decks: decks, brand: brand, collection-order: collection-order, collection-meta: collection-meta, index-config: index-config, landing: landing, pdfs-enabled: pdfs-enabled, writings-dir: manifest.writings)]
 #if all-items.len() > 0 {
   [#document("all.html", title: [#brand.name — all entries])[#all-page(entries, decks: decks, brand: brand, collection-meta: collection-meta, pdfs-enabled: pdfs-enabled)]]
+}
+#if tag-slugs(all-items).len() > 0 {
+  [#document("tags.html", title: [#brand.name — tags])[#tags-page(all-items, brand: brand)]]
+  for tag in tag-slugs(all-items) {
+    [#document("tags/" + tag + ".html", title: [#brand.name — #tag-label(tag)])[#tag-page(tag,
+      all-items.filter(item => tag in item.tags), brand: brand, collection-meta: collection-meta)]]
+  }
 }
 // Collection pages come from content plus explicit parent/child registration. This emits an empty
 // parent (and empty registered children) without inventing writings or hierarchy from slugs.

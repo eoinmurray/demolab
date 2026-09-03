@@ -1,5 +1,4 @@
 """End-to-end tests for generic writings, assets, and optional PDFs."""
-import base64
 import hashlib
 import json
 import os
@@ -26,9 +25,11 @@ def _assemble(root: Path, *, demo: bool = True) -> None:
         shutil.copytree(source / "writings", root / "writings", dirs_exist_ok=True)
         if (source / "assets").is_dir():
             shutil.copytree(source / "assets", root / "assets", dirs_exist_ok=True)
-        shutil.copytree(source / "data", root / ".artifacts", dirs_exist_ok=True)
-        shutil.copytree(source / "data", root / "data", dirs_exist_ok=True)
-        shutil.copytree(source / "scripts", root / "scripts", dirs_exist_ok=True)
+        if (source / "data").is_dir():
+            shutil.copytree(source / "data", root / ".artifacts", dirs_exist_ok=True)
+            shutil.copytree(source / "data", root / "data", dirs_exist_ok=True)
+        if (source / "scripts").is_dir():
+            shutil.copytree(source / "scripts", root / "scripts", dirs_exist_ok=True)
 
 
 def _assemble_demo(root: Path) -> None:
@@ -50,7 +51,8 @@ def _unpin_demo(root: Path) -> None:
     """Exercise legacy Typst-only defaults without pins or discovery."""
     config = _paths.layout_for(root).config
     text = config.read_text()
-    config.write_text(text[:text.index("build:\n")] + text[text.index("book-title:"):])
+    if "build:\n" in text:
+        config.write_text(text[:text.index("build:\n")] + text[text.index("book-title:"):])
 
 
 def _build_result(root: Path) -> subprocess.CompletedProcess:
@@ -228,97 +230,45 @@ def test_complete_build_is_reproducible_and_copies_assets(tmp_path: Path) -> Non
     assert first == second
     assert not stale_pdf.exists()
     site = root / ".demolab" / "site"
-    assert (site / "welcome.html").exists()
+    assert (site / "first-observation.html").exists()
     assert "Writings" in (site / "all.html").read_text()
     assert "Experiments" not in (site / "all.html").read_text()
-    assert 'class="theme-docs"' in (site / "api.html").read_text()
-    assert 'class="theme-docs"' in (site / "documentation.html").read_text()
-    assert 'class="theme-docs"' in (site / "pinglab-docs.html").read_text()
-    assert 'class="theme-docs"' not in (site / "pages.html").read_text()
+    assert 'class="theme-docs"' in (site / "create-a-page.html").read_text()
+    assert 'class="theme-docs"' in (site / "guides.html").read_text()
+    assert 'class="theme-docs"' not in (site / "examples.html").read_text()
     homepage = (site / "index.html").read_text()
-    assert homepage.count('href="documentation"') == 1  # header link only; directory stays hidden
-    assert 'href="api"' not in homepage
+    assert 'href="examples"' in homepage
+    assert 'href="guides"' in homepage
+    assert 'href="first-observation"' in homepage
     assert '<nav class="site-links" aria-label="Site links">' in homepage
-    assert '<a href="documentation">Developer docs</a>' in homepage
     assert '<a href="https://github.com/eoinmurray/demolab">Source</a>' in homepage
-    assert 'href="api"' in (site / "all.html").read_text()
-    parent = (site / "documentation.html").read_text()
-    children = ("pinglab-docs", "snnlang-docs", "snnsim-docs", "snnviz-docs")
-    assert all((site / f"{child}.html").exists() for child in children)
-    positions = [parent.index(f'href="{child}"') for child in children]
-    assert positions == sorted(positions)
-    assert "Pinglab docs" in parent and "Developer guides and API notes for Pinglab." in parent
-    assert '<span class="coll-count">1 entry</span>' in parent
-    assert parent.count('<span class="coll-count">0 entries</span>') == 3
+    assert 'href="create-a-page"' in (site / "all.html").read_text()
 
 
 @pytest.mark.parametrize("source_layout", [False, True])
-def test_source_demo_renders_single_gallery_and_comparison_cases(
+def test_source_demo_renders_fresh_stub_collections(
     tmp_path: Path, source_layout: bool,
 ) -> None:
     root = tmp_path / "presentation"
     root.mkdir()
     (_assemble_demo if source_layout else _assemble)(root)
     layout = _paths.layout_for(root)
-    inputs = [p for base in (layout.content / "data", layout.data, layout.writings)
-              for p in base.rglob("*") if p.is_file()]
+    inputs = [p for p in layout.content.rglob("*") if p.is_file()]
     before = {p: _sha256(p) for p in inputs}
-    runs = {f"benchmark-{experiment}-run-{run}" for experiment in ("a", "b")
-            for run in ("001", "002")}
-    assert {p.name for p in (layout.content / "data").iterdir()} == runs
-    records = {}
-    for run in sorted(runs):
-        directory = layout.data / run
-        record = json.loads((directory / "numbers.json").read_text())
-        assert record["synthetic"] is True
-        assert record["run_id"] == run
-        assert record["data_key"] == run.split("-run-")[0]
-        assert record["correct"] / record["total"] * 100 == record["accuracy_percent"]
-        chart = ET.parse(directory / "accuracy.svg")
-        bar = chart.find(".//{http://www.w3.org/2000/svg}rect[@id='value']")
-        assert bar is not None
-        assert float(bar.attrib["width"]) == record["accuracy_percent"] * 5
-        records[run] = record
-    for experiment in ("a", "b"):
-        first, second = (records[f"benchmark-{experiment}-run-{run}"] for run in ("001", "002"))
-        assert first["created_at"] < second["created_at"]
-        assert first["accuracy_percent"] != second["accuracy_percent"]
+    assert not (layout.content / "data").exists()
+    assert not (layout.content / "scripts").exists()
+    assert preview_config_absent(layout.config)
     _build(root)
     manifest = json.loads((root / ".demolab" / "bundle" / "index.json").read_text())
     assert all("error" not in entry for entry in manifest["entries"])
     site = root / ".demolab" / "site"
-    cases = {
-        "benchmark-a": ["benchmark-a-run-001"],
-        "benchmark-gallery": ["benchmark-a-run-001", "benchmark-b-run-002"],
-        "benchmark-comparison": sorted(runs),
-        "benchmark-empty": [],
-    }
-    assert {entry["id"] for entry in manifest["entries"]} == {"api", "welcome", *cases}
-    for article, selected in cases.items():
-        page = (site / f"{article}.html").read_text()
-        pdf = _pdf_text(site / "pdfs" / f"{article}.pdf")
-        figures = re.findall(r'<img src="data:image/svg\+xml;base64,([^"]+)"', page)
-        assert [base64.b64decode(figure) for figure in figures] == [
-            (layout.data / run / "accuracy.svg").read_bytes() for run in selected
-        ]
-        for run in selected:
-            percentage = records[run]["accuracy_percent"]
-            assert run in page and f"{percentage}% accuracy" in page
-            assert f"{percentage}% accuracy" in pdf
-        for run in runs - set(selected):
-            assert run not in page
-        if article == "benchmark-comparison":
-            for difference in (24, 20):
-                assert f"{difference} percentage points" in page
-                assert f"{difference} percentage points" in pdf
-        if article == "benchmark-empty":
-            assert page.count('class="fig-pending"') == 2
-            assert "Awaiting a run." in page and "Awaiting a run." in pdf
-            assert "Image pending" in page and "Video pending" in page
-        assert f'href="{article}"' in (site / "welcome.html").read_text()
-        assert f'href="{article}"' in (site / "data-source-demos.html").read_text()
-    assert 'href="data-source-demos"' in (site / "index.html").read_text()
-    assert 'href="benchmark-a"' in (site / "welcome.html").read_text()
+    ids = {"first-observation", "planned-study", "create-a-page", "organise-collections"}
+    assert {entry["id"] for entry in manifest["entries"]} == ids
+    assert all((site / f"{entry_id}.html").is_file() for entry_id in ids)
+    assert all((site / "pdfs" / f"{entry_id}.pdf").is_file() for entry_id in ids)
+    assert 'href="first-observation"' in (site / "examples.html").read_text()
+    guides = (site / "guides.html").read_text()
+    assert guides.index('href="create-a-page"') < guides.index('href="organise-collections"')
     assert before == {p: _sha256(p) for p in inputs}
     if source_layout:
         assert not (root / ".demo" / ".demolab").exists()
@@ -327,17 +277,21 @@ def test_source_demo_renders_single_gallery_and_comparison_cases(
         assert not (root / "demolab.yaml").exists()
 
 
+def preview_config_absent(config: Path) -> bool:
+    return "preview:" not in config.read_text() and "build:" not in config.read_text()
+
+
 def test_demo_cli_clean_and_rebuild_preserve_inputs_from_nested_directory(tmp_path: Path) -> None:
     root = tmp_path / "engine"
     _assemble_demo(root)
     demo = root / ".demo"
     before = {p.relative_to(demo): _sha256(p) for p in demo.rglob("*") if p.is_file()}
-    proc = _cli(demo / "writings", "build", "benchmark-a")
+    proc = _cli(demo / "writings", "build", "first-observation")
     assert proc.returncode == 0, proc.stdout + proc.stderr
-    assert "64% accuracy" in _pdf_text(root / ".demolab/pdfs/benchmark-a.pdf")
+    assert "State what was observed" in _pdf_text(root / ".demolab/pdfs/first-observation.pdf")
     proc = _cli(root, "build")
     assert proc.returncode == 0, proc.stdout + proc.stderr
-    proc = _cli(demo / "data/benchmark-a-run-002", "clean")
+    proc = _cli(demo / "writings", "clean")
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert not (root / ".demolab").exists()
     assert before == {p.relative_to(demo): _sha256(p) for p in demo.rglob("*") if p.is_file()}
@@ -357,90 +311,22 @@ def test_demo_layout_reaches_assets_landing_decks_and_pdf_config(tmp_path: Path)
     (assets / "example.txt").write_text("Demo static asset\n")
     (demo / "landing.typ").write_text('#let body = [Demo landing page]\n')
     (demo / "writings" / "demo.slide.typ").write_text(
-        '#import "/.demolab/lib.typ": data-file\n'
-        '#let data-file = data-file.with(sources: ("benchmark-a": "benchmark-a-run-001"))\n'
         '#let meta = (title: "Demo deck", created_at: "2026-08-27")\n'
-        '#let data = json(data-file("benchmark-a/numbers.json"))\n'
-        'Deck accuracy: #data.accuracy_percent%\n'
+        'A minimal demo deck.\n'
     )
     _build(root)
     site = root / ".demolab" / "site"
     assert "Demo landing page" in (site / "index.html").read_text()
     assert (site / "example.txt").read_text() == "Demo static asset\n"
-    assert "Deck accuracy: 64%" in _pdf_text(site / "pdfs/demo.pdf")
-    assert "64% accuracy" in _pdf_text(site / "pdfs/book.pdf")
+    assert "minimal demo deck" in _pdf_text(site / "pdfs/demo.pdf")
+    assert "State what was observed" in _pdf_text(site / "pdfs/book.pdf")
     (demo / "demolab.yaml").write_text("name: Web demo\npdfs: false\n")
-    proc = _cli(root, "build", "benchmark-a")
+    proc = _cli(root, "build", "first-observation")
     assert proc.returncode != 0
     assert "PDF publishing is disabled" in proc.stderr
     _build(root)
     assert not (site / "pdfs").exists()
     assert "Web demo" in (site / "index.html").read_text()
-
-
-@pytest.mark.parametrize(
-    ("article_id", "old_binding", "new_binding", "selected"),
-    [
-        ("benchmark-a", '"benchmark-a": "benchmark-a-run-001"',
-         '"benchmark-a": "benchmark-a-run-002"', ["benchmark-a-run-002"]),
-        ("benchmark-gallery", '"benchmark-a": "benchmark-a-run-001"',
-         '"benchmark-a": "benchmark-a-run-002"', ["benchmark-a-run-002", "benchmark-b-run-002"]),
-        ("benchmark-comparison", '"candidate.benchmark-a": "benchmark-a-run-002"',
-         '"candidate.benchmark-a": "benchmark-a-run-001"',
-         ["benchmark-a-run-001", "benchmark-a-run-001", "benchmark-b-run-001", "benchmark-b-run-002"]),
-    ],
-)
-def test_demo_binding_changes_only_its_article_and_input(
-    tmp_path: Path, article_id: str, old_binding: str, new_binding: str, selected: list[str],
-) -> None:
-    root = tmp_path / "engine"
-    _assemble_demo(root)
-    _unpin_demo(root)
-    _build(root)
-    site = root / ".demolab/site"
-    unchanged = {name: (site / f"{name}.html").read_bytes()
-                 for name in ("benchmark-a", "benchmark-gallery", "benchmark-comparison")
-                 if name != article_id}
-    article = root / ".demo/writings" / f"{article_id}.typ"
-    text = article.read_text()
-    assert old_binding in text
-    article.write_text(text.replace(old_binding, new_binding))
-    _build(root)
-    page = (site / f"{article_id}.html").read_text()
-    figures = re.findall(r'<img src="data:image/svg\+xml;base64,([^"]+)"', page)
-    assert [base64.b64decode(figure) for figure in figures] == [
-        (root / ".demo/data" / run / "accuracy.svg").read_bytes() for run in selected
-    ]
-    for run in selected:
-        data = json.loads((root / ".demo/data" / run / "numbers.json").read_text())
-        assert f'{data["accuracy_percent"]}% accuracy' in page
-    if article_id == "benchmark-comparison":
-        assert "0 percentage points" in page and "20 percentage points" in page
-        assert "88% accuracy" not in page
-        assert "benchmark-a-run-002" not in page
-    else:
-        assert "64% accuracy" not in page
-    assert unchanged == {name: (site / f"{name}.html").read_bytes() for name in unchanged}
-
-
-@pytest.mark.parametrize("run", ["benchmark-a-run-001", "benchmark-a-run-002",
-                                 "benchmark-b-run-001", "benchmark-b-run-002"])
-@pytest.mark.parametrize("filename", ["numbers.json", "accuracy.svg"])
-def test_demo_missing_data_produces_visible_stub(tmp_path: Path, run: str, filename: str) -> None:
-    root = tmp_path / "engine"
-    _assemble_demo(root)
-    _unpin_demo(root)
-    (root / ".demo/data" / run / filename).unlink()
-    _build(root)
-    site = root / ".demolab" / "site"
-    for article, affected in (
-        ("benchmark-a", run == "benchmark-a-run-001"),
-        ("benchmark-gallery", run in ("benchmark-a-run-001", "benchmark-b-run-002")),
-        ("benchmark-comparison", True),
-    ):
-        page = (site / f"{article}.html").read_text().lower()
-        assert ("failed to build" in page) == affected
-    assert (site / "welcome.html").is_file()
 
 
 @pytest.mark.parametrize(
@@ -569,8 +455,8 @@ def test_targeted_build_accepts_an_ordinary_slug(tmp_path: Path) -> None:
     root.mkdir()
     _assemble(root)
     shutil.rmtree(root / ".demolab" / "pdfs", ignore_errors=True)
-    _build(root, "welcome")
-    assert sorted(p.name for p in (root / ".demolab" / "pdfs").glob("*.pdf")) == ["welcome.pdf"]
+    _build(root, "first-observation")
+    assert sorted(p.name for p in (root / ".demolab" / "pdfs").glob("*.pdf")) == ["first-observation.pdf"]
     assert not (root / ".demolab" / "site").exists()
 
 
@@ -597,7 +483,7 @@ def test_web_only_build_prunes_site_pdfs_but_preserves_shareable_files(tmp_path:
     assert generated_sentinel.read_bytes() == b"keep"
     assert legacy_sentinel.read_bytes() == b"keep legacy"
     assert 'class="row-pdf"' not in (site / "all.html").read_text()
-    assert 'class="entry-pdf"' not in (site / "welcome.html").read_text()
+    assert 'class="entry-pdf"' not in (site / "first-observation.html").read_text()
 
 
 def test_targeted_pdf_rejects_web_only_presentation(tmp_path: Path) -> None:
@@ -606,7 +492,7 @@ def test_targeted_pdf_rejects_web_only_presentation(tmp_path: Path) -> None:
     _assemble(root)
     (root / "demolab.yaml").write_text("name: Test\npdfs: false\n")
     proc = subprocess.run(
-        [sys.executable, "-m", "demolab_cli.build", "welcome"],
+        [sys.executable, "-m", "demolab_cli.build", "first-observation"],
         env={**os.environ, "DEMOLAB_ROOT": str(root)}, capture_output=True, text=True,
     )
     assert proc.returncode != 0
@@ -624,7 +510,7 @@ def test_bad_writing_is_stubbed_without_taking_down_site(tmp_path: Path) -> None
     )
     _build(root)
     site = root / ".demolab" / "site"
-    assert (site / "welcome.html").exists()
+    assert (site / "first-observation.html").exists()
     assert (site / "broken.html").exists()
     assert "failed to build" in (site / "broken.html").read_text().lower()
     assert "broken" not in (site / "all.html").read_text().lower()
@@ -693,6 +579,96 @@ def test_status_is_visible_artifact_lifecycle(tmp_path: Path) -> None:
         if article_status is not None:
             collection_index = list(article_metadata).index(article_metadata.find('./a[@class="entry-collection"]'))
             assert article_metadata[collection_index + 1] is article_status
+
+
+def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "demolab.yaml").write_text(
+        "name: Tagged lab\ncollections:\n  notes:\n    label: Notes\n  guides:\n    label: Guides\n"
+    )
+    writings = root / "writings"
+    (writings / "alpha.typ").write_text(
+        '#let meta = (title: "Alpha", created_at: "2026-09-01", collection: "notes", '
+        'status: "ExpScout", tags: ("methods", "shared-topic"))\n'
+        '#let body = [Alpha body.]\n'
+    )
+    (writings / "beta.typ").write_text(
+        '#let meta = (title: "Beta", created_at: "2026-09-02", collection: "guides", '
+        'tags: ("shared-topic",))\n#let body = [Beta body.]\n'
+    )
+    (writings / "untagged.typ").write_text(
+        '#let meta = (title: "Untagged", created_at: "2026-09-03", collection: "notes")\n'
+        '#let body = [No tags.]\n'
+    )
+    (writings / "talk.slide.typ").write_text(
+        '#let meta = (title: "Talk", created_at: "2026-09-03", tags: ("shared-topic",))\n'
+        'Tagged slide.\n'
+    )
+
+    _build(root)
+    site = root / ".demolab" / "site"
+    assert (site / "tags.html").is_file()
+    assert (site / "tags" / "methods.html").is_file()
+    assert (site / "tags" / "shared-topic.html").is_file()
+    directory = (site / "tags.html").read_text()
+    assert 'href="tags/methods">methods</a>' in directory
+    assert 'href="tags/shared-topic">shared-topic</a>' in directory
+    assert "3 entries" in directory
+
+    shared = (site / "tags" / "shared-topic.html").read_text()
+    assert 'href="../alpha"' in shared and 'href="../beta"' in shared
+    assert 'href="../pdfs/talk.pdf"' in shared
+    assert 'href="../untagged"' not in shared
+    assert 'href="../notes">Notes</a>' in shared
+    assert 'href="../guides">Guides</a>' in shared
+    assert 'href="../favicon.svg"' in shared
+    assert 'src="../cite-popover.js"' in shared
+    assert 'src="../image-lightbox.js"' in shared
+
+    alpha = (site / "alpha.html").read_text()
+    assert '<span class="entry-tags"><a class="tag" href="tags/methods">methods</a> ' in alpha
+    assert '<a class="tag" href="tags/shared-topic">shared-topic</a></span>' in alpha
+    assert 'class="row-tags"' in (site / "notes.html").read_text()
+    assert "methods" in _pdf_text(site / "pdfs" / "alpha.pdf")
+    assert 'href="tags">Browse tags</a>' in (site / "index.html").read_text()
+
+
+@pytest.mark.parametrize(
+    ("tags", "message"),
+    (
+        ('"methods"', "meta.tags must be a list"),
+        ('("Not-Lowercase",)', "meta.tags values must be lowercase slugs"),
+        ('("shared", "other", "shared")', "meta.tags must not contain duplicates"),
+    ),
+)
+def test_invalid_tags_fail_the_build_clearly(
+    tmp_path: Path, tags: str, message: str,
+) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "writings" / "invalid.typ").write_text(
+        '#let meta = (title: "Invalid", created_at: "2026-09-03", tags: ' + tags + ')\n'
+        '#let body = [Invalid tags.]\n'
+    )
+    result = _build_result(root)
+    assert result.returncode != 0
+    assert message in result.stderr
+
+
+def test_tags_writing_id_is_reserved_when_tags_are_used(tmp_path: Path) -> None:
+    root = tmp_path / "presentation"
+    root.mkdir()
+    _assemble(root, demo=False)
+    (root / "writings" / "tags.typ").write_text(
+        '#let meta = (title: "Tags", created_at: "2026-09-03", tags: ("methods",))\n'
+        '#let body = [Reserved path.]\n'
+    )
+    result = _build_result(root)
+    assert result.returncode != 0
+    assert "writing ID 'tags' is reserved" in result.stderr
 
 
 @pytest.mark.parametrize(

@@ -10,7 +10,7 @@ uv sync
 uv run demolab dev
 ```
 
-Each writing exports `meta` and `body`; its filename becomes its URL. Collections, themes,
+Each writing exports `meta` and `body`; its filename becomes its URL. Collections, tags, themes,
 citations, video, a custom landing page, and standalone decks are available without an application
 server or JavaScript build chain. Set `pdfs: false` in `demolab.yaml` for web-only output.
 Set `writings: articles` to choose a different source directory. Nested folders are searched
@@ -26,7 +26,7 @@ Run `demolab docs` for the complete guide menu. Source documentation lives under
 
 ## Developing this repository
 
-The internal demo's configuration, articles, and data live in [`.demo/`](.demo/README.md).
+The internal demo's configuration and small example writings live in [`.demo/`](.demo/README.md).
 Run `uv run demolab dev` from the repository root; output stays in `.demolab/`.
 See [DEVELOPING.md](DEVELOPING.md) for the source-checkout layout and checks.
 

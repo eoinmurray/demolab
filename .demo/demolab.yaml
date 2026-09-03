@@ -1,64 +1,23 @@
-# Internal demo content; generated runtime stays in the repository's .demolab/.
-name: Example Site
-build:
-  sources:
-    benchmark-a:
-      benchmark-a: data/benchmark-a-run-001
-    benchmark-gallery:
-      benchmark-a: data/benchmark-a-run-001
-      benchmark-b: data/benchmark-b-run-002
-    benchmark-comparison:
-      baseline.benchmark-a: data/benchmark-a-run-001
-      candidate.benchmark-a: data/benchmark-a-run-002
-      baseline.benchmark-b: data/benchmark-b-run-001
-      candidate.benchmark-b: data/benchmark-b-run-002
-preview:
-  source: data
-  discover: [python, scripts/discover_runs.py]
-  articles:
-    # Explicit so the single-input demo also has a selector before its first run.
-    benchmark-a: [benchmark-a]
-    benchmark-empty: [benchmark-empty]
-    benchmark-gallery: [benchmark-a, benchmark-b]
-    benchmark-comparison:
-      baseline: [benchmark-a, benchmark-b]
-      candidate: [benchmark-a, benchmark-b]
-book-title: Example Site — collected pages
-contents-title: Example Site — contents
-description: A tiny Demolab site with ordinary pages, four data-source demos, and developer documentation.
+# Internal example content; generated runtime stays in the repository's .demolab/.
+name: Demolab Example
+book-title: Demolab Example — collected pages
+contents-title: Demolab Example — contents
+description: A small site showing ordinary writings organised into collections.
+
 links:
-  - label: Developer docs
-    url: documentation
   - label: Source
     url: https://github.com/eoinmurray/demolab
 
 index:
   mode: expanded
-  recent: 3
+  recent: 2
 
-collection-order: [pages, data-source-demos, documentation]
+collection-order: [examples, guides]
 collections:
-  pages:
-    label: Example pages
-    description: "Enough content to demonstrate navigation, writing metadata, and assets."
-  data-source-demos:
-    label: Data-source demos
-    description: "Single-run presentation, multi-input gallery, and paired comparisons with local run selectors."
-  documentation:
-    label: Documentation
-    description: "Developer documentation grouped by project."
+  examples:
+    label: Example studies
+    description: Short stub pages showing how research notes can be presented.
+  guides:
+    label: Example guides
+    description: Small documentation pages with an explicit reading order.
     theme: docs
-    homepage: false
-    children: [pinglab-docs, snnlang-docs, snnsim-docs, snnviz-docs]
-  pinglab-docs:
-    label: Pinglab docs
-    description: "Developer guides and API notes for Pinglab."
-  snnlang-docs:
-    label: SNNLANG docs
-    description: "Language reference and integration guides for SNNLANG."
-  snnsim-docs:
-    label: SNNSIM docs
-    description: "Simulation APIs and runtime documentation for SNNSIM."
-  snnviz-docs:
-    label: SNNVIZ docs
-    description: "Visualisation components and usage guides for SNNVIZ."

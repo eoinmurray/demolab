@@ -40,6 +40,13 @@ def test_error_entry_attributes_compile_and_selection_failures():
     sources = {"report": devserver._build_mod.ROOT / "writings" / "report.typ"}
     diagnostic = "error: broken\nwhile importing `/writings/report.typ`"
     assert devserver.error_entry(diagnostic, sources) == "report"
+    data_backed = (
+        "error: data-backed build compilation failed:\n"
+        "error: missing selected data file\n"
+        "while calling `data-file` at writings/run-inputs.typ:74:4\n"
+        "while importing `/writings/report.typ` at .demolab/bundle/main.typ:48:2"
+    )
+    assert devserver.error_entry(data_backed, sources) == "report"
     assert devserver.error_entry("report / results: no available run", sources) == "report"
     assert devserver.error_entry("invalid demolab.yaml", sources) == ""
 
@@ -50,8 +57,15 @@ def test_reload_client_shows_scoped_error_only_on_matching_route():
 globalThis.window = {};
 globalThis.location = {pathname: '/welcome'};
 let appended = 0;
+let removed = 0;
+let dismiss;
 globalThis.document = {
-  createElement: () => ({style: {}, remove: () => {}}),
+  createElement: (tag) => {
+    const element = {style: {}, appendChild: () => {}, setAttribute: () => {},
+                     remove: () => { removed += 1; }};
+    if (tag === 'button') dismiss = element;
+    return element;
+  },
   documentElement: {appendChild: () => { appended += 1; }}
 };
 globalThis.EventSource = function () { globalThis.events = this; };
@@ -62,6 +76,9 @@ if (appended !== 0) throw new Error('error leaked onto another page');
 location.pathname = '/report.html';
 events.onmessage({data: SCOPED});
 if (appended !== 1) throw new Error('matching page did not show its error');
+if (!dismiss || typeof dismiss.onclick !== 'function') throw new Error('error cannot be dismissed');
+dismiss.onclick();
+if (removed !== 1) throw new Error('dismiss did not remove the error');
 events.onmessage({data: 'ok'});
 location.pathname = '/welcome';
 events.onmessage({data: GLOBAL});
@@ -84,6 +101,23 @@ def test_preview_build_records_article_scope(tmp_path, monkeypatch):
     monkeypatch.setattr(devserver._build_mod, "discover", lambda: ({"report": source}, {}))
     assert not devserver.build()[0]
     assert session.error_entry == "report"
+
+
+def test_data_backed_build_without_preview_records_article_scope(tmp_path, monkeypatch):
+    layout = _paths.layout_for(tmp_path)
+    source = devserver._build_mod.ROOT / "writings" / "report.typ"
+    diagnostic = (
+        "error: data-backed build compilation failed:\n"
+        "error: missing selected data file\n"
+        "while importing `/writings/report.typ` at .demolab/bundle/main.typ:48:2"
+    )
+    monkeypatch.setattr(devserver, "LAYOUT", layout)
+    monkeypatch.setattr(devserver, "PREVIEW", None)
+    monkeypatch.setattr(devserver.preview, "load_config", lambda _: None)
+    monkeypatch.setattr(devserver, "_compile", lambda *args: (False, diagnostic))
+    monkeypatch.setattr(devserver._build_mod, "discover", lambda: ({"report": source}, {}))
+    assert devserver.build() == (False, diagnostic)
+    assert devserver._last_build_entry[0] == "report"
 
 
 def test_global_preview_failure_clears_previous_article_scope(tmp_path, monkeypatch):

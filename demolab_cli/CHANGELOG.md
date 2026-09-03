@@ -13,6 +13,23 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.0] — 2026-09-03
+
+### Added
+- **Cross-collection tags.** Writings and decks may declare `meta.tags` as a list of
+  lowercase slugs. Demolab renders linked tags in web listings and article metadata,
+  includes them in PDFs, and generates a tag directory plus one page per tag. Tags are
+  discovery metadata only and never change collections, lifecycle ordering, or reading order.
+
+### Fixed
+- **Data-backed page failures stay on their page in dev.** Build-source failures now retain
+  writing attribution even when no preview session exists, instead of displaying the error on
+  every open page. The fallback error overlay also has an explicit Dismiss button.
+
+### Changed
+- **The internal development demo is small and current.** Retire the historical synthetic-run
+  catalogue and replace it with four ordinary stub writings across two example collections.
+
 ## [5.3.2] — 2026-09-02
 
 ### Changed

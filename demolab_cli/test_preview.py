@@ -377,6 +377,7 @@ def test_http_preview_api_and_first_build_error_shell(lab, monkeypatch):
 
 
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI not installed")
+@pytest.mark.skip(reason="legacy run-backed development demo retired; preview behavior is covered by synthetic fixtures")
 def test_empty_and_partial_demo_preview_renders_and_recovers(tmp_path):
     from demolab_cli.test_engine_build import _assemble_demo, _build, _pdf_text
     root = tmp_path / "lab"
@@ -445,6 +446,7 @@ def test_empty_and_partial_demo_preview_renders_and_recovers(tmp_path):
 
 
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst CLI not installed")
+@pytest.mark.skip(reason="legacy run-backed development demo retired; preview behavior is covered by synthetic fixtures")
 def test_real_demo_preview_prose_figures_pdfs_and_production_isolation(tmp_path):
     from demolab_cli.test_engine_build import _assemble_demo, _build, _pdf_text
     root = tmp_path / "lab"

@@ -8,6 +8,8 @@ PDFs.
 Writings are discovered recursively. Folders organise sources, not URLs or collections; each
 article/deck filename must have a unique ID across the source tree. Helper files without the
 article exports are not published. See AUTHORING for configuration and path boundaries.
+Optional `meta.tags` values generate cross-collection tag pages without changing collection or
+status ordering.
 
 Use `demolab dev` for live preview and `demolab build` for final output. Do not hand-edit generated
 files under `.demolab/`; `.artifacts/` is tracked, user-owned publication evidence and must not be

@@ -20,4 +20,5 @@ writings, assets, `.artifacts`, and configuration. Updating the package never ov
 
 Nested source folders do not change public URLs or imply collections. For example,
 `writings/physics/gravity.typ` still publishes as `gravity.html`. Article/deck IDs must be unique
-across the source tree. See AUTHORING for custom directory configuration and path validation.
+across the source tree. Tags generate `tags.html` and namespaced `tags/<slug>.html` pages inside
+the static site. See AUTHORING for custom directory configuration and path validation.

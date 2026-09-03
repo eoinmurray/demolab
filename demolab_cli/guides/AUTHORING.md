@@ -9,6 +9,7 @@ Demolab publishes Typst writings. Create `writings/<slug>.typ` with two exports:
   updated_at: "2026-08-27T14:30:00+02:00",
   description: "One sentence for listings.",
   collection: "notes",
+  tags: ("information-theory", "methods"),
 )
 
 #let body = [
@@ -21,8 +22,26 @@ IDs are unnecessary. `title` and `created_at` are required. Add `updated_at` onl
 substantive content update; every supplied update date is displayed, even if it equals the
 creation date. Omit it when no update should appear. Demolab renders authored values and never
 infers dates. The legacy `date` field remains a deprecated fallback for existing writings.
-Optional `description`, `collection`, `status`, `order`, and `annotations` fields control listings
+Optional `description`, `collection`, `tags`, `status`, `order`, and `annotations` fields control listings
 and presentation.
+
+### Tags
+
+Use `meta.tags` for subjects or methods that cut across collections:
+
+```typst
+tags: ("information-theory", "spiking-neural-networks"),
+```
+
+Tags must be a Typst list of unique lowercase slugs containing letters, numbers, and single
+hyphens. A one-item list needs its trailing comma: `("methods",)`. Invalid values fail the build
+with the writing ID in the error. The ID `tags` is reserved whenever any tags are present.
+
+Demolab shows linked `tag-name` labels in web listings and article headers, includes plain labels
+in PDFs and the combined book, and generates `/tags` plus `/tags/<slug>` pages. Tags are
+many-to-many discovery metadata: they never infer collections, form a hierarchy, or change status,
+date, curated reading, or homepage ordering. Use a collection when something defines primary
+navigation or reading order.
 
 ### Authored dates and datetimes
 

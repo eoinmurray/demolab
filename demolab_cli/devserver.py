@@ -8,8 +8,8 @@ couldn't:
      (Typst can't list a directory), so a brand-new writings/expNNN.typ or a *.slide.typ deck
      appears without restarting the server.
   2. A failed compile shows up IN the browser. `typst watch` kept the last good site and printed
-     the error only to the terminal; here a failed build paints a full-screen overlay in the page
-     (and it clears on the next good build), so a broken edit can't masquerade as a working site.
+     the error only to the terminal; here a failed build is shown on the responsible page when it
+     can be attributed, or site-wide for configuration/engine failures.
 
 Trade-off vs `typst watch`: a full build.py per save (~1s for a small lab) instead of Typst's
 incremental recompile. Simpler, and it makes the dev path honest. No Node, no new dependencies.
@@ -99,6 +99,7 @@ BUILD_TIMEOUT = 120  # a compile still running after this is stuck, not slow —
 RELOAD_JS = r"""
 (function () {
   var overlay;
+  var overlayMessage;
   function currentEntry() {
     var path = decodeURIComponent(location.pathname).replace(/\/+$/, '');
     var name = path.slice(path.lastIndexOf('/') + 1);
@@ -113,14 +114,26 @@ RELOAD_JS = r"""
         'position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.2rem 2.4rem;overflow:auto;' +
         'background:#1a1a1af2;color:#f4f4f2;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;' +
         'white-space:pre-wrap;-webkit-font-smoothing:antialiased;backdrop-filter:blur(1px)';
+      var dismiss = document.createElement('button');
+      dismiss.type = 'button';
+      dismiss.textContent = 'Dismiss';
+      dismiss.setAttribute('aria-label', 'Dismiss build error');
+      dismiss.style.cssText =
+        'position:fixed;top:1rem;right:1rem;padding:.45rem .7rem;border:1px solid #f4f4f280;' +
+        'border-radius:3px;background:#333;color:#fff;font:inherit;cursor:pointer';
+      dismiss.onclick = clear;
+      overlayMessage = document.createElement('pre');
+      overlayMessage.style.cssText = 'margin:0;white-space:pre-wrap;font:inherit';
+      overlay.appendChild(dismiss);
+      overlay.appendChild(overlayMessage);
       document.documentElement.appendChild(overlay);
     }
-    overlay.textContent = '⚠  demolab build failed\n\n' + msg +
+    overlayMessage.textContent = '⚠  demolab build failed\n\n' + msg +
       '\n\nFix the source; this clears on the next good build.';
   }
   function clear() {
     if (window.__demolabPreviewClearError) window.__demolabPreviewClearError();
-    if (overlay) { overlay.remove(); overlay = null; }
+    if (overlay) { overlay.remove(); overlay = null; overlayMessage = null; }
   }
   function connect() {
     var es = new EventSource('/__dev');
@@ -148,6 +161,7 @@ RELOAD_JS = r"""
 _lock = threading.Lock()
 _clients = []                 # list[queue.Queue] — one per connected browser tab
 _last_error = [None]          # latest {message, entry} failure (None when the last build was clean)
+_last_build_entry = [""]      # attribution from the latest build, independent of preview mode
 
 
 def broadcast(msg: str) -> None:
@@ -271,12 +285,20 @@ def _compile(skip_decks: bool = False, *, selected: bool = False) -> tuple[bool,
 
 def build(skip_decks: bool = False) -> tuple[bool, str]:
     global PREVIEW, SITE
+    _last_build_entry[0] = ""
     try:
         config = preview.load_config(LAYOUT)
         if config is None:
             PREVIEW = None
             SITE = LAYOUT.runtime / "site"
-            return _compile(skip_decks)
+            result = _compile(skip_decks)
+            if not result[0]:
+                try:
+                    ids, _ = _build_mod.discover()
+                except (_paths.LayoutError, OSError, ValueError):
+                    ids = {}
+                _last_build_entry[0] = error_entry(result[1], ids)
+            return result
         if PREVIEW is None:
             PREVIEW = preview.Session(LAYOUT)
         SITE = PREVIEW.runtime / "site"
@@ -284,6 +306,7 @@ def build(skip_decks: bool = False) -> tuple[bool, str]:
         result = PREVIEW.rebuild(config, ids, lambda: _compile(selected=True))
         with PREVIEW.lock:
             PREVIEW.error_entry = "" if result[0] else error_entry(result[1], ids)
+            _last_build_entry[0] = PREVIEW.error_entry
         return result
     except (preview.PreviewError, _paths.LayoutError, OSError, ValueError) as exc:
         # Even an invalid first configuration needs a recoverable error panel.
@@ -543,7 +566,7 @@ def watch_loop():
     """Poll the source signature; on a settled change, rebuild and tell the browser."""
     last = snapshot()
     ok, msg = build()  # first build always compiles decks so their PDFs exist for later skips
-    entry = "" if ok else (PREVIEW.error_entry if PREVIEW is not None else "")
+    entry = "" if ok else _last_build_entry[0]
     _last_error[0] = None if ok else {"message": msg, "entry": entry}
     print("  first build: " + ("ok" if ok else "FAILED\n" + msg), flush=True)
     broadcast("reload" if ok else error_event(msg, entry))
@@ -570,7 +593,7 @@ def watch_loop():
                 print("  rebuilt" + (" (decks skipped)" if skip else "") + ": " + msg, flush=True)
                 broadcast("reload")
             else:
-                entry = PREVIEW.error_entry if PREVIEW is not None else ""
+                entry = _last_build_entry[0]
                 _last_error[0] = {"message": msg, "entry": entry}
                 print("  BUILD FAILED (shown in browser):\n" + msg, flush=True)
                 broadcast(error_event(msg, entry))

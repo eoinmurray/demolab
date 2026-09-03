@@ -167,6 +167,19 @@ ol.refs .doi:hover { color: var(--ink); }
 
 /* Experiment artifact stage (`.status`): inherits the metadata line's quiet treatment. */
 
+/* Tags are linked discovery metadata, not lifecycle badges. Keep them visibly navigable and
+   quieter than titles; spacing survives wrapping when an entry has several tags. */
+.row-tags, .entry-tags { display: inline-flex; flex-wrap: wrap; gap: .15rem .45rem; }
+.row-tags .tag, .entry-tags .tag {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: #bcc0c4;
+}
+.row-tags .tag:hover, .entry-tags .tag:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
 /* Build-error stub: an entry that failed to compile (a missing figure, a Typst error) is served as
    a stub page with the error in this block, so the failure is visible on its own page while the
    rest of the site is fine. */

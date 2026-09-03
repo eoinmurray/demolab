@@ -23,7 +23,10 @@ Demolab has one pipeline: user-owned `writings/ + assets/ + .artifacts/` inputs 
    `ExpStudyPlan`, or `ExpStudy`. Every supplied stage is visible, and listings follow that
    lifecycle order. Omit it from articles and untyped legacy writings. It identifies the artifact
    that exists, not execution progress or editorial completion.
-7. Every writing sets immutable `meta.created_at` to a `"YYYY-MM-DD"` date or an ISO
+7. A writing or deck may set `meta.tags` to a list of unique lowercase slugs. Tags generate
+   cross-collection browsing pages and remain display/discovery metadata only: they never infer
+   collections, form hierarchy, or affect lifecycle, date, curated, or homepage ordering.
+8. Every writing sets immutable `meta.created_at` to a `"YYYY-MM-DD"` date or an ISO
    datetime with an explicit `Z` or `+/-HH:MM` timezone. Set `meta.updated_at` to the date or
    datetime of the most recent substantive content update and omit it when unchanged. Demolab
    validates and renders only authored values; it never derives them from Git, filesystem,
@@ -32,13 +35,13 @@ Demolab has one pipeline: user-owned `writings/ + assets/ + .artifacts/` inputs 
    remains a compatibility fallback for existing writings. A supplied `updated_at` is always
    displayed, even when it equals `created_at`; omit it when no update should be shown. Dates do
    not affect collection order.
-8. The homepage is a collection directory unless `demolab.yaml` sets `index.mode: expanded`.
+9. The homepage is a collection directory unless `demolab.yaml` sets `index.mode: expanded`.
    Expanded mode optionally shows the newest `index.recent` ordinary writings by authored
    `updated_at ?? created_at` (ID descending breaks ties), then expands collections in existing
    `collection-order`. Collection writings combine into one ID-descending list: status and curated
    `order` remain visible metadata but never affect this homepage order. Slides are not recent and
    keep their existing separate treatment. `index.recent` defaults to `0` and cannot be negative.
-9. Collection nesting is authored only through a registered collection's `children` list. Child
+10. Collection nesting is authored only through a registered collection's `children` list. Child
    order is the list order; every child has at most one parent; unknown children and cycles fail
    the build. Children inherit the nearest configured theme and cannot override a hidden parent's
    homepage visibility. Nesting never infers dates, parentage, or writing order.

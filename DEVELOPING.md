@@ -3,8 +3,8 @@
 This repository is the source of `demolab-cli`. The package is installed editable, so
 `uv run demolab` executes the working tree.
 
-All internal demo inputs live in `.demo/`: `demolab.yaml`, `writings/`, four peer run
-directories under `data/`, and optional `assets/` or `landing.typ`. See [.demo/README.md](.demo/README.md).
+All internal demo inputs live in `.demo/`: `demolab.yaml`, `writings/`, and optional
+`assets/` or `landing.typ`. See [.demo/README.md](.demo/README.md).
 Generated files live only in the repository's `.demolab/`, never inside `.demo/`.
 
 From the repository root (or a demo subdirectory), run `uv run demolab dev`,
@@ -15,17 +15,10 @@ touching `.demo/`; the next build recreates it. There is no need to copy or syml
 `.demo/demolab.yaml` plus `demolab_cli/build.py` and `demolab_cli/VERSION`; a root
 `demolab.yaml` takes precedence as an ordinary lab. Typst's root remains the checkout root;
 internal compiler inputs route config, writings, assets, and `data-file()` to the demo.
-Every compile path (site, book, entry PDF, and deck) receives the same layout.
-The three data-source demo articles bind `data-file()` with article IDs and Typst `sources` dictionaries:
-one run, a multi-experiment gallery, and paired baseline/candidate comparisons. Two synthetic
-experiments have two runs each; directory names do not imply default/latest status.
-A fourth article, `benchmark-empty`, explicitly attaches an experiment with no runs and
-demonstrates pending numerical results, an image, and a video without changing discovery.
-Unmapped data keys retain the helper's existing root-relative resolution. The demo's opt-in
-`preview` configuration discovers these fixtures through `.demo/scripts/discover_runs.py`.
-Dev starts each input at Latest; ordinary builds discover Latest once and apply the committed
-`build.sources` mapping as whole-article overrides. Removing those pins uses Latest, not the
-Typst `sources` defaults; those remain compatible when discovery is absent or disabled.
+Every compile path (site, book, entry PDF, and deck) receives the same layout. The internal
+site intentionally contains only ordinary stub writings in a few example collections. Feature
+tests create their own isolated fixtures instead of turning the development site into a catalogue
+of historical engine behaviour.
 
 Ordinary labs still use root `demolab.yaml`, `writings/`, `assets/`, `.artifacts/`, and
 `.demolab/`. Demo content is not shipped in the wheel or installed by `demolab init`, which
