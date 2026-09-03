@@ -591,7 +591,7 @@ def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
     writings = root / "writings"
     (writings / "alpha.typ").write_text(
         '#let meta = (title: "Alpha", created_at: "2026-09-01", collection: "notes", '
-        'status: "ExpScout", tags: ("methods", "shared-topic"))\n'
+        'status: "ExpScout", tags: ("methods", "shared-topic", "v35.0.0"))\n'
         '#let body = [Alpha body.]\n'
     )
     (writings / "beta.typ").write_text(
@@ -612,9 +612,11 @@ def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
     assert (site / "tags.html").is_file()
     assert (site / "tags" / "methods.html").is_file()
     assert (site / "tags" / "shared-topic.html").is_file()
+    assert (site / "tags" / "v35.0.0.html").is_file()
     directory = (site / "tags.html").read_text()
     assert 'href="tags/methods">methods</a>' in directory
     assert 'href="tags/shared-topic">shared-topic</a>' in directory
+    assert 'href="tags/v35.0.0">v35.0.0</a>' in directory
     assert "3 entries" in directory
 
     shared = (site / "tags" / "shared-topic.html").read_text()
@@ -629,7 +631,8 @@ def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
 
     alpha = (site / "alpha.html").read_text()
     assert '<span class="entry-tags"><a class="tag" href="tags/methods">methods</a> ' in alpha
-    assert '<a class="tag" href="tags/shared-topic">shared-topic</a></span>' in alpha
+    assert '<a class="tag" href="tags/shared-topic">shared-topic</a> ' in alpha
+    assert '<a class="tag" href="tags/v35.0.0">v35.0.0</a></span>' in alpha
     assert 'class="row-tags"' in (site / "notes.html").read_text()
     assert "methods" in _pdf_text(site / "pdfs" / "alpha.pdf")
     assert 'href="tags">Browse tags</a>' in (site / "index.html").read_text()
@@ -640,6 +643,7 @@ def test_tags_render_as_cross_collection_navigation(tmp_path: Path) -> None:
     (
         ('"methods"', "meta.tags must be a list"),
         ('("Not-Lowercase",)', "meta.tags values must be lowercase slugs"),
+        ('("v35..0",)', "meta.tags values must be lowercase slugs"),
         ('("shared", "other", "shared")', "meta.tags must not contain duplicates"),
     ),
 )

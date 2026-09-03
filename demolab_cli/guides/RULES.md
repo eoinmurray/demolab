@@ -23,7 +23,8 @@ Demolab has one pipeline: user-owned `writings/ + assets/ + .artifacts/` inputs 
    `ExpStudyPlan`, or `ExpStudy`. Every supplied stage is visible, and listings follow that
    lifecycle order. Omit it from articles and untyped legacy writings. It identifies the artifact
    that exists, not execution progress or editorial completion.
-7. A writing or deck may set `meta.tags` to a list of unique lowercase slugs. Tags generate
+7. A writing or deck may set `meta.tags` to a list of unique lowercase slugs, with hyphens or
+   dots separating components. Tags generate
    cross-collection browsing pages and remain display/discovery metadata only: they never infer
    collections, form hierarchy, or affect lifecycle, date, curated, or homepage ordering.
 8. Every writing sets immutable `meta.created_at` to a `"YYYY-MM-DD"` date or an ISO

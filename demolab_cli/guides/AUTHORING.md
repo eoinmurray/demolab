@@ -33,9 +33,10 @@ Use `meta.tags` for subjects or methods that cut across collections:
 tags: ("information-theory", "spiking-neural-networks"),
 ```
 
-Tags must be a Typst list of unique lowercase slugs containing letters, numbers, and single
-hyphens. A one-item list needs its trailing comma: `("methods",)`. Invalid values fail the build
-with the writing ID in the error. The ID `tags` is reserved whenever any tags are present.
+Tags must be a Typst list of unique lowercase slugs containing letters and numbers, with single
+hyphens or dots between components. For example, `v35.0.0` is valid while `.hidden`, `v35..0`,
+and `v35.` are not. A one-item list needs its trailing comma: `("methods",)`. Invalid values fail
+the build with the writing ID in the error. The ID `tags` is reserved whenever any tags are present.
 
 Demolab shows linked `tag-name` labels in web listings and article headers, includes plain labels
 in PDFs and the combined book, and generates `/tags` plus `/tags/<slug>` pages. Tags are

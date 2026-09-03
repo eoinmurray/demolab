@@ -426,15 +426,15 @@
 }
 
 // --- tags: optional many-to-many discovery metadata ---
-// Tags are stable lowercase slugs. They never determine collection membership, lifecycle
+// Tags are stable lowercase slugs; hyphens and dots may separate components. They never determine collection membership, lifecycle
 // status, or ordering; generated pages simply gather items that explicitly name a tag.
 #let entry-tags(meta, id: none) = {
   let tags = meta.at("tags", default: ())
   let owner = if id == none { "entry" } else { "entry '" + id + "'" }
   assert(type(tags) == array, message: owner + " meta.tags must be a list")
   for tag in tags {
-    assert(type(tag) == str and tag.match(regex("^[a-z0-9]+(-[a-z0-9]+)*$")) != none,
-      message: owner + " meta.tags values must be lowercase slugs such as 'information-theory'")
+    assert(type(tag) == str and tag.match(regex("^[a-z0-9]+([.-][a-z0-9]+)*$")) != none,
+      message: owner + " meta.tags values must be lowercase slugs such as 'information-theory' or 'v35.0.0'")
   }
   assert(tags.sorted().dedup().len() == tags.len(), message: owner + " meta.tags must not contain duplicates")
   tags

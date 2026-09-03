@@ -13,6 +13,13 @@ the runbook shows the entries between your version and the latest.
 
 ## [Unreleased]
 
+## [5.4.1] — 2026-09-03
+
+### Fixed
+- **Version-like tags retain their natural spelling.** Tag slugs may use single dots between
+  lowercase alphanumeric components, so values such as `v35.0.0` render and link directly while
+  leading, trailing and repeated punctuation remain invalid.
+
 ## [5.4.0] — 2026-09-03
 
 ### Added
